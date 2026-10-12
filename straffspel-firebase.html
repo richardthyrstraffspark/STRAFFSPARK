@@ -38,11 +38,10 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 <h1>⚽ STRAFF 8-BIT</h1>
 <div id="lobby">
  <div class="box"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><p>TRÖJFÄRG</p><div id="sw"></div></div>
- <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mk">STARTA MATCH</button><p>VISAS FÖR ALLA I LISTAN</p></div>
+ <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mkp">SKAPA MATCH</button><p>DU FÅR EN KOD ATT SKICKA TILL DIN MOTSTÅNDARE</p></div>
  <div class="box"><p>MINA MATCHER</p><div id="ml">INGA ÄNNU</div></div>
- <div class="box"><p>STARTADE MATCHER</p><div id="ol">INGA ÄNNU</div></div>
- <div class="box"><p>UTMANA EN KOMPIS</p><button id="mkp">SKAPA PRIVAT MATCH</button><p>ELLER ANGE KOD</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
- <div class="box"><p>JUBELGALLERI</p><button id="g0">KNÄGLIDNING</button><button id="g1">SPURT</button><button id="g2">VOLT</button><button id="g3">SEGER</button></div>
+ <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
+ <div class="box"><p>JUBELGALLERI</p><button id="g0">KNÄGLIDNING</button><button id="g1">SPURT</button><button id="g2">VOLT</button><button id="g3">SEGER</button><button id="g4">FÖRLUST</button></div>
  <div id="err"></div>
 </div>
 <div id="game" class="hide">
@@ -135,7 +134,7 @@ function fig(x,y,c,pose,d,tk,gl,num,ns,seed,front){
     else if(pose==="sad")R(x+hx+3,yy+hy+7,2,1,"#6b3a20");
     else R(x+hx+3,yy+hy+6,2,1,"#a5522b")}}
  }
- if(T&&num&&!front){const sd2=String(num),lc=(c==="#f1f3f5"||c==="#fcc419")?"#000":"#fff",ox=sd2.length===1?2:0;
+ if(T&&num&&!front){const dk=LT.includes(c),lc=dk?"#fff":shade(c,.55);R(x+T[0],yy+T[1]+1,8,5,dk?"#222":"#fff");const sd2=String(num),ox=sd2.length===1?2:0;
   sd2.split("").forEach((ch,i)=>{const g=DG[+ch];for(let r=0;r<5;r++)for(let q=0;q<3;q++)if(g[r*3+q]==="1")R(x+T[0]+ox+i*4+q,yy+T[1]+1+r,1,1,lc)})}
 }
 
@@ -202,7 +201,7 @@ function ui(){
  if(mode==="shoot"&&!nextNum)nextNum=pickNum(idx);if(mode!=="shoot")nextNum=0;
  let t="";
  if(st.need==="open"){t='SKICKA KODEN TILL DIN MOTSTÅNDARE<br><span class="code">'+code+'</span><br>VÄNTAR PÅ SPELARE 2...<br>DU KAN LÄMNA SIDAN OCH KOMMA TILLBAKA MED KODEN.'}
- else if(st.need==="over"){t=g[0]===g[1]?"OAVGJORT! 🤝":"🏆 "+nm(g[0]>g[1]?0:1)+" VINNER!";ok.textContent="NY MATCH";ok.classList.remove("hide")}
+ else if(st.need==="over"){{const w=g[0]>g[1]?0:1;t=(w===idx?"🏆 SEGER! DU VANN":"FÖRLUST. "+nm(w)+" VANN")+"<br>"+g[0]+" – "+g[1]}ok.textContent="TILLBAKA";ok.classList.remove("hide")}
  else if(mode==="shoot")t="DIN TUR ATT SLÅ! 🥅<br>VÄLJ RUTA"+(sel>=0?": "+ZN[sel]:"");
  else if(mode==="save")t="RÄDDA! 🧤<br>VAR KASTAR DU DIG"+(sel>=0?"? "+ZN[sel]:"?");
  else t=(st.need==="shoot"?"VÄNTAR PÅ ATT "+nm(st.who)+" SKA SLÅ":"VÄNTAR PÅ ATT "+nm(st.who)+" SKA RÄDDA")+"...";
@@ -223,23 +222,27 @@ function big(x,y,c,pose,sc,tk,seed,rot,lift){
  else{cx.scale(sc,sc);fig(0,0,c,pose,0,tk,false,undefined,false,seed,true)}
  cx.restore();
 }
-function victory(s,w){
- const N=!(M&&M.tod==="day"),c=M.c[w],sd=w*40+5,SE=[sd,sd+13,sd+29,sd+41,sd+57],XS=[28,54,80,106,132],P=(x,y,pose,sc,seed,rot,lift)=>big(x,y,c,pose,sc,s*1000,seed,rot,lift);
+function cbg(s,N,calm){
  const CC=["#e03131","#fcc419","#f8f9fa","#1c7ed6","#7048e8","#2f9e44","#f76707","#e64980","#adb5bd"];
  R(0,0,160,100,N?"#0b1330":"#4aa3e8");
- for(let j=0;j<13;j++)for(let i=0;i<40;i++){const v=(i*7+j*13)%9,b=(Math.floor(s*5+i*3+j)%4===0)?-1:0;
+ for(let j=0;j<13;j++)for(let i=0;i<40;i++){const v=(i*7+j*13)%9,b=(!calm&&Math.floor(s*5+i*3+j)%4===0)?-1:0;
   R(i*4,j*4+2+b,4,2,CC[v]);R(i*4+1,j*4+b,2,2,"#f2b880");
-  if(v%3===0&&Math.floor(s*6+i)%2)R(i*4,j*4-2+b,1,2,"#f2b880")}
+  if(!calm&&v%3===0&&Math.floor(s*6+i)%2)R(i*4,j*4-2+b,1,2,"#f2b880")}
  if(N)R(0,0,160,52,"rgba(0,10,40,.5)");
  for(let i=0;i<20;i++)R(i*8,52,8,6,N?(i%2?"#1b1b1b":"#e8590c"):(i%2?"#f8f9fa":"#d9480f"));
  R(0,52,160,1,"#000");R(0,58,160,42,N?"#1f6b34":"#2e9b3f");
  {let y=58,h=5,i=0;while(y<100){if(i%2)R(0,y,160,h,N?"#257a3d":"#38b04a");y+=h;h+=2;i++}}
+}
+function victory(s,w){
+ const N=!(M&&M.tod==="day"),c=M.c[w],sd=w*40+5,SE=[sd,sd+13,sd+29,sd+41,sd+57],XS=[28,54,80,106,132],P=(x,y,pose,sc,seed,rot,lift)=>big(x,y,c,pose,sc,s*1000,seed,rot,lift);
+ const CC=["#e03131","#fcc419","#f8f9fa","#1c7ed6","#7048e8","#2f9e44","#f76707","#e64980","#adb5bd"];
+ cbg(s,N,false);
  for(let i=0;i<5;i++){
   const st=i<3?-30-i*25:190+(i-3)*25,a=eo(cl((s-.15*i)/1.4)),x=lerp(st,XS[i],a),arr=a<1;
-  if(i===3&&arr)for(let j=1;j<7;j++){const z=Math.max(2,6-j*.6);R(x+12+j*6,92-(j%3)*3,z,z,"#e9ddb5")}
+  if(i===3&&arr)for(let j=1;j<7;j++){const z=Math.max(2,6-j*.6);R(x+12+j*6,88-(j%3)*3,z,z,"#e9ddb5")}
   if(i===2&&s>2){const q=cl((s-2)/1.6),q2=(q*2)%1;
-   if(q<1)P(x,94,"tuck",2,SE[i],-Math.PI/2*Math.floor(q2*4),Math.sin(Math.PI*q2)*14);else P(x,94,"cheer",2,SE[i])}
-  else P(x,94,arr?(i===3?"slide":"run"):"cheer",2,SE[i]);
+   if(q<1)P(x,90,"tuck",2,SE[i],-Math.PI/2*Math.floor(q2*4),Math.sin(Math.PI*q2)*14);else P(x,90,"cheer",2,SE[i])}
+  else P(x,90,arr?(i===3?"slide":"run"):"cheer",2,SE[i]);
  }
  if(s>2.6){const e=eo(cl((s-2.6)/1)),ty=lerp(100,18,e);
   R(71,ty-1,18,12,"#000");R(72,ty,16,10,"#fcc419");R(68,ty+1,4,6,"#fcc419");R(88,ty+1,4,6,"#fcc419");R(75,ty+10,10,5,"#e0a800");R(72,ty+15,16,3,"#fcc419");R(75,ty+2,3,5,"#fff3bf")}
@@ -247,9 +250,24 @@ function victory(s,w){
  R(0,0,160,8,"#000");R(0,92,160,8,"#000");
  if(s<.12)R(0,0,160,100,"rgba(255,255,255,.6)");
 }
+function defeat(s,l){
+ const N=!(M&&M.tod==="day"),c=M.c[l],sd=l*40+5,SE=[sd,sd+13,sd+29,sd+41,sd+57],XS=[28,54,80,106,132],P=(x,y,pose,sc,seed)=>big(x,y,c,pose,sc,s*1000,seed);
+ cbg(s,N,true);
+ for(let i=0;i<5;i++){
+  const st=i<3?-30-i*25:190+(i-3)*25,a=cl((s-.25*i)/2.4),x=lerp(st,XS[i],a);
+  P(x,90,s>1.8+.3*i?"sad":"idle",2,SE[i]);
+ }
+ R(0,0,160,100,"rgba(0,0,40,.35)");
+ for(let i=0;i<50;i++)R(((i*37+s*25)%170)-5,((s*110+i*23)%110)-5,1,3,"#9bb7d4");
+ R(0,0,160,8,"#000");R(0,92,160,8,"#000");
+}
 function render(s,k,goal,cel,fin){
  const b=$("bn");
- if(fin>=0&&s>=3.8){victory(s-3.8,fin);b.style.top="12%";b.innerHTML=s>4?"SEGER!<br><span style=\"font-size:10px\">"+nm(fin)+"</span>":""}
+ if(fin>=0&&s>=3.8){
+  b.style.top="12%";
+  if(fin===idx){victory(s-3.8,fin);b.innerHTML=s>4?"SEGER!<br><span style=\"font-size:10px\">"+nm(fin)+"</span>":""}
+  else{defeat(s-3.8,idx);b.innerHTML=s>4?"FÖRLUST<br><span style=\"font-size:10px\">"+nm(fin)+" VANN</span>":""}
+ }
  else{scene(frameOf(s,k,goal,cel));b.style.top="38%";b.textContent=s>1.05?(goal?"MÅL!":"RÄDDAT!"):""}
 }
 const fb=i=>((i*37+11)%98)+2;
@@ -298,12 +316,12 @@ function play(li){
 function demo(c){
  M={p:["d","e"],kicks:[],c:[PAL[0],PAL[1]],n:["DEMO","DEMO"],tod:"night"};idx=0;playing=false;
  $("lobby").classList.add("hide");$("game").classList.remove("hide");
- $("score").textContent="JUBEL: "+["KNÄGLIDNING","SPURT MOT PUBLIKEN","VOLT","SEGERFIRANDE MED HELA LAGET"][c];$("st").textContent="SPELAS I LOOP";$("ok").classList.add("hide");
+ $("score").textContent="JUBEL: "+["KNÄGLIDNING","SPURT MOT PUBLIKEN","VOLT","SEGERFIRANDE MED HELA LAGET","FÖRLUST"][c];$("st").textContent="SPELAS I LOOP";$("ok").classList.add("hide");
  const my=++demoOn,k={s:0,shot:0,save:3,num:10+c*13};let t0=performance.now();
  (function loop(now){
   if(demoOn!==my||!M)return;
-  let s=(now-t0)/1000;if(s>(c===3?6.5:3.8)){t0=now;s=0}
-  if(c===3){victory(s,0);$("bn").style.top="12%";$("bn").innerHTML=s>.2?"SEGER!":""}else render(s,k,true,c,-1);
+  let s=(now-t0)/1000;if(s>(c>=3?6.5:3.8)){t0=now;s=0}
+  if(c>=3){(c===3?victory:defeat)(s,0);$("bn").style.top="12%";$("bn").innerHTML=s>.2?(c===3?"SEGER!":"FÖRLUST"):""}else render(s,k,true,c,-1);
   requestAnimationFrame(loop);
  })(t0);
 }
@@ -366,7 +384,7 @@ async function mkMatch(open){
  try{ref=db.doc("matches/"+c);await ref.set({p:[meId,null],n:[myName(),null],c:[PAL[myCol],null],open,tod:myTod,kicks:[],t:Date.now()});idx=0;code=c;enter()}
  catch(e){$("err").textContent="KUNDE INTE SKAPA MATCH: "+(e.message||e.code)}
 }
-$("mk").onclick=()=>mkMatch(true);$("mkp").onclick=()=>mkMatch(false);
+$("mkp").onclick=()=>mkMatch(false);
 function renderTd(){const el=$("td");el.innerHTML="";[["day","DAG"],["night","KVÄLL"]].forEach(([v,l])=>{const b=document.createElement("button");b.textContent=l;b.style.opacity=myTod===v?1:.45;b.onclick=()=>{myTod=v;ls("tod",v);renderTd()};el.appendChild(b)})}
 function renderSw(){const el=$("sw");el.innerHTML="";PAL.forEach((c,i)=>{const b=document.createElement("button");b.className="sw"+(i===myCol?" on":"");b.style.background=c;b.setAttribute("aria-label","Färg "+(i+1));b.onclick=()=>{myCol=i;ls("col",String(i));renderSw()};el.appendChild(b)})}
 function renderOpen(docs){
@@ -378,9 +396,10 @@ function renderOpen(docs){
   r.append(l,b);el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU";
 }
+function overM(m){const K=m.kicks||[],dn=K.filter(k=>k.save!==undefined).length,g=[0,0];K.forEach(k=>{if(k.save!==undefined&&k.shot!==k.save)g[k.s]++});return !!m.p[1]&&dn>=10&&dn%2===0&&g[0]!==g[1]}
 function renderMine(docs){
  const el=$("ml");el.innerHTML="";let n=0;
- docs.forEach(d=>{const m=d.data();if(!m||!m.p)return;n++;
+ docs.forEach(d=>{const m=d.data();if(!m||!m.p||overM(m))return;n++;
   const dn=(m.kicks||[]).filter(k=>k.save!==undefined).length,o=m.p[0]===meId?1:0;
   const r=document.createElement("div");r.className="ml";
   const l=document.createElement("span");l.textContent=(m.p[1]?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE")+" · "+dn+"/10 · "+d.id;
@@ -389,17 +408,18 @@ function renderMine(docs){
  if(!n)el.textContent="INGA ÄNNU";
 }
 $("jn").onclick=()=>join($("ci").value);
-[0,1,2,3].forEach(i=>{$("g"+i).onclick=()=>demo(i)});
+[0,1,2,3,4].forEach(i=>{$("g"+i).onclick=()=>demo(i)});
 $("lv").onclick=leave;
 
+try{$("nm").value=ls("name")||"";myCol=parseInt(ls("col")||"0",10)||0;renderSw();myTod=ls("tod")==="day"?"day":"night";renderTd()}catch(e){$("err").textContent="FEL: "+e.message}
+window.addEventListener("error",e=>{$("err").textContent="FEL: "+e.message});
 (async()=>{
- scene({tk:0,grid:false,keeper:{idx:1,c:PAL[1],pose:"idle",x:80,y:60,d:0},shooter:{idx:0,c:PAL[0],pose:"idle"},ball:{x:80,y:82}});
+ try{scene({tk:0,grid:false,keeper:{idx:1,c:PAL[1],pose:"idle",x:80,y:60,d:0},shooter:{idx:0,c:PAL[0],pose:"idle"},ball:{x:80,y:82}});}catch(e){console.error(e)}
  $("nm").value=ls("name")||"";myCol=parseInt(ls("col")||"0",10)||0;renderSw();myTod=ls("tod")==="day"?"day":"night";renderTd();
- try{await signInAnonymously(fbAuth);meId=fbAuth.currentUser.uid;db=dbA;usr=null}catch(e){console.error(e)}
+ try{await signInAnonymously(fbAuth);meId=fbAuth.currentUser.uid;db=dbA;usr=null}catch(e){console.error(e);$("err").textContent="FEL: "+(e.code||e.message)}
  if(db&&!$("nm").value){try{const me=await usr.me();$("nm").value=(me.name||"").toUpperCase().slice(0,10)}catch(e){}}
  if(!db||!meId){db=null;$("err").textContent=NOLOGIN;return}
  let h="";try{h=(location.hash||"").replace("#","")}catch(e){}
- db.collection("matches").where("open","==",true).limit(30).onSnapshot(sn=>renderOpen(sn.docs),e=>{});
  db.collection("matches").where("p","array-contains",meId).limit(20).onSnapshot(sn=>renderMine(sn.docs),e=>{});
  const c=h||ls("last");if(c)join(c);
 })();
