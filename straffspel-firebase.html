@@ -41,7 +41,7 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
  <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mkp">SKAPA MATCH</button><p>DU FÅR EN KOD ATT SKICKA TILL DIN MOTSTÅNDARE</p></div>
  <div class="box"><p>MINA MATCHER</p><div id="ml">INGA ÄNNU</div></div>
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
- <div class="box"><p>JUBELGALLERI</p><button id="g0">KLINSMANN</button><button id="g1">SPURT</button><button id="g2">VOLT</button><button id="g3">HOPP</button><button id="g4">SHEARER</button><button id="g5">SEGER</button><button id="g6">FÖRLUST</button><button id="g7">RÄDDA UPP</button><button id="g8">RÄDDA NER</button></div>
+ <div class="box"><p>JUBELGALLERI</p><button id="g0">KLINSMANN</button><button id="g1">SPURT</button><button id="g2">VOLT</button><button id="g3">HOPP</button><button id="g4">SHEARER</button><button id="g5">SEGER</button><button id="g6">FÖRLUST</button><button id="g7">HIGUITA</button><button id="g8">RÄDDA NER</button></div>
  <div id="err"></div>
 </div>
 <div id="game" class="hide">
@@ -82,7 +82,7 @@ const SKT=["#f2c9a0","#e3a672","#b87a4b","#8a5532","#5a3520"],PT={"#e03131":1,"#
 const shade=(h,f)=>{const n=parseInt(h.slice(1),16),r=Math.min(255,(n>>16&255)*f)|0,g=Math.min(255,(n>>8&255)*f)|0,b=Math.min(255,(n&255)*f)|0;return"#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)};
 function fig(x,y,c,pose,d,tk,gl,num,ns,seed,front){
  const fr=gl||front,sd=gl?100:(seed||0),SK=SKT[(sd*3+1)%5],sty=gl?0:Math.floor(sd/3)%8,hc=gl?HC[0]:HC[(sd*5+2)%7];
- const hw=8,hh=8,bw=8,bh=6,sh=3,lh=6,SC=LT.includes(c)?"#222":W,P=[],A=(a,b,w,h,col)=>P.push([a,b,w,h,col]);
+ const fd=pose==="scorpion"?(d<0?-1:1):d,hw=8,hh=8,bw=8,bh=6,sh=3,lh=6,SC=LT.includes(c)?"#222":W,P=[],A=(a,b,w,h,col)=>P.push([a,b,w,h,col]);
  let yy=y,T=null,Hd=null;
  if(!ns){R(x-8,y-2,16,3,"rgba(0,0,0,.28)");R(x-6,y,12,2,"rgba(0,0,0,.28)")}
  const kn=pose==="slide"||pose==="sad"||pose==="knee",up=pose==="cheer"||pose==="slide"||pose==="run"||pose==="tuck"||pose==="jump"||pose==="hop";
@@ -91,6 +91,10 @@ function fig(x,y,c,pose,d,tk,gl,num,ns,seed,front){
   A(d>0?-16:9,-9,7,3,c);A(d>0?-18:16,-9,2,3,"#222");
   A(-8,-12,16,6,c);A(d>0?8:-14,-12,6,3,c);A(d>0?14:-17,-13,3,5,W);
   A(hx,hy,hw,hh,SK);Hd=[hx,hy];
+ }else if(pose==="scorpion"){
+  const e=(a,w)=>d<0?-(a+w):a,hx=e(6,8);
+  A(e(-12,8),-21,8,3,c);A(e(-12,3),-18,3,6,SC);A(e(-8,14),-12,14,6,c);A(e(-4,4),-22,4,5,"#222");
+  A(e(6,6),-9,6,3,c);A(e(12,4),-10,4,5,W);A(hx,-16,hw,hh,SK);Hd=[hx,-16];
  }else{
   const hb=kn?5:lh+sh,ty=-hb-bh;let lx=0,hd=0;
   if(pose==="slide")lx=-1;
@@ -130,7 +134,7 @@ function fig(x,y,c,pose,d,tk,gl,num,ns,seed,front){
   F.forEach(q=>R(x+q[0],yy+q[1],q[2],q[3],q[4]||hc));
   if(fr){
    const pc=sd%3===0?"#2b6cb0":"#111";
-   if(pose==="dive"){const e=hx+(d>0?5:1);R(x+e,yy+hy+4,2,2,W);R(x+e+(d>0?1:0),yy+hy+4,1,2,pc);R(x+hx+(d>0?5:2),yy+hy+6,2,1,"#a5522b")}
+   if(pose==="dive"||pose==="scorpion"){const e=hx+(fd>0?5:1);R(x+e,yy+hy+4,2,2,W);R(x+e+(fd>0?1:0),yy+hy+4,1,2,pc);R(x+hx+(fd>0?5:2),yy+hy+6,2,1,"#a5522b")}
    else{R(x+hx+1,yy+hy+4,1,2,W);R(x+hx+2,yy+hy+4,1,2,pc);R(x+hx+5,yy+hy+4,1,2,pc);R(x+hx+6,yy+hy+4,1,2,W);
     if(pose==="cheer"||pose==="slide"||pose==="run"||pose==="hop"||pose==="runarm")R(x+hx+3,yy+hy+6,2,2,"#7a1212");
     else if(pose==="sad")R(x+hx+3,yy+hy+7,2,1,"#6b3a20");
@@ -276,17 +280,17 @@ const fb=i=>((i*37+11)%98)+2;
 function pickNum(who){const u=M.kicks.filter(k=>k.s===who&&k.num).map(k=>k.num);let n;do{n=2+Math.floor(Math.random()*98)}while(u.includes(n));return n}
 function dnum(st){if(st.need==="shoot"&&st.who===idx)return nextNum||undefined;if(st.need==="save"){const i=M.kicks.length-1;return M.kicks[i].num||fb(i)}}
 function frameOf(s,k,goal,cel){
- const sh=k.s,ke=1-k.s,bt=zc(k.shot),kt=zc(k.save),d=kt.x<70?-1:kt.x>90?1:0,mid=d===0,hi=kt.y<40,caught=!goal&&mid;
+ const sh=k.s,ke=1-k.s,bt=zc(k.shot),kt=zc(k.save),d=kt.x<70?-1:kt.x>90?1:0,mid=d===0,hi=kt.y<40,caught=!goal&&mid,kd=(k.num||0)%2?1:-1;
  const fu=cl((s-.55)/.45),dp=eo(cl((s-.6)/.4));
- const bx=lerp(80,bt.x,fu);let by=lerp(82,bt.y,fu)-Math.sin(Math.PI*fu)*5;
+ let bx=lerp(80,bt.x,fu),by=lerp(82,bt.y,fu)-Math.sin(Math.PI*fu)*5;
  if(!goal&&!caught&&s>1.05)by=bt.y+Math.pow(cl((s-1.05)/.45),2)*(58-bt.y);
  let kp="idle",kx=80,ky=60;
- if(s>.6){kp=mid?(hi?"jump":"knee"):"dive";kx=lerp(80,kt.x,dp);ky=lerp(60,mid?(hi?52:60):kt.y+7,dp)}
+ if(s>.6){kp=mid?(hi?"scorpion":"knee"):"dive";kx=lerp(80,kt.x,dp);ky=mid?(hi?60-10*Math.sin(Math.PI*cl((s-.6)/.8)):60):lerp(60,kt.y+7,dp);if(mid&&hi)kx=80+2*kd}
  if(s>1){kx=kt.x;
-  if(caught){kp=hi?"jump":"knee";ky=hi?lerp(52,60,cl((s-1)/.35)):60}
+  if(caught){if(hi){kp=s>1.45?"cheer":"scorpion";ky=s>1.45?60:60-10*Math.sin(Math.PI*cl((s-.6)/.8));kx=s>1.45?80:80+2*kd}else{kp="knee";ky=60}}
   else if(goal){ky=lerp(ky,60,cl((s-1)/.3));if(s>1.3){kp="sad";ky=60}}
   else{kp="cheer";ky=60}}
- if(caught&&s>=1)by=ky-(hi?21:7);
+ if(caught&&s>=1){if(hi){const t=s-1;bx=80-kd*30*t;by=Math.min(bt.y-40*t+50*t*t,60)}else by=ky-7}
  const sdir=bt.x<75?-1:bt.x>85?1:((k.num||0)%2?-1:1);
  let sx=72,sy=97,sp="idle",dust=[],rot=0,lift=0;
  if(s<.4)sx=lerp(58,72,s/.4);
@@ -307,7 +311,7 @@ function frameOf(s,k,goal,cel){
  if(goal&&s>1&&s<1.35)fx.shake=true;
  if(goal&&s>1&&s<1.12)fx.flash=true;
  if(!goal&&s>1)fx.dim=.28*cl((s-1)/.6);
- return{tk:s*1000,grid:false,fx,dust,sx,sy,keeper:{idx:ke,c:M.c[ke],pose:kp,x:kx,y:ky,d},shooter:{idx:sh,c:M.c[sh],pose:sp,num:k.num,rot,lift},ball:{x:bx,y:by}};
+ return{tk:s*1000,grid:false,fx,dust,sx,sy,keeper:{idx:ke,c:M.c[ke],pose:kp,x:kx,y:ky,d:(mid&&hi)?kd:d},shooter:{idx:sh,c:M.c[sh],pose:sp,num:k.num,rot,lift},ball:{x:bx,y:by}};
 }
 function play(li){
  playing=true;sel=-1;$("ok").classList.add("hide");
@@ -322,7 +326,7 @@ function play(li){
   requestAnimationFrame(loop);
  })(t0);
 }
-const DL=["KLINSMANN (KNÄGLIDNING)","SPURT MOT PUBLIKEN","VOLT","HOPPA PÅ STÄLLET","SHEARER (ARMEN UPP)","SEGERFIRANDE MED HELA LAGET","FÖRLUST","RÄDDNING: HOPP UPPÅT","RÄDDNING: PÅ KNÄ"];
+const DL=["KLINSMANN (KNÄGLIDNING)","SPURT MOT PUBLIKEN","VOLT","HOPPA PÅ STÄLLET","SHEARER (ARMEN UPP)","SEGERFIRANDE MED HELA LAGET","FÖRLUST","HIGUITA (SKORPIONEN)","RÄDDNING: PÅ KNÄ"];
 function demo(c){
  M={p:["d","e"],kicks:[],c:[PAL[0],PAL[1]],n:["DEMO","DEMO"],tod:"night"};idx=0;playing=false;
  $("lobby").classList.add("hide");$("game").classList.remove("hide");
