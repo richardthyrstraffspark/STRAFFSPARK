@@ -38,6 +38,7 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 <main>
 <h1>STRAFFSPARK</h1>
 <div id="lobby">
+ <div class="box hide" id="iab"><p>⚠ DU HAR ÖPPNAT SIDAN I EN APP-WEBBLÄSARE (T.EX. INSTAGRAM). DEN KOMMER INTE IHÅG DIG, SÅ DU KAN BLI TVÅ SPELARE. ÖPPNA LÄNKEN I CHROME ELLER SAFARI I STÄLLET.</p><button id="iabc">KOPIERA LÄNK</button><button id="iabg" class="hide">ÖPPNA I CHROME</button></div>
  <div class="box hide" id="inv"><p id="invt"></p><p>VÄLJ NAMN OCH LAG HÄR UNDER, OCH TRYCK SEDAN:</p><button id="invgo">GÅ MED</button></div>
  <div class="box"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><p>VÄLJ LAG</p><div id="sw" class="tg"></div></div>
  <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mkp">SKAPA MATCH</button><p>DU FÅR EN KOD ATT SKICKA TILL DIN MOTSTÅNDARE</p></div>
@@ -55,8 +56,7 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 </div>
 <div id="game" class="hide">
  <div class="box sc" id="score"></div>
- <div class="wrap"><canvas id="cv" width="160" height="100"></canvas><div id="bn"></div></div>
- <div id="cap" style="min-height:1.6em;font-size:8px;margin:4px 0;color:var(--mu)"></div>
+ <div class="wrap"><canvas id="cv" width="160" height="114"></canvas><div id="bn"></div></div>
  <div class="box" id="st"></div>
  <button id="ok" class="hide"></button>
  <button id="shr" class="hide">SKICKA INBJUDAN</button>
@@ -66,9 +66,9 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import{getAuth,signInAnonymously}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import{getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,collection,query,where,limit,arrayUnion}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,collection,query,where,limit,arrayUnion,arrayRemove,deleteField}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyAJHQgFyOoa5heZC-WHEo7Ock4-TGbgiIU",authDomain:"straffspark-93d2e.firebaseapp.com",projectId:"straffspark-93d2e",storageBucket:"straffspark-93d2e.firebasestorage.app",messagingSenderId:"298567865198",appId:"1:298567865198:web:6e3a8dd5d82af014b2277f"};
-const FBU=arrayUnion;
+const FBU=arrayUnion,FBR=arrayRemove,FBD=deleteField;
 const fbApp=initializeApp(firebaseConfig),fbAuth=getAuth(fbApp),fs=getFirestore(fbApp);
 const snapDoc=s=>({id:s.id,exists:s.exists(),data:()=>s.data()});
 const dbA={
@@ -136,8 +136,12 @@ function kits(){const c=(M&&M.c)||["SWE","ARG"],a=c[0]||"SWE",b=c[1]||"ARG",k0=k
 const kit=i=>kits()[i];
 const GKS=["#2ECC40","#FF9F1C","#111111","#E84393","#00B8D9"];
 function gk(i){const ks=kits(),sh=ks[1-i].s,own=ks[i].s,c=GKS.find(x=>dist(x,sh)>140&&dist(x,own)>60)||GKS[0];return{s:c,a:"#fff",p:0,h:"#111111",k:c,l:lum(c)>.62}}
-const ROSTER={};
-const pname=(team,num)=>(ROSTER[team]&&ROSTER[team][num])||"SPELARE "+num;
+const ROSTER={
+SWE:[{num:10,name:"Brolin"},{num:9,name:"Dahlin"},{num:7,name:"Andersson"},{num:11,name:"Ibrahimović"},{num:8,name:"Larsson"}],
+FRA:[{num:10,name:"Cantona"},{num:9,name:"Henry"},{num:7,name:"Zidane"},{num:11,name:"Djorkaeff"},{num:8,name:"Thuram"}],
+ESP:[{num:10,name:"Raúl"},{num:9,name:"Xavi"},{num:7,name:"Iniesta"},{num:11,name:"Di Stéfano"},{num:8,name:"Puyol"}],
+ARG:[{num:10,name:"Messi"},{num:9,name:"Maradona"},{num:7,name:"Caniggia"},{num:11,name:"Batistuta"},{num:8,name:"Crespo"}]};
+const pname=(team,num)=>{const r=(ROSTER[team]||[]).find(q=>q.num===num);return r?r.name:"SPELARE"};
 const HC=["#1a1210","#4a2c12","#8a5a2b","#e8c15a","#c2410c","#d0d0d0","#228be6"];
 const SKT=["#f2c9a0","#e3a672","#b87a4b","#8a5532","#5a3520"],PT={"#e03131":1,"#1c7ed6":2,"#f76707":2,"#212529":1,"#7048e8":2},LT=["#fcc419","#f1f3f5","#e64980","#f76707"];
 const shade=(h,f)=>{const n=parseInt(h.slice(1),16),r=Math.min(255,(n>>16&255)*f)|0,g=Math.min(255,(n>>8&255)*f)|0,b=Math.min(255,(n&255)*f)|0;return"#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)};
@@ -221,8 +225,8 @@ function scene(o){
  const N=!(M&&M.tod==="day"),tm=(o.tk||0)/1000,f=o.fx||{};
  cx.save();
  if(f.shake)cx.translate(Math.round((Math.random()-.5)*3),Math.round((Math.random()-.5)*3));
- R(0,0,160,100,N?"#1f6b34":"#2e9b3f");
- {let y=18,h=4,i=0;while(y<100){if(i%2)R(0,y,160,h,N?"#257a3d":"#38b04a");y+=h;h+=1.5;i++}}
+ R(0,0,160,114,N?"#1f6b34":"#2e9b3f");
+ {let y=18,h=4,i=0;while(y<114){if(i%2)R(0,y,160,h,N?"#257a3d":"#38b04a");y+=h;h+=1.5;i++}}
  R(0,0,160,12,N?"#0b1330":"#4aa3e8");
  const CC=["#e03131","#fcc419","#f8f9fa","#1c7ed6","#7048e8","#2f9e44","#f76707","#e64980","#adb5bd"];
  for(let i=0;i<54;i++)for(let j=0;j<3;j++){const v=(i*7+j*13)%9;R(i*3,j*4,3,3,N?((v<2&&(Math.floor(tm*5)+i)%7<3)?"#fff7b0":"#1a2552"):CC[v])}
@@ -249,10 +253,11 @@ function scene(o){
    if(i===hover||i===sel){cx.fillStyle=i===sel?"rgba(255,224,102,.55)":"rgba(255,255,255,.25)";cx.fillRect(x,y,CW,CH)}
    cx.strokeRect(Math.round(x)+.5,Math.round(y)+.5,Math.round(CW)-1,CH-1)}
   cx.setLineDash([])}
- if(f.bar){R(0,0,160,f.bar,"#000");R(0,100-f.bar,160,f.bar,"#000")}
- if(f.dim)R(0,0,160,100,"rgba(0,0,40,"+f.dim+")");
- if(f.flash)R(0,0,160,100,"rgba(255,255,255,.55)");
+ if(f.bar){R(0,0,160,f.bar,"#000");R(0,114-f.bar,160,f.bar,"#000")}
+ if(f.dim)R(0,0,160,114,"rgba(0,0,40,"+f.dim+")");
+ if(f.flash)R(0,0,160,114,"rgba(255,255,255,.55)");
  cx.restore();
+ if(o.plate){const nmx=pname(o.plate.team,o.plate.num);txt(o.plate.num+". "+nmx,80,102,"#ffffff",2,true)}
 }
 
 function goals(){const g=[0,0];M.kicks.forEach(k=>{if(k.save!==undefined&&k.shot!==k.save)g[k.s]++});return g}
@@ -277,11 +282,12 @@ const nm=i=>esc((M&&M.n&&M.n[i])||"SPELARE "+(i+1));
 
 function draw(tk){
  const st=state(),sh=st.shooter??0,ke=st.keeper??1,mode=!playing&&st.who===idx?st.need:"";
- scene({tk:tk||0,grid:(mode==="shoot"||mode==="save")&&!busy,keeper:{idx:ke,c:gk(ke),pose:"idle",x:80,y:60,d:0},shooter:{idx:sh,c:kit(sh),pose:"idle",num:dnum(st)},ball:{x:80,y:82}});
+ scene({tk:tk||0,grid:(mode==="shoot"||mode==="save")&&!busy,keeper:{idx:ke,c:gk(ke),pose:"idle",x:80,y:60,d:0},shooter:{idx:sh,c:kit(sh),pose:"idle",num:dnum(st)},ball:{x:80,y:82},plate:((st.need==="shoot"||st.need==="save")&&dnum(st))?{team:(M.c||[])[st.shooter],num:dnum(st)}:null});
 }
 
 function ui(){
  if(playing||!M)return;
+ $("st").classList.remove("hide");
  const st=state(),g=[0,0],res=[[],[]];
  M.kicks.forEach(k=>{if(k.save!==undefined){const gl=k.shot!==k.save;if(gl)g[k.s]++;res[k.s].push(gl)}});
  const dots=p=>Array.from({length:Math.max(5,res[p].length)},(_,i)=>'<span class="dot '+(res[p][i]===undefined?'':res[p][i]?'g':'m')+'"></span>').join("");
@@ -297,7 +303,7 @@ function ui(){
  else t=(st.need==="shoot"?"VÄNTAR PÅ ATT "+nm(st.who)+" SKA SLÅ":"VÄNTAR PÅ ATT "+nm(st.who)+" SKA RÄDDA")+"...";
  if((mode==="shoot"||mode==="save")&&sel>=0&&!busy){ok.textContent=mode==="shoot"?"SKJUT!":"KASTA DIG!";ok.classList.remove("hide")}
  if(st.done>=10&&st.need!=="over")t="⚡ SUDDEN DEATH ⚡<br>"+t;
- $("st").innerHTML=t;{const nn=(st.need==="shoot"||st.need==="save")?dnum(st):0,tm=nn?(M.c||[])[st.shooter]:"";$("cap").textContent=nn?"SKYTT: #"+nn+" "+pname(tm,nn)+(TN[tm]?" ("+TN[tm]+")":""):""}draw();
+ $("st").innerHTML=t;draw();
 }
 
 function check(){
@@ -314,14 +320,14 @@ function big(x,y,c,pose,sc,tk,seed,rot,lift,back,num){
 }
 function cbg(s,N,calm){
  const CC=["#e03131","#fcc419","#f8f9fa","#1c7ed6","#7048e8","#2f9e44","#f76707","#e64980","#adb5bd"];
- R(0,0,160,100,N?"#0b1330":"#4aa3e8");
+ R(0,0,160,114,N?"#0b1330":"#4aa3e8");
  for(let j=0;j<13;j++)for(let i=0;i<40;i++){const v=(i*7+j*13)%9,b=(!calm&&Math.floor(s*5+i*3+j)%4===0)?-1:0;
   R(i*4,j*4+2+b,4,2,CC[v]);R(i*4+1,j*4+b,2,2,"#f2b880");
   if(!calm&&v%3===0&&Math.floor(s*6+i)%2)R(i*4,j*4-2+b,1,2,"#f2b880")}
  if(N)R(0,0,160,52,"rgba(0,10,40,.5)");
  for(let i=0;i<20;i++)R(i*8,52,8,6,N?(i%2?"#1b1b1b":"#e8590c"):(i%2?"#f8f9fa":"#d9480f"));
- R(0,52,160,1,"#000");R(0,58,160,42,N?"#1f6b34":"#2e9b3f");
- {let y=58,h=5,i=0;while(y<100){if(i%2)R(0,y,160,h,N?"#257a3d":"#38b04a");y+=h;h+=2;i++}}
+ R(0,52,160,1,"#000");R(0,58,160,56,N?"#1f6b34":"#2e9b3f");
+ {let y=58,h=5,i=0;while(y<114){if(i%2)R(0,y,160,h,N?"#257a3d":"#38b04a");y+=h;h+=2;i++}}
 }
 function victory(s,w){
  const N=!(M&&M.tod==="day"),c=kit(w),sd=w*40+5,SE=[sd,sd+13,sd+29,sd+41,sd+57],XS=[28,54,80,106,132],P=(x,y,pose,sc,seed,rot,lift)=>big(x,y,c,pose,sc,s*1000,seed,rot,lift);
@@ -337,8 +343,8 @@ function victory(s,w){
  if(s>2.6){const e=eo(cl((s-2.6)/1)),ty=lerp(100,18,e);
   R(71,ty-1,18,12,"#000");R(72,ty,16,10,"#fcc419");R(68,ty+1,4,6,"#fcc419");R(88,ty+1,4,6,"#fcc419");R(75,ty+10,10,5,"#e0a800");R(72,ty+15,16,3,"#fcc419");R(75,ty+2,3,5,"#fff3bf")}
  for(let i=0;i<60;i++)R((i*53)%160+Math.sin(s*3+i)*3,((s*45+i*29)%110)-5,2,2,CC[i%9]);
- R(0,0,160,8,"#000");R(0,92,160,8,"#000");
- if(s<.12)R(0,0,160,100,"rgba(255,255,255,.6)");
+ R(0,0,160,8,"#000");R(0,106,160,8,"#000");
+ if(s<.12)R(0,0,160,114,"rgba(255,255,255,.6)");
 }
 function defeat(s,l){
  const N=!(M&&M.tod==="day"),c=kit(l),sd=l*40+5,SE=[sd,sd+13,sd+29,sd+41,sd+57],XS=[28,54,80,106,132],P=(x,y,pose,sc,seed)=>big(x,y,c,pose,sc,s*1000,seed);
@@ -347,34 +353,31 @@ function defeat(s,l){
   const st=i<3?-30-i*25:190+(i-3)*25,a=cl((s-.25*i)/2.4),x=lerp(st,XS[i],a);
   P(x,90,s>1.8+.3*i?"sad":"idle",2,SE[i]);
  }
- R(0,0,160,100,"rgba(0,0,40,.35)");
+ R(0,0,160,114,"rgba(0,0,40,.35)");
  for(let i=0;i<50;i++)R(((i*37+s*25)%170)-5,((s*110+i*23)%110)-5,1,3,"#9bb7d4");
- R(0,0,160,8,"#000");R(0,92,160,8,"#000");
+ R(0,0,160,8,"#000");R(0,106,160,8,"#000");
 }
 const GL={A:"010101111101101",B:"110101110101110",C:"011100100100011",D:"110101101101110",E:"111100110100111",F:"111100110100100",G:"011100101101011",H:"101101111101101",I:"111010010010111",J:"001001001101010",K:"101101110101101",L:"100100100100111",M:"101111111101101",N:"110101101101101",O:"010101101101010",P:"110101110100100",Q:"010101101111011",R:"110101110101101",S:"011100010001110",T:"111010010010010",U:"101101101101111",V:"101101101101010",W:"101101111111101",X:"101101010101101",Y:"101101010010010",Z:"111001010100111","-":"000000111000000"};
-function txt(str,mx,y,col){const ch=[...String(str).toUpperCase()],n=ch.length,sp=n*4-1<=40?4:3,w=n*sp-(sp-3),x0=Math.round(mx-w/2);
- ch.forEach((c,i)=>{let b=c,d=0;if(c==="Å"){b="A";d=1}else if(c==="Ä"){b="A";d=2}else if(c==="Ö"){b="O";d=2}
-  const g=GL[b];if(!g)return;for(let r=0;r<5;r++)for(let q=0;q<3;q++)if(g[r*3+q]==="1")R(x0+i*sp+q,y+r,1,1,col);
-  if(d===1)R(x0+i*sp+1,y-2,1,1,col);if(d===2){R(x0+i*sp,y-2,1,1,col);R(x0+i*sp+2,y-2,1,1,col)}})}
-function closeup(s,k){
- const N=!(M&&M.tod==="day"),kt=kit(k.s),team=(M.c||[])[k.s],name=pname(team,k.num);
- cbg(s,N,true);
- big(80,118,kt,"idle",5,s*1000,k.num,0,0,true,k.num);
- R(60,43,40,6,kt.s);txt(name,80,44,kt.l?"#111111":"#ffffff");
- R(0,0,160,8,"#000");R(0,92,160,8,"#000");
- const f=1-cl(s/.3);if(f>0)R(0,0,160,100,"rgba(0,0,0,"+(.8*f)+")");
+for(let i=0;i<10;i++)GL[String(i)]=DG[i];GL["."]="000000000000010";
+function txt(str,mx,y,col,sc,sh){sc=sc||1;
+ const items=[];for(const c of String(str).toUpperCase().normalize("NFD")){if(/[\u0300-\u036f]/.test(c)){if(items.length)items[items.length-1].m=c}else items.push({c,m:""})}
+ const n=items.length,sp=(n*4-1<=40||sc>1)?4:3,w=(n*sp-(sp-3))*sc,x0=Math.round(mx-w/2);
+ const dr=(ox,oy,cl)=>items.forEach((it,i)=>{const g=GL[it.c];if(!g)return;const bx=x0+i*sp*sc+ox;
+  for(let r=0;r<5;r++)for(let q=0;q<3;q++)if(g[r*3+q]==="1")R(bx+q*sc,y+r*sc+oy,sc,sc,cl);
+  const m=it.m;if(m==="\u0308"){R(bx,y-2*sc+oy,sc,sc,cl);R(bx+2*sc,y-2*sc+oy,sc,sc,cl)}else if(m==="\u030A"){R(bx+sc,y-2*sc+oy,sc,sc,cl)}else if(m==="\u0301"){R(bx+2*sc,y-2*sc+oy,sc,sc,cl)}});
+ if(sh)dr(sc,sc,"#000000");dr(0,0,col);
 }
 function podium(s,team){
  const N=!(M&&M.tod==="day"),c=kitOf(team),CC=["#e03131","#fcc419","#f8f9fa","#1c7ed6","#7048e8","#2f9e44","#f76707","#e64980","#adb5bd"];
  cbg(s,N,false);
- R(4,50,152,50,"#6d4c41");R(4,50,152,3,"#d7ccc8");R(10,66,140,34,"#8d6e63");R(10,66,140,3,"#d7ccc8");R(16,82,128,18,"#a1887f");R(16,82,128,3,"#efebe9");
+ R(4,50,152,64,"#6d4c41");R(4,50,152,3,"#d7ccc8");R(10,66,140,48,"#8d6e63");R(10,66,140,3,"#d7ccc8");R(16,82,128,32,"#a1887f");R(16,82,128,3,"#efebe9");
  const rows=[{y:50,n:8,x0:17},{y:66,n:8,x0:17},{y:82,n:7,x0:26}];let g=0;
  rows.forEach(rw=>{for(let i=0;i<rw.n;i++,g++){const a=cl((s-g*.08)/.5),x=rw.x0+i*18;fig(x,rw.y+(1-eo(a))*45,c,"cheer",0,s*1000+g*137,false,undefined,true,team.length*7+g*5,true)}});
  if(s>2.4){const e=eo(cl((s-2.4)/.8)),ty=lerp(62,34,e)+Math.sin(s*6)*1.5,tx=80;
   R(tx-6,ty-1,12,10,"#000");R(tx-5,ty,10,8,"#fcc419");R(tx-8,ty+1,3,5,"#fcc419");R(tx+5,ty+1,3,5,"#fcc419");R(tx-2,ty+8,4,4,"#e0a800");R(tx-5,ty+12,10,3,"#fcc419");R(tx-3,ty+1,2,5,"#fff3bf")}
  if(s>2.4)for(let i=0;i<70;i++)R((i*53)%160+Math.sin(s*3+i)*3,((s*45+i*29)%110)-5,2,2,CC[i%9]);
- R(0,0,160,8,"#000");R(0,92,160,8,"#000");
- if(s<.12)R(0,0,160,100,"rgba(255,255,255,.6)");
+ R(0,0,160,8,"#000");R(0,106,160,8,"#000");
+ if(s<.12)R(0,0,160,114,"rgba(255,255,255,.6)");
 }
 function render(s,k,goal,cel,fin){
  const b=$("bn");
@@ -386,7 +389,9 @@ function render(s,k,goal,cel,fin){
  else{scene(frameOf(s,k,goal,cel));b.style.top="38%";b.textContent=s>1.05?(goal?"MÅL!":"RÄDDAT!"):""}
 }
 const fb=i=>((i*7+3)%24)+2;
-function pickNum(who){const u=M.kicks.filter(k=>k.s===who&&k.num).map(k=>k.num);let n;do{n=2+Math.floor(Math.random()*24)}while(u.includes(n)&&u.length<24);return n}
+function pickNum(who){
+ {const tm=(M.c||[])[who],RS=ROSTER[tm];if(RS&&RS.length){const used=M.kicks.filter(k=>k.s===who&&k.num).map(k=>k.num),av=RS.filter(q=>!used.includes(q.num)),pl=av.length?av:RS;return pl[Math.floor(Math.random()*pl.length)].num}}
+const u=M.kicks.filter(k=>k.s===who&&k.num).map(k=>k.num);let n;do{n=2+Math.floor(Math.random()*24)}while(u.includes(n)&&u.length<24);return n}
 function dnum(st){if(st.need==="shoot"&&st.who===idx)return nextNum||undefined;if(st.need==="save"){const i=M.kicks.length-1;return M.kicks[i].num||fb(i)}}
 function frameOf(s,k,goal,cel){
  const sh=k.s,ke=1-k.s,bt=zc(k.shot),kt=zc(k.save),d=kt.x<70?-1:kt.x>90?1:0,mid=d===0,hi=kt.y<40,caught=!goal&&mid,kd=(k.num||0)%2?1:-1;
@@ -429,21 +434,21 @@ function frameOf(s,k,goal,cel){
  if(goal&&s>1&&s<1.35)fx.shake=true;
  if(goal&&s>1&&s<1.12)fx.flash=true;
  if(!goal&&s>1)fx.dim=.28*cl((s-1)/.6);
- return{tk:s*1000,grid:false,fx,dust,sx,sy,keeper:{idx:ke,c:gk(ke),pose:kp,x:kx,y:ky,d:(mid&&hi)?kd:d},shooter:{idx:sh,c:kit(sh),pose:sp,num:k.num,rot,lift,sxs,front:frontv,dir:dirv},ball:{x:bx,y:by}};
+ return{tk:s*1000,grid:false,fx,dust,sx,sy,keeper:{idx:ke,c:gk(ke),pose:kp,x:kx,y:ky,d:(mid&&hi)?kd:d},shooter:{idx:sh,c:kit(sh),pose:sp,num:k.num,rot,lift,sxs,front:frontv,dir:dirv},ball:{x:bx,y:by},plate:{team:(M.c||[])[k.s],num:k.num}};
 }
 function play(li){
  playing=true;sel=-1;$("ok").classList.add("hide");
  const fin=winnerOf(M.kicks.slice(0,li+1));
  const k0=M.kicks[li],k={...k0,num:k0.num||fb(li)},goal=k.shot!==k.save,cel=(li+k.num)%8,t0=performance.now();
- $("st").innerHTML=nm(k.s)+" SLÅR...";{const tm=(M.c||[])[k.s];$("cap").textContent="SKYTT: #"+k.num+" "+pname(tm,k.num)+(TN[tm]?" ("+TN[tm]+")":"")}
+ $("st").classList.add("hide");
  (function loop(now){
-  const s0=(now-t0)/1000,INTRO=1.3,s=s0-INTRO;
+  const s=(now-t0)/1000;
   if(s>=(fin>=0?9.8:3.8)){ack=li;ls("ack_"+code,String(li));playing=false;$("bn").textContent="";check();return}
-  if(s0<INTRO){closeup(s0,k);$("bn").textContent=""}else render(s,k,goal,cel,fin);
+  render(s,k,goal,cel,fin);
   requestAnimationFrame(loop);
  })(t0);
 }
-const DL=["KLINSMANN (KNÄGLIDNING)","SPURT MOT PUBLIKEN","VOLT","HOPPA PÅ STÄLLET","SHEARER (ARMEN UPP)","VINSTFIRANDE MED HELA LAGET","FÖRLUST","HIGUITA (SKORPIONEN)","RÄDDNING: PÅ KNÄ","PODIUM (TURNERINGSSEGER)","NÄRBILD (NAMN PÅ RYGGEN)","BROLIN A (SPRINGER UT)","KENNET","STUDS","BROLIN B (STANNAR)"];
+const DL=["KLINSMANN (KNÄGLIDNING)","SPURT MOT PUBLIKEN","VOLT","HOPPA PÅ STÄLLET","SHEARER (ARMEN UPP)","VINSTFIRANDE MED HELA LAGET","FÖRLUST","HIGUITA (SKORPIONEN)","RÄDDNING: PÅ KNÄ","PODIUM (TURNERINGSSEGER)","(RESERVERAD)","BROLIN A (SPRINGER UT)","KENNET","STUDS","BROLIN B (STANNAR)"];
 function demo(c){
  M={p:["d","e"],kicks:[],c:["SWE","ARG"],n:["DEMO","DEMO"],tod:"night"};idx=0;playing=false;
  $("lobby").classList.add("hide");$("game").classList.remove("hide");
@@ -452,19 +457,19 @@ function demo(c){
  (function loop(now){
   if(demoOn!==my||!M)return;
   let s=(now-t0)/1000;if(s>(c===5||c===6?6.5:c===9?10:c===10?1.6:3.8)){t0=now;s=0}
-  if(c===9){podium(s,"SWE");$("bn").style.top="10%";$("bn").innerHTML=s>.3?"MÄSTARE!":""}else if(c===10){closeup(s,{s:0,shot:0,save:3,num:10});$("bn").textContent=""}else if(c===5||c===6){(c===5?victory:defeat)(s,0);$("bn").style.top="12%";$("bn").innerHTML=s>.2?(c===5?"VINST!":"FÖRLUST"):""}else render(s,k,(c<7||c>=11),(c>=11?c-6:c),-1);
+  if(c===9){podium(s,"SWE");$("bn").style.top="10%";$("bn").innerHTML=s>.3?"MÄSTARE!":""}else if(c===5||c===6){(c===5?victory:defeat)(s,0);$("bn").style.top="12%";$("bn").innerHTML=s>.2?(c===5?"VINST!":"FÖRLUST"):""}else render(s,k,(c<7||c>=11),(c>=11?c-6:c),-1);
   requestAnimationFrame(loop);
  })(t0);
 }
 cv.addEventListener("pointerdown",e=>{
  if(!M||playing||busy)return;const st=state();if(st.who!==idx||(st.need!=="shoot"&&st.need!=="save"))return;
- const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*160/r.width,y=(e.clientY-r.top)*100/r.height;
+ const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*160/r.width,y=(e.clientY-r.top)*cv.height/r.height;
  if(x<GX||x>GX+GW||y<GY||y>GY+42)return;
  sel=Math.floor((x-GX)/CW)+3*Math.floor((y-GY)/CH);ui();
 });
 cv.addEventListener("pointermove",e=>{
  if(playing||!M||e.pointerType==="touch")return;
- const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*160/r.width,y=(e.clientY-r.top)*100/r.height;
+ const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*160/r.width,y=(e.clientY-r.top)*cv.height/r.height;
  const h=(x<GX||x>GX+GW||y<GY||y>GY+42)?-1:Math.floor((x-GX)/CW)+3*Math.floor((y-GY)/CH);
  if(h!==hover){hover=h;draw()}
 });
@@ -481,7 +486,7 @@ $("ok").onclick=async()=>{
 async function loadNames(){}
 function listen(){
  if(unsub)unsub();
- unsub=ref.onSnapshot(async s=>{if(!s.exists)return;M=s.data();M.c=M.c||["SWE","ARG"];M.n=M.n||[];await loadNames();check()},e=>{$("err").textContent="FEL: "+e.message});
+ unsub=ref.onSnapshot(async s=>{if(!s.exists){if(M){leave();$("err").textContent="MATCHEN HAR TAGITS BORT."}return}M=s.data();M.c=M.c||["SWE","ARG"];M.n=M.n||[];await loadNames();check()},e=>{$("err").textContent="FEL: "+e.message});
 }
 function enter(){
  $("lobby").classList.add("hide");$("game").classList.remove("hide");
@@ -535,13 +540,26 @@ function renderMine(docs){
   const r=document.createElement("div");r.className="ml";
   const l=document.createElement("span");l.textContent=(m.p[1]?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE")+" · "+dn+"/10 · "+d.id;
   const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>{ls("name",myName());join(d.id)};
-  r.append(l,b);el.appendChild(r)});
+  r.append(l,b);if(!m.tn){const x=document.createElement("button");x.textContent="TA BORT";x.onclick=()=>delMatch(d.id);r.appendChild(x)}el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU";
+}
+async function delMatch(id){
+ if(!db||!window.confirm("TA BORT MATCHEN "+id+"? DEN FÖRSVINNER FÖR BÅDA SPELARNA."))return;
+ try{await db.doc("matches/"+id).delete()}catch(e){$("err").textContent="KUNDE INTE TA BORT: "+(e.message||e.code)}
+}
+async function delTour(id){
+ if(!db||!window.confirm("TA BORT TURNERINGEN "+id+" FÖR ALLA DELTAGARE?"))return;
+ try{await db.doc("tournaments/"+id).delete()}catch(e){$("err").textContent="KUNDE INTE TA BORT: "+(e.message||e.code)}
 }
 $("jn").onclick=()=>join($("ci").value);
 [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14].forEach(i=>{const b=$("g"+i);if(b)b.onclick=()=>demo(i)});
 $("lv").onclick=leave;
 
+const UA=(typeof navigator!=="undefined"&&navigator.userAgent)||"";
+const inApp=/Instagram|FBAN|FBAV|FB_IAB|Messenger|TikTok|Snapchat|Line\/|LinkedInApp|MicroMessenger|Twitter/i.test(UA);
+if(inApp){$("iab").classList.remove("hide");if(/Android/i.test(UA))$("iabg").classList.remove("hide")}
+$("iabc").onclick=async()=>{const u=location.href;try{await navigator.clipboard.writeText(u);$("iabc").textContent="LÄNK KOPIERAD ✓"}catch(e){try{window.prompt("Kopiera länken och öppna den i Chrome eller Safari:",u)}catch(x){}}};
+$("iabg").onclick=()=>{location.href="intent://"+location.host+location.pathname+location.search+location.hash+"#Intent;scheme=https;package=com.android.chrome;end"};
 let invite=null;
 function inviteUrl(kind,c){let b="";try{b=location.origin+location.pathname}catch(e){}return b+"#"+kind+"="+c}
 async function shareInvite(kind,c,btn){
@@ -574,7 +592,7 @@ function renderTz(){const el=$("tz");el.innerHTML="";[4,8,16,32].forEach(n=>{con
 function renderTl(docs){const el=$("tl");el.innerHTML="";let n=0;
  docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;const r=document.createElement("div");r.className="ml";
   const l=document.createElement("span");l.textContent=d.id+" · "+t.sz+" SPELARE · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"KLAR");
-  const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>openTour(d.id);r.append(l,b);el.appendChild(r)});
+  const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>openTour(d.id);r.append(l,b);if(t.o===meId){const x=document.createElement("button");x.textContent="TA BORT";x.onclick=()=>delTour(d.id);r.appendChild(x)}el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU"}
 async function mkTour(){
  if(!db)return $("err").textContent=NOLOGIN;ls("name",myName());
@@ -590,8 +608,15 @@ async function joinTour(c){
   if(!t.u.includes(meId)){
    if(t.st!=="lobby")return err("TURNERINGEN HAR REDAN STARTAT.");
    if(t.u.length>=t.sz)return err("TURNERINGEN ÄR FULL.");
+   if(Object.values(t.pl||{}).some(q=>String(q.n).toUpperCase()===myName())&&!window.confirm("DET FINNS REDAN EN SPELARE MED NAMNET "+myName()+" I TURNERINGEN. ÄR DET DU? I SÅ FALL: AVBRYT OCH ÖPPNA LÄNKEN I SAMMA WEBBLÄSARE SOM FÖRUT. VILL DU GÅ MED SOM EN NY SPELARE?"))return;
    ls("name",myName());await tr.update({u:FBU(meId),["pl."+meId]:{n:myName(),t:TEAMS[myCol]}})}
   openTour(c)}catch(e){err("KUNDE INTE GÅ MED: "+(e.message||e.code))}
+}
+async function removeFromTour(id){
+ const t=tdata;if(!t||t.o!==meId||t.st!=="lobby"||id===meId)return;
+ const n=((t.pl||{})[id]||{}).n||"spelaren";
+ if(!window.confirm("TA BORT "+String(n).toUpperCase()+" FRÅN TURNERINGEN?"))return;
+ try{await tref.update({u:FBR(id),["pl."+id]:FBD()})}catch(e){$("err").textContent="KUNDE INTE TA BORT: "+(e.message||e.code)}
 }
 function hideTour(){if(tunsub)tunsub();tunsub=null;$("tour").classList.add("hide")}
 function openTour(c){
@@ -637,7 +662,7 @@ async function playTour(k){
 function showPodium(t){
  const w=t.win,pw=(t.pl||{})[w]||{},team=pw.t||"SWE",nmw=pw.n||"?";
  hideTour();M={p:["d","e"],kicks:[],c:[team,team],n:[nmw,nmw],tod:t.tod||"night"};idx=0;playing=false;
- $("lobby").classList.add("hide");$("game").classList.remove("hide");$("score").textContent="TURNERINGSSEGER";$("st").textContent=nmw+" ÄR MÄSTARE!";$("cap").textContent="";$("ok").classList.add("hide");
+ $("lobby").classList.add("hide");$("game").classList.remove("hide");$("score").textContent="TURNERINGSSEGER";$("st").textContent=nmw+" ÄR MÄSTARE!";$("ok").classList.add("hide");
  const my=++demoOn,t0=performance.now();
  (function loop(now){if(demoOn!==my||!M)return;const s=(now-t0)/1000,b=$("bn");podium(s,team);b.style.top="10%";b.innerHTML=s>.3?"MÄSTARE!<br><span style=\"font-size:10px\">"+esc(nmw)+"</span>":"";requestAnimationFrame(loop)})(t0);
 }
@@ -649,11 +674,12 @@ function renderTour(){
  if(t.st==="lobby")x=t.u.map(id=>"<div class=\"ml\"><span>"+nmo(id)+"</span>"+fl(id)+"</div>").join("");
  else rnds(sz).forEach(rr=>{x+="<p>"+roundName(rr.c)+"</p>";for(let j=0;j<rr.c;j++){const k=rr.st+j,e=m[k]||{};x+="<div class=\"ml\"><span>"+nmo(e.a)+" – "+nmo(e.b)+"</span><span>"+(e.w?"🏆 "+nmo(e.w):"")+"</span></div>"}});
  $("tbody").innerHTML=x;
+ if(t.st==="lobby"&&t.o===meId){[...$("tbody").querySelectorAll(".ml")].forEach((row,i)=>{const id=t.u[i];if(id&&id!==meId){const b=document.createElement("button");b.textContent="TA BORT";b.onclick=()=>removeFromTour(id);row.appendChild(b)}})}
  const act=$("tact");act.innerHTML="";
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
- if(t.st==="lobby"){btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}
+ if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}
  else if(t.st==="run"){
   const k=Object.keys(m).map(Number).find(k=>!m[k].w&&(m[k].a===meId||m[k].b===meId));
   if(k===undefined)note("DU ÄR UTE UR TURNERINGEN. DU KAN FORTFARANDE FÖLJA SLUTSPELET HÄR.");
