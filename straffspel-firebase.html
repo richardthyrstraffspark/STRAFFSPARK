@@ -256,10 +256,18 @@ function scene(o){
 }
 
 function goals(){const g=[0,0];M.kicks.forEach(k=>{if(k.save!==undefined&&k.shot!==k.save)g[k.s]++});return g}
+function winnerOf(K){
+ const g=[0,0],n=[0,0];
+ K.forEach(k=>{if(k.save!==undefined){n[k.s]++;if(k.shot!==k.save)g[k.s]++}});
+ const done=n[0]+n[1];
+ if(done<10){const r0=5-n[0],r1=5-n[1];if(g[0]>g[1]+r1)return 0;if(g[1]>g[0]+r0)return 1;return -1}
+ if(done%2===0&&g[0]!==g[1])return g[0]>g[1]?0:1;
+ return -1;
+}
 function state(){
  const K=M.kicks,done=K.filter(k=>k.save!==undefined).length,g=goals();
  if(!M.p[1])return{need:"open",done};
- if(done>=10&&done%2===0&&g[0]!==g[1])return{need:"over",done};
+ if(winnerOf(K)>=0)return{need:"over",done};
  const l=K[K.length-1];
  if(!l||l.save!==undefined){const s=l?1-l.s:0;return{need:"shoot",who:s,shooter:s,keeper:1-s,done}}
  return{need:"save",who:1-l.s,shooter:l.s,keeper:1-l.s,done};
@@ -283,7 +291,7 @@ function ui(){
  let t="";
  $("shr").classList.toggle("hide",st.need!=="open");
  if(st.need==="open"){t='TRYCK PÅ SKICKA INBJUDAN, ELLER GE KODEN TILL DIN MOTSTÅNDARE<br><span class=\"code\">'+code+'</span><br>VÄNTAR PÅ SPELARE 2...<br>DU KAN LÄMNA SIDAN OCH KOMMA TILLBAKA.'}
- else if(st.need==="over"){{const w=g[0]>g[1]?0:1;t=(w===idx?"🏆 SEGER! DU VANN":"FÖRLUST. "+nm(w)+" VANN")+"<br>"+g[0]+" – "+g[1];if(M.tn&&db&&!repd[code]){repd[code]=1;reportWin(M.tn.c,M.tn.k,M.p[w])}}ok.textContent="TILLBAKA";ok.classList.remove("hide")}
+ else if(st.need==="over"){{const w=g[0]>g[1]?0:1;t=(w===idx?"🏆 VINST! DU VANN":"FÖRLUST. "+nm(w)+" VANN")+"<br>"+g[0]+" – "+g[1];if(M.tn&&db&&!repd[code]){repd[code]=1;reportWin(M.tn.c,M.tn.k,M.p[w])}}ok.textContent="TILLBAKA";ok.classList.remove("hide")}
  else if(mode==="shoot")t="DIN TUR ATT SLÅ! 🥅<br>VÄLJ RUTA"+(sel>=0?": "+ZN[sel]:"");
  else if(mode==="save")t="RÄDDA! 🧤<br>VAR KASTAR DU DIG"+(sel>=0?"? "+ZN[sel]:"?");
  else t=(st.need==="shoot"?"VÄNTAR PÅ ATT "+nm(st.who)+" SKA SLÅ":"VÄNTAR PÅ ATT "+nm(st.who)+" SKA RÄDDA")+"...";
@@ -372,7 +380,7 @@ function render(s,k,goal,cel,fin){
  const b=$("bn");
  if(fin>=0&&s>=3.8){
   b.style.top="12%";
-  if(fin===idx){victory(s-3.8,fin);b.innerHTML=s>4?"SEGER!<br><span style=\"font-size:10px\">"+nm(fin)+"</span>":""}
+  if(fin===idx){victory(s-3.8,fin);b.innerHTML=s>4?"VINST!<br><span style=\"font-size:10px\">"+nm(fin)+"</span>":""}
   else{defeat(s-3.8,idx);b.innerHTML=s>4?"FÖRLUST<br><span style=\"font-size:10px\">"+nm(fin)+" VANN</span>":""}
  }
  else{scene(frameOf(s,k,goal,cel));b.style.top="38%";b.textContent=s>1.05?(goal?"MÅL!":"RÄDDAT!"):""}
@@ -425,8 +433,7 @@ function frameOf(s,k,goal,cel){
 }
 function play(li){
  playing=true;sel=-1;$("ok").classList.add("hide");
- const gs=[0,0];M.kicks.slice(0,li+1).forEach(x=>{if(x.save!==undefined&&x.shot!==x.save)gs[x.s]++});
- const fin=((li+1)>=10&&(li+1)%2===0&&gs[0]!==gs[1])?(gs[0]>gs[1]?0:1):-1;
+ const fin=winnerOf(M.kicks.slice(0,li+1));
  const k0=M.kicks[li],k={...k0,num:k0.num||fb(li)},goal=k.shot!==k.save,cel=(li+k.num)%8,t0=performance.now();
  $("st").innerHTML=nm(k.s)+" SLÅR...";{const tm=(M.c||[])[k.s];$("cap").textContent="SKYTT: #"+k.num+" "+pname(tm,k.num)+(TN[tm]?" ("+TN[tm]+")":"")}
  (function loop(now){
@@ -436,7 +443,7 @@ function play(li){
   requestAnimationFrame(loop);
  })(t0);
 }
-const DL=["KLINSMANN (KNÄGLIDNING)","SPURT MOT PUBLIKEN","VOLT","HOPPA PÅ STÄLLET","SHEARER (ARMEN UPP)","SEGERFIRANDE MED HELA LAGET","FÖRLUST","HIGUITA (SKORPIONEN)","RÄDDNING: PÅ KNÄ","PODIUM (TURNERINGSSEGER)","NÄRBILD (NAMN PÅ RYGGEN)","BROLIN A (SPRINGER UT)","KENNET","STUDS","BROLIN B (STANNAR)"];
+const DL=["KLINSMANN (KNÄGLIDNING)","SPURT MOT PUBLIKEN","VOLT","HOPPA PÅ STÄLLET","SHEARER (ARMEN UPP)","VINSTFIRANDE MED HELA LAGET","FÖRLUST","HIGUITA (SKORPIONEN)","RÄDDNING: PÅ KNÄ","PODIUM (TURNERINGSSEGER)","NÄRBILD (NAMN PÅ RYGGEN)","BROLIN A (SPRINGER UT)","KENNET","STUDS","BROLIN B (STANNAR)"];
 function demo(c){
  M={p:["d","e"],kicks:[],c:["SWE","ARG"],n:["DEMO","DEMO"],tod:"night"};idx=0;playing=false;
  $("lobby").classList.add("hide");$("game").classList.remove("hide");
@@ -445,7 +452,7 @@ function demo(c){
  (function loop(now){
   if(demoOn!==my||!M)return;
   let s=(now-t0)/1000;if(s>(c===5||c===6?6.5:c===9?10:c===10?1.6:3.8)){t0=now;s=0}
-  if(c===9){podium(s,"SWE");$("bn").style.top="10%";$("bn").innerHTML=s>.3?"MÄSTARE!":""}else if(c===10){closeup(s,{s:0,shot:0,save:3,num:10});$("bn").textContent=""}else if(c===5||c===6){(c===5?victory:defeat)(s,0);$("bn").style.top="12%";$("bn").innerHTML=s>.2?(c===5?"SEGER!":"FÖRLUST"):""}else render(s,k,(c<7||c>=11),(c>=11?c-6:c),-1);
+  if(c===9){podium(s,"SWE");$("bn").style.top="10%";$("bn").innerHTML=s>.3?"MÄSTARE!":""}else if(c===10){closeup(s,{s:0,shot:0,save:3,num:10});$("bn").textContent=""}else if(c===5||c===6){(c===5?victory:defeat)(s,0);$("bn").style.top="12%";$("bn").innerHTML=s>.2?(c===5?"VINST!":"FÖRLUST"):""}else render(s,k,(c<7||c>=11),(c>=11?c-6:c),-1);
   requestAnimationFrame(loop);
  })(t0);
 }
@@ -520,7 +527,7 @@ function renderOpen(docs){
   r.append(l,b);el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU";
 }
-function overM(m){const K=m.kicks||[],dn=K.filter(k=>k.save!==undefined).length,g=[0,0];K.forEach(k=>{if(k.save!==undefined&&k.shot!==k.save)g[k.s]++});return !!m.p[1]&&dn>=10&&dn%2===0&&g[0]!==g[1]}
+function overM(m){return !!m.p[1]&&winnerOf(m.kicks||[])>=0}
 function renderMine(docs){
  const el=$("ml");el.innerHTML="";let n=0;
  docs.forEach(d=>{const m=d.data();if(!m||!m.p||overM(m))return;n++;
