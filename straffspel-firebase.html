@@ -38,6 +38,7 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 <main>
 <h1>STRAFFSPARK</h1>
 <div id="lobby">
+ <div class="box hide" id="inv"><p id="invt"></p><p>VÄLJ NAMN OCH LAG HÄR UNDER, OCH TRYCK SEDAN:</p><button id="invgo">GÅ MED</button></div>
  <div class="box"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><p>VÄLJ LAG</p><div id="sw" class="tg"></div></div>
  <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mkp">SKAPA MATCH</button><p>DU FÅR EN KOD ATT SKICKA TILL DIN MOTSTÅNDARE</p></div>
  <div class="box"><p>MINA MATCHER</p><div id="ml">INGA ÄNNU</div></div>
@@ -58,6 +59,7 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
  <div id="cap" style="min-height:1.6em;font-size:8px;margin:4px 0;color:var(--mu)"></div>
  <div class="box" id="st"></div>
  <button id="ok" class="hide"></button>
+ <button id="shr" class="hide">SKICKA INBJUDAN</button>
  <button class="sm" id="lv">LÄMNA MATCH</button>
 </div>
 </main>
@@ -268,7 +270,8 @@ function ui(){
  const mode=st.who===idx?st.need:"",ok=$("ok");ok.classList.add("hide");
  if(mode==="shoot"&&!nextNum)nextNum=pickNum(idx);if(mode!=="shoot")nextNum=0;
  let t="";
- if(st.need==="open"){t='SKICKA KODEN TILL DIN MOTSTÅNDARE<br><span class="code">'+code+'</span><br>VÄNTAR PÅ SPELARE 2...<br>DU KAN LÄMNA SIDAN OCH KOMMA TILLBAKA MED KODEN.'}
+ $("shr").classList.toggle("hide",st.need!=="open");
+ if(st.need==="open"){t='TRYCK PÅ SKICKA INBJUDAN, ELLER GE KODEN TILL DIN MOTSTÅNDARE<br><span class=\"code\">'+code+'</span><br>VÄNTAR PÅ SPELARE 2...<br>DU KAN LÄMNA SIDAN OCH KOMMA TILLBAKA.'}
  else if(st.need==="over"){{const w=g[0]>g[1]?0:1;t=(w===idx?"🏆 SEGER! DU VANN":"FÖRLUST. "+nm(w)+" VANN")+"<br>"+g[0]+" – "+g[1];if(M.tn&&db&&!repd[code]){repd[code]=1;reportWin(M.tn.c,M.tn.k,M.p[w])}}ok.textContent="TILLBAKA";ok.classList.remove("hide")}
  else if(mode==="shoot")t="DIN TUR ATT SLÅ! 🥅<br>VÄLJ RUTA"+(sel>=0?": "+ZN[sel]:"");
  else if(mode==="save")t="RÄDDA! 🧤<br>VAR KASTAR DU DIG"+(sel>=0?"? "+ZN[sel]:"?");
@@ -512,6 +515,28 @@ $("jn").onclick=()=>join($("ci").value);
 [0,1,2,3,4,5,6,7,8,9,10].forEach(i=>{const b=$("g"+i);if(b)b.onclick=()=>demo(i)});
 $("lv").onclick=leave;
 
+let invite=null;
+function inviteUrl(kind,c){let b="";try{b=location.origin+location.pathname}catch(e){}return b+"#"+kind+"="+c}
+async function shareInvite(kind,c,btn){
+ const url=inviteUrl(kind,c),text=kind==="m"?"Du är inbjuden till en straffmatch i STRAFFSPARK! Öppna länken: ":"Du är inbjuden till en turnering i STRAFFSPARK! Öppna länken: ";
+ const done=m=>{if(btn){const o=btn.dataset.o||btn.textContent;btn.dataset.o=o;btn.textContent=m;setTimeout(()=>{btn.textContent=o},2500)}};
+ try{if(navigator.share){await navigator.share({title:"STRAFFSPARK",text:text,url:url});return}}catch(e){if(e&&e.name==="AbortError")return}
+ try{await navigator.clipboard.writeText(url);done("LÄNK KOPIERAD ✓");return}catch(e){}
+ done("KOPIERA: "+url);try{window.prompt("Kopiera inbjudningslänken:",url)}catch(e){}
+}
+async function handleInvite(kind,c){
+ try{const d0=await db.doc((kind==="m"?"matches/":"tournaments/")+c).get();
+  if(!d0.exists){$("err").textContent="INBJUDAN HITTADES INTE ("+c+").";return}
+  const d=d0.data(),mine=kind==="m"?d.p.includes(meId):d.u.includes(meId);
+  if(mine){if(kind==="m")join(c);else joinTour(c);return}
+  if(kind==="m"&&d.p[1]){$("err").textContent="MATCHEN ÄR REDAN FULL.";return}
+  if(kind==="t"&&(d.st!=="lobby"||d.u.length>=d.sz)){$("err").textContent="TURNERINGEN ÄR FULL ELLER HAR STARTAT.";return}
+  invite={kind,c};$("inv").classList.remove("hide");
+  $("invt").textContent=kind==="m"?"DU ÄR INBJUDEN TILL EN MATCH AV "+String((d.n||[])[0]||"EN SPELARE").slice(0,12):"DU ÄR INBJUDEN TILL EN TURNERING MED "+d.sz+" SPELARE"}
+ catch(e){console.error(e)}
+}
+$("invgo").onclick=()=>{if(!invite)return;const i=invite;$("inv").classList.add("hide");try{history.replaceState(null,"",location.pathname)}catch(e){}if(i.kind==="m")join(i.c);else joinTour(i.c)};
+$("shr").onclick=()=>shareInvite("m",code,$("shr"));
 const repd={},dlSet={},H24=86400000;
 let tsz=8,tref=null,tunsub=null,tcode="",tdata=null;
 const rnds=sz=>{const a=[];let st=0,c=sz/2;while(c>=1){a.push({st,c});st+=c;c/=2}return a};
@@ -601,7 +626,7 @@ function renderTour(){
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
- if(t.st==="lobby"){if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}
+ if(t.st==="lobby"){btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}
  else if(t.st==="run"){
   const k=Object.keys(m).map(Number).find(k=>!m[k].w&&(m[k].a===meId||m[k].b===meId));
   if(k===undefined)note("DU ÄR UTE UR TURNERINGEN. DU KAN FORTFARANDE FÖLJA SLUTSPELET HÄR.");
@@ -628,9 +653,10 @@ window.addEventListener("error",e=>{$("err").textContent="FEL: "+e.message});
  if(db&&!$("nm").value){try{const me=await usr.me();$("nm").value=(me.name||"").toUpperCase().slice(0,10)}catch(e){}}
  if(!db||!meId){db=null;$("err").textContent=NOLOGIN;return}
  let h="";try{h=(location.hash||"").replace("#","")}catch(e){}
+ const mm=h.match(/^([mt])=([A-Za-z0-9]{5})$/i);
  db.collection("matches").where("p","array-contains",meId).limit(20).onSnapshot(sn=>renderMine(sn.docs),e=>{});
  db.collection("tournaments").where("u","array-contains",meId).limit(20).onSnapshot(sn=>renderTl(sn.docs),e=>{});
- const c=h||ls("last");if(c)join(c);
+ if(mm)handleInvite(mm[1].toLowerCase(),mm[2].toUpperCase());else{const c=h||ls("last");if(c)join(c)}
 })();
 </script>
 </body>
