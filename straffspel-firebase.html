@@ -32,6 +32,7 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 #err{color:#f03e3e;min-height:1.7em}
 .sw{width:30px;height:30px;padding:0;margin:3px;border:4px solid var(--fg)}.sw.on{outline:4px solid var(--ac);outline-offset:2px}.ml{display:flex;justify-content:space-between;align-items:center;gap:6px;margin:4px 0;text-align:left}.ml button{margin:0}.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.tm{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;margin:0;font-size:7px;overflow-wrap:anywhere;box-shadow:none;border-width:3px;line-height:1.3}.tm.on{outline:3px solid var(--ac);outline-offset:1px}
 .gr{display:grid;grid-template-columns:1fr 2.4em 2.4em;gap:4px;text-align:left;margin:4px 0;cursor:pointer}.gr.hd{color:var(--mu);cursor:default}.gr span+span{text-align:center}.tb{display:grid;grid-template-columns:1.6em 1fr 2.4em 2.4em 2.4em;gap:3px;text-align:left;margin:3px 0}.tb.hd{color:var(--mu)}.tb span:nth-child(n+3){text-align:center}
+select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--fg);padding:6px;margin:4px;max-width:100%}
 .code{font-size:20px;color:var(--ac);letter-spacing:4px}
 </style>
 </head>
@@ -56,13 +57,14 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
   <div id="aerr" style="color:#f03e3e"></div>
  </div></div>
  <div class="box hide" id="mypage"><button id="prbtn">MIN SIDA: STATISTIK OCH VÄNNER</button></div>
- <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mkp">SKAPA MATCH</button><p>DU FÅR EN KOD ATT SKICKA TILL DIN MOTSTÅNDARE</p></div>
+ <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mkp">SKAPA MATCH</button><p>DU FÅR EN KOD ATT SKICKA TILL DIN MOTSTÅNDARE</p><button id="trb">TRÄNINGSMATCH AI</button><p style="font-size:8px">MOT EN AI-SPELARE. RÄKNAS INTE I STATISTIKEN.</p></div>
  <div class="box"><p>MINA MATCHER</p><div id="ml">INGA ÄNNU</div></div>
  <div class="box"><p>TURNERING</p><div id="tz"></div><button id="tmk">SKAPA TURNERING</button><p>TURNERINGSKOD</p><input id="tci" maxlength="5" placeholder="KOD"><button id="tjn">GÅ MED</button></div>
  <div class="box"><p>MINA TURNERINGAR</p><div id="tl">INGA ÄNNU</div></div>
  <div class="box hide" id="lgbox"><p>LIGA</p><input id="lgn" maxlength="14" placeholder="LIGANS NAMN"><div id="lgd"></div><button id="lgmk">SKAPA LIGA</button><p>LIGAKOD</p><input id="lci" maxlength="5" placeholder="KOD"><button id="lgjn">GÅ MED</button></div>
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
+ <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div></div>
  <div id="err"></div>
 </div>
 <div id="tour" class="hide">
@@ -74,6 +76,8 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 <div id="prof" class="hide">
  <div class="box" id="pinfo"></div>
  <div class="box" id="ph2h"></div>
+ <div class="box" id="ptr"></div>
+ <div class="box" id="psq"></div>
  <div class="box" id="pfr"><p>VÄNNER</p><div id="pfl"></div><p>LÄGG TILL VÄN</p><input id="fnm" maxlength="16" placeholder="ANVÄNDARNAMN" autocapitalize="none"><button id="fad">LÄGG TILL</button></div>
  <div id="pmsg" style="color:#f03e3e;min-height:1.7em"></div>
  <button class="sm" id="pbk">TILLBAKA</button>
@@ -97,7 +101,7 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signInWithPopup,signInWithCredential,GoogleAuthProvider,EmailAuthProvider,linkWithCredential,linkWithPopup,signOut,updateProfile,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import{getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,collection,query,where,limit,arrayUnion,arrayRemove,deleteField}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,collection,query,where,limit,arrayUnion,arrayRemove,deleteField,getCountFromServer}from"https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyAJHQgFyOoa5heZC-WHEo7Ock4-TGbgiIU",authDomain:"straffspark-93d2e.firebaseapp.com",projectId:"straffspark-93d2e",storageBucket:"straffspark-93d2e.firebasestorage.app",messagingSenderId:"298567865198",appId:"1:298567865198:web:6e3a8dd5d82af014b2277f"};
 const FBU=arrayUnion,FBR=arrayRemove,FBD=deleteField;
 const authReady=()=>new Promise(res=>{let un=null,done=false;un=onAuthStateChanged(getAuth(),()=>{if(done)return;done=true;res();if(un)un()})});
@@ -105,7 +109,8 @@ const fbApp=initializeApp(firebaseConfig),fbAuth=getAuth(fbApp),fs=getFirestore(
 const snapDoc=s=>({id:s.id,exists:s.exists(),data:()=>s.data()});
 const dbA={
  doc:p=>{const r=doc(fs,p);return{id:r.id,get:async()=>snapDoc(await getDoc(r)),set:d=>setDoc(r,d),update:d=>updateDoc(r,d),delete:()=>deleteDoc(r),onSnapshot:(n,e)=>onSnapshot(r,sn=>n(snapDoc(sn)),e)}},
- collection:p=>{const mk=q=>({where:(f,o,v)=>mk(query(q,where(f,o,v))),limit:n=>mk(query(q,limit(n))),onSnapshot:(n,e)=>onSnapshot(q,sn=>n({docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))}),e)});return mk(collection(fs,p))}
+ collection:p=>{const mk=q=>({where:(f,o,v)=>mk(query(q,where(f,o,v))),limit:n=>mk(query(q,limit(n))),onSnapshot:(n,e)=>onSnapshot(q,sn=>n({docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))}),e)});return mk(collection(fs,p))},
+ count:async(p,w)=>{let q=collection(fs,p);(w||[]).forEach(x=>{q=query(q,where(x[0],x[1],x[2]))});return(await getCountFromServer(q)).data().count}
 };
 const PAL=["#e03131","#1c7ed6","#fcc419","#f76707","#7048e8","#f1f3f5","#212529","#e64980"],ZN=["VÄNSTER KRYSS","MITTEN HÖGT","HÖGER KRYSS","VÄNSTRA HÖRNET","MITTEN LÅGT","HÖGRA HÖRNET"];
 const $=id=>document.getElementById(id),cv=$("cv"),cx=cv.getContext("2d");
@@ -121,8 +126,8 @@ const BALL=["...KKK...",".KKWWWKK.",".KWWKWWK.","KWWKKKWWK","KWKKKKKWK","KWWKKKW
 const eo=p=>1-(1-p)*(1-p);
 function ball(x,y){BALL.forEach((r,j)=>{for(let i=0;i<9;i++){if(r[i]!==".")R(x-4+i,y-4+j,1,1,r[i]==="K"?"#000":"#fff")}})}
 const DG=["111101101101111","010110010010111","111001111100111","111001111001111","101101111001001","111100111001111","111100111101111","111001001001001","111101111101111","111101111001111"];
-const TEAMS=["SWE","ARG","ENG","FRA","GER","ESP","BRA","NED","NOR","DEN","JPN","POR","EGY","CMR","NGA"];
-const TN={SWE:"SVERIGE",ARG:"ARGENTINA",ENG:"ENGLAND",FRA:"FRANKRIKE",GER:"TYSKLAND",ESP:"SPANIEN",BRA:"BRASILIEN",NED:"NEDERLÄNDERNA",NOR:"NORGE",DEN:"DANMARK",JPN:"JAPAN",POR:"PORTUGAL",EGY:"EGYPTEN",CMR:"KAMERUN",NGA:"NIGERIA"};
+const TEAMS=["SWE","ARG","ENG","FRA","GER","ESP","BRA","NED","NOR","DEN","JPN","POR","EGY","CMR","NGA","ITA","CIV"];
+const TN={SWE:"SVERIGE",ARG:"ARGENTINA",ENG:"ENGLAND",FRA:"FRANKRIKE",GER:"TYSKLAND",ESP:"SPANIEN",BRA:"BRASILIEN",NED:"NEDERLÄNDERNA",NOR:"NORGE",DEN:"DANMARK",JPN:"JAPAN",POR:"PORTUGAL",EGY:"EGYPTEN",CMR:"KAMERUN",NGA:"NIGERIA",ITA:"ITALIEN",CIV:"ELFENBENSKUSTEN",BOT:"BOTLAGET"};
 const FL={
 SWE:'<rect width="30" height="20" fill="#006AA7"/><rect x="9" width="4" height="20" fill="#FECC02"/><rect y="8" width="30" height="4" fill="#FECC02"/>',
 ARG:'<rect width="30" height="20" fill="#75AADB"/><rect y="7" width="30" height="6" fill="#fff"/><circle cx="15" cy="10" r="2" fill="#F6B40E"/>',
@@ -138,7 +143,10 @@ JPN:'<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fil
 POR:'<rect width="30" height="20" fill="#FF0000"/><rect width="12" height="20" fill="#006600"/><circle cx="12" cy="10" r="3.5" fill="#FFE000"/><circle cx="12" cy="10" r="1.8" fill="#fff"/>',
 EGY:'<rect width="30" height="7" fill="#CE1126"/><rect y="7" width="30" height="6" fill="#fff"/><rect y="13" width="30" height="7" fill="#000"/><circle cx="15" cy="10" r="2" fill="#C09300"/>',
 CMR:'<rect width="10" height="20" fill="#007A5E"/><rect x="10" width="10" height="20" fill="#CE1126"/><rect x="20" width="10" height="20" fill="#FCD116"/><polygon points="15,6.5 16,9 18.7,9.1 16.6,10.8 17.3,13.4 15,11.9 12.7,13.4 13.4,10.8 11.3,9.1 14,9" fill="#FCD116"/>',
-NGA:'<rect width="10" height="20" fill="#008751"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#008751"/>'};
+NGA:'<rect width="10" height="20" fill="#008751"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#008751"/>',
+ITA:'<rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#CE2B37"/>',
+CIV:'<rect width="10" height="20" fill="#F77F00"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#009E60"/>',
+BOT:'<rect width="30" height="20" fill="#fff"/><text x="15" y="15" font-size="12" text-anchor="middle" fill="#222" font-family="monospace" font-weight="bold">AI</text>'};
 const flagSvg=t=>'<svg viewBox="0 0 30 20" width="36" height="24" style="border:1px solid #000;display:block">'+FL[t]+'</svg>';
 const kt=(s,t,h,k,o)=>Object.assign({s,t,h,k,a:"#fff",p:0},o||{});
 const KITS={
@@ -156,7 +164,10 @@ JPN:{h:kt("#F4F4F4",null,"#1C3F95","#F4F4F4",{p:7,ml:["#8E44AD","#F1C40F","#5DAD
 POR:{h:kt("#B3122B","#006600","#006600","#B3122B"),w:kt("#F4F4F4","#7ED957","#F4F4F4","#F4F4F4",{p:4,a:"#C1121F"})},
 EGY:{h:kt("#CE1126",null,"#F4F4F4","#111111"),w:kt("#111111",null,"#111111","#111111")},
 CMR:{h:kt("#0A6B3F","#CE1126","#CE1126","#FCD116",{p:4,a:"#FCD116"}),w:kt("#FCD116","#CE1126","#007A5E","#FCD116",{p:4,a:"#007A5E"})},
-NGA:{h:kt("#F4F4F4","#008751","#008751","#F4F4F4",{p:4,a:"#008751"}),w:kt("#008751","#F4F4F4","#008751","#008751",{p:4,a:"#F4F4F4"})}};
+NGA:{h:kt("#F4F4F4","#008751","#008751","#F4F4F4",{p:4,a:"#008751"}),w:kt("#008751","#F4F4F4","#008751","#008751",{p:4,a:"#F4F4F4"})},
+ITA:{h:kt("#1E63B5","#F4F4F4","#F4F4F4","#1E63B5"),w:kt("#F4F4F4","#1E63B5","#1E63B5","#F4F4F4")},
+CIV:{h:kt("#F77F00","#009E60","#F4F4F4","#F77F00"),w:kt("#F4F4F4","#F77F00","#F77F00","#F4F4F4",{p:4,a:"#F77F00"})},
+BOT:{h:kt("#F4F4F4",null,"#F4F4F4","#F4F4F4"),w:kt("#F4F4F4",null,"#F4F4F4","#F4F4F4")}};
 const lum=h=>{const n=parseInt(h.slice(1),16);return(.299*(n>>16&255)+.587*(n>>8&255)+.114*(n&255))/255};
 const KR=h=>{const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]};
 const dist=(a,b)=>{const x=KR(a),y=KR(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])};
@@ -168,11 +179,11 @@ function kits(){const c=(M&&M.c)||["SWE","ARG"],a=c[0]||"SWE",b=c[1]||"ARG",k0=k
 const kit=i=>kits()[i];
 const GKS=["#2ECC40","#FF9F1C","#111111","#E84393","#00B8D9"];
 function gk(i){const ks=kits(),sh=ks[1-i].s,own=ks[i].s,c=GKS.find(x=>dist(x,sh)>140&&dist(x,own)>60)||GKS[0];return{s:c,a:"#fff",p:0,h:"#111111",k:c,l:lum(c)>.62}}
-const ROSTER={
-SWE:[{num:10,name:"Brolin"},{num:9,name:"Dahlin"},{num:7,name:"Andersson"},{num:11,name:"Ibrahimović"},{num:8,name:"Larsson"}],
-FRA:[{num:10,name:"Cantona"},{num:9,name:"Henry"},{num:7,name:"Zidane"},{num:11,name:"Djorkaeff"},{num:8,name:"Thuram"}],
-ESP:[{num:10,name:"Raúl"},{num:9,name:"Xavi"},{num:7,name:"Iniesta"},{num:11,name:"Di Stéfano"},{num:8,name:"Puyol"}],
-ARG:[{num:10,name:"Messi"},{num:9,name:"Maradona"},{num:7,name:"Caniggia"},{num:11,name:"Batistuta"},{num:8,name:"Crespo"}]};
+const RS={SWE:[[1,"RAVELLI"],[2,"NILSSON"],[3,"P. ANDERSSON"],[4,"BJÖRKLUND"],[5,"HYSÉN"],[6,"SCHWARZ"],[7,"LARSSON"],[8,"INGESSON"],[9,"THERN"],[10,"DAHLIN"],[11,"BROLIN"],[12,"IBRAHIMOVIC"],[13,"ISAK"],[14,"GREN"],[15,"AYARI"],[16,"NILSSON LINDELÖF"],[17,"GYÖKERES"],[18,"NORDAHL"],[19,"K. ANDERSSON"],[20,"ALLBÄCK"],[21,"BERG"],[22,"BÖRJESSON"]],FRA:[[1,"BARTHEZ"],[2,"DESAILLY"],[3,"THURAM"],[4,"BLANC"],[5,"EVRA"],[6,"DESCHAMPS"],[7,"CANTONA"],[8,"TIGANA"],[9,"MBAPPÉ"],[10,"ZIDANE"],[11,"TREZEGUET"],[12,"HENRY"],[13,"PAPIN"],[14,"FONTAINE"],[15,"DJORKAEFF"],[16,"ANELKA"],[17,"KANTÉ"],[18,"DEMBÈLÈ"],[19,"OLISE"],[20,"MATUIDI"],[21,"LIZARAZU"],[22,"PETIT"]],ARG:[[1,"BURGOS"],[2,"PASSARELLA"],[3,"SENSINI"],[4,"PLACENTE"],[5,"SORÍN"],[6,"REDONDO"],[7,"CANIGGIA"],[8,"AIMAR"],[9,"BATISTUTA"],[10,"MESSI"],[11,"MARADONA"],[12,"RIQUELME"],[13,"CRESPO"],[14,"DI MARÍA"],[15,"HIGUAÍN"],[16,"KEMPES"],[17,"MASCHERANO"],[18,"ORTEGA"],[19,"SAVIOLA"],[20,"SIMEONE"],[21,"VERÓN"],[22,"BURRUCHAGA"]],ENG:[[1,"SEAMAN"],[2,"NEVILLE"],[3,"COLE"],[4,"GERRARD"],[5,"FERDINAND"],[6,"TERRY"],[7,"BECKHAM"],[8,"GASCOIGNE"],[9,"ROONEY"],[10,"HARRY KANE"],[11,"ROBSON"],[12,"LINEKER"],[13,"CHARLTON"],[14,"SHEARER"],[15,"HURST"],[16,"KEEGAN"],[17,"CROUCH"],[18,"SCHOLES"],[19,"LAMPARD"],[20,"MOORE"],[21,"BARNES"],[22,"BELLINGHAM"]],GER:[[1,"KAHN"],[2,"BECKENBAUER"],[3,"LAHM"],[4,"BREITNER"],[5,"BREHME"],[6,"MATTHÄUS"],[7,"SEELER"],[8,"SCHWEINSTEIGER"],[9,"GERD MÜLLER"],[10,"KLINSMANN"],[11,"KLOSE"],[12,"VÖLLER"],[13,"VOGTS"],[14,"SCHUSTER"],[15,"SANNER"],[16,"RUMMENIGGE"],[17,"HÄSSLER"],[18,"GÖTZE"],[19,"REUS"],[20,"BIERHOFF"],[21,"BALLACK"],[22,"PODOLSKI"]],ESP:[[1,"CASILLAS"],[2,"PUYOL"],[3,"HIERRO"],[4,"PIQUÉ"],[5,"BUSQUETS"],[6,"XAVI HERNÁNDEZ"],[7,"RAÚL"],[8,"INIESTA"],[9,"BUTRAGUEÑO"],[10,"ETXEBERRÍA"],[11,"FÀBREGAS"],[12,"NAVAS"],[13,"SILVA"],[14,"LUIS ENRIQUE"],[15,"MORIENTES"],[16,"RODRI"],[17,"XABI ALONSO"],[18,"CAZORLA"],[19,"TORRES"],[20,"BARAJA"],[21,"MENDIETA"],[22,"JUAN MATA"]],BRA:[[1,"TAFFAREL"],[2,"ROBERTO CARLOS"],[3,"CAFU"],[4,"CARLOS ALBERTO"],[5,"CÉSAR SAMPAIO"],[6,"DUNGA"],[7,"RIVALDO"],[8,"KAKÁ"],[9,"RONALDO"],[10,"PELÉ"],[11,"ROMÁRIO"],[12,"RONALDINHO"],[13,"GARRINCHA"],[14,"RIVELINO"],[15,"BRANCO"],[16,"ALDAIR"],[17,"JAIRZINHO"],[18,"SÓCRATES"],[19,"NEYMAR"],[20,"BEBETO"],[21,"ZICO"],[22,"FALCÃO"]],NED:[[1,"VAN DER SAR"],[2,"RIJKAARD"],[3,"STAM"],[4,"F. DE BOER"],[5,"KOEMAN"],[6,"VAN BOMMEL"],[7,"R. DE BOER"],[8,"BERGKAMP"],[9,"KLUIVERT"],[10,"SEEDORF"],[11,"COCU"],[12,"ZENDEN"],[13,"OVERMARS"],[14,"CRUYFF"],[15,"VAN BASTEN"],[16,"GULLIT"],[17,"NEESKENS"],[18,"DAVIDS"],[19,"VAN NISTELROOY"],[20,"ROBBEN"],[21,"SNEIJDER"],[22,"VAN PERSIE"]],NOR:[[1,"GRODÅS"],[2,"RIISE"],[3,"JOHNSEN"],[4,"BERG"],[5,"THORSTVEDT"],[6,"SOLBAKKEN"],[7,"MYKLAND"],[8,"LEONHARDSEN"],[9,"HAALAND"],[10,"REKDAL"],[11,"IVERSEN"],[12,"GAMST PEDERSEN"],[13,"HANGELAND"],[14,"CAREW"],[15,"SÖRLOTH"],[16,"TORE ANDRÉ FLO"],[17,"ÖDEGAARD"],[18,"KVAMMEN"],[19,"HAREIDE"],[20,"SOLSKJAER"],[21,"BRATTBAKK"],[22,"FJÖRTOFT"]],DEN:[[1,"SCHMEICHEL"],[2,"SIVEBAEK"],[3,"BUSK"],[4,"OLSEN"],[5,"NIELSEN"],[6,"LERBY"],[7,"MÖLBY"],[8,"GRONKJAER"],[9,"JON DAHL TOMASSON"],[10,"M. LAUDRUP"],[11,"B. LAUDRUP"],[12,"SAND"],[13,"LARSEN"],[14,"WIEGHORST"],[15,"TÖFTING"],[16,"KJAER"],[17,"NIELSEN"],[18,"MÖLLER"],[19,"ROMMEDAHL"],[20,"GRAVESEN"],[21,"JÖRGENSEN"],[22,"BRIAN STEEN NIELSEN"]],JPN:[[1,"KAWAGUCHI"],[2,"INAMOTO"],[3,"MORIMOTO"],[4,"NAKAMURA"],[5,"ONO"],[6,"TAKAHARA"],[7,"KAGAWA"],[8,"NAKATA"],[9,"HONDA"],[10,"MIYAICHI"],[11,"NAGATOMO"],[12,"SHOJI"],[13,"KURUMAYA"],[14,"YOSHIDA"],[15,"SAKAI"],[16,"IDEGUCHI"],[17,"KURATA"],[18,"SUGIMOTO"],[19,"KOROKI"],[20,"ASANO"],[21,"OSAKO"],[22,"HARAGUCHI"]],POR:[[1,"BAÍA"],[2,"PAULO FERREIRA"],[3,"PEPE"],[4,"RICARDO CARVALHO"],[5,"COUTO"],[6,"MANICHE"],[7,"CRISTIANO RONALDO"],[8,"BRUNO FERNANDES"],[9,"PAULETA"],[10,"RUI COSTA"],[11,"BERNARDO SILVA"],[12,"SERGIO CONCEICÃO"],[13,"EUSEBIO"],[14,"LUÍS FIGO"],[15,"NUNO GOMES"],[16,"CAPUCHO"],[17,"MARIO COLUNA"],[18,"FUTRE"],[19,"PEYROTEO"],[20,"CHALANA"],[21,"NENE"],[22,"DECO"]],EGY:[[1,"EL-HADARY"],[2,"AL-GOHARY"],[3,"ELMOHAMADY"],[4,"OMAR GABER"],[5,"SAM MORSY"],[6,"WAEL GOMAA"],[7,"AHMED HASSAN"],[8,"ABOUTRIKA"],[9,"HOSSAM HASSAN"],[10,"MOHAMED SALAH"],[11,"EL KHATIB"],[12,"MOHAMED BARAKAT"],[13,"EL-SHAZLY"],[14,"ZIDAN"],[15,"FAWZI"],[16,"AL-ATTAR"],[17,"MARMOUSH"],[18,"SHIKABALA"],[19,"SAID"],[20,"SAAD SAMIR"],[21,"TRÉZÉGUET"],[22,"AMR WARDA"]],CMR:[[1,"N'KONO"],[2,"WOMÉ"],[3,"KALLA"],[4,"RIGOBERT SONG"],[5,"LAUREN"],[6,"ABEGA"],[7,"NJITAP"],[8,"GEREMI"],[9,"ROGER MILLA"],[10,"ONGUENE"],[11,"MBOMA"],[12,"ETO'O"],[13,"EPALLE"],[14,"SUFFO"],[15,"JOB"],[16,"PENSÉE"],[17,"OMAM-BIYIK"],[18,"ELANGA"],[19,"TCHAMI"],[20,"MABOANG"],[21,"N'DIP"],[22,"M'BOUH"]],NGA:[[1,"RUFAI"],[2,"CHUKWU"],[3,"TARIBO WEST"],[4,"KANU"],[5,"KESHI"],[6,"JOHN OBI MIKEL"],[7,"ODEGBAMI"],[8,"FINIDI GEORGE"],[9,"AIYEGBENI"],[10,"JAY-JAY OKOCHA"],[11,"YEKINI"],[12,"OSIMHEN"],[13,"SUNDAY OLISEH"],[14,"BABANGIDA"],[15,"OKAFOR"],[16,"LAWAL"],[17,"ORUMA"],[18,"OKPARA"],[19,"YOBO"],[20,"BABAYARO"],[21,"AGHAHOWA"],[22,"UTAKA"]],ITA:[[1,"BUFFON"],[2,"BARESI"],[3,"MALDINI"],[4,"COSTACURTA"],[5,"CANNAVARO"],[6,"NESTA"],[7,"DEL PIERO"],[8,"PIRLO"],[9,"ROBERTO BAGGIO"],[10,"TOTTI"],[11,"DINO BAGGIO"],[12,"DE ROSSI"],[13,"SCHILLACI"],[14,"DI BIAGIO"],[15,"GIUSEPPE MEAZZA"],[16,"DONADONI"],[17,"GIGI RIVA"],[18,"ZAMBROTTA"],[19,"INZAGHI"],[20,"PAOLO ROSSI"],[21,"VIERI"],[22,"TARDELLI"]],CIV:[[1,"BARRY"],[2,"EBOUÉ"],[3,"AURIER"],[4,"KOLO TOURÉ"],[5,"ZOKORA"],[6,"CHEICK TIOTÉ"],[7,"DIALLO"],[8,"KALOU"],[9,"AROUNA KONÉ"],[10,"GERVINHO"],[11,"DROGBA"],[12,"BONY"],[13,"PÉPÉ"],[14,"DOUMBIA"],[15,"YAN DIOMANDE"],[16,"KESSIÉ"],[17,"DIAKITÉ"],[18,"ABDUL KADER KEÏTA"],[19,"YAYA TOURÉ"],[20,"BONNY"],[21,"WAHI"],[22,"SOL BAMBA"]]};
+const TOP5={SWE:[7, 10, 11, 12, 19],FRA:[7, 9, 10, 12, 16],ARG:[9, 10, 11, 12, 16],ENG:[8, 9, 10, 14, 18],GER:[2, 9, 10, 12, 16],ESP:[7, 8, 9, 10, 14],BRA:[9, 10, 11, 12, 18],NED:[8, 9, 14, 15, 16],NOR:[7, 9, 10, 15, 16],DEN:[9, 10, 11, 15, 20],JPN:[7, 8, 9, 14, 18],POR:[7, 8, 9, 13, 14],EGY:[9, 10, 17, 18, 21],CMR:[4, 5, 8, 9, 12],NGA:[4, 8, 10, 13, 20],ITA:[2, 7, 8, 9, 10],CIV:[8, 11, 15, 18, 19]};
+const ROSTER={};Object.keys(RS).forEach(k=>{ROSTER[k]=RS[k].map(q=>({num:q[0],name:q[1]}))});
+const BOTS=["BOTALDO", "BOTTI", "BOTADONA", "NEYBOT", "BOTISTUTA", "GLENN BOTÉN", "BOTALDINHO", "BOTELLI", "BOTTUSO", "BOTTAVARO", "BOTUITA", "BOTRAHIMOVIC", "BOTBA", "BOTERTO CARLOS", "BOTANDOWSKI", "BOTHAM", "BOTIESTA", "BOTKAMP", "VAN BOTHORST", "BOTENBAUER", "F. DE BOT", "BOTO'O"],BOTNUM=[9, 21, 18, 16, 13, 15, 22, 8, 19, 20, 1, 17, 10, 2, 11, 7, 5, 4, 3, 14, 6, 12];
+ROSTER.BOT=BOTS.map((n,i)=>({num:BOTNUM[i],name:n}));
 const pname=(team,num)=>{const r=(ROSTER[team]||[]).find(q=>q.num===num);return r?r.name:"SPELARE"};
 const HC=["#1a1210","#4a2c12","#8a5a2b","#e8c15a","#c2410c","#d0d0d0","#228be6"];
 const SKT=["#f2c9a0","#e3a672","#b87a4b","#8a5532","#5a3520"],PT={"#e03131":1,"#1c7ed6":2,"#f76707":2,"#212529":1,"#7048e8":2},LT=["#fcc419","#f1f3f5","#e64980","#f76707"];
@@ -289,7 +300,7 @@ function scene(o){
  if(f.dim)R(0,0,160,114,"rgba(0,0,40,"+f.dim+")");
  if(f.flash)R(0,0,160,114,"rgba(255,255,255,.55)");
  cx.restore();
- if(o.plate){const nmx=pname(o.plate.team,o.plate.num);txt(o.plate.num+". "+nmx,80,102,"#ffffff",2,true)}
+ if(o.plate){const lb=o.plate.num+". "+pname(o.plate.team,o.plate.num),sc=lb.length*8<=156?2:1;txt(lb,80,sc===2?102:105,"#ffffff",sc,true)}
 }
 
 function goals(){const g=[0,0];M.kicks.forEach(k=>{if(k.save!==undefined&&k.shot!==k.save)g[k.s]++});return g}
@@ -328,8 +339,9 @@ function ui(){
  if(mode==="shoot"&&!nextNum)nextNum=pickNum(idx);if(mode!=="shoot")nextNum=0;
  let t="";
  $("shr").classList.toggle("hide",st.need!=="open");
+ if((st.need==="shoot"||st.need==="save")&&isAI(M.p[st.who]))aiTurn();
  if(st.need==="open"){t='TRYCK PÅ SKICKA INBJUDAN, ELLER GE KODEN TILL DIN MOTSTÅNDARE<br><span class=\"code\">'+code+'</span><br>VÄNTAR PÅ SPELARE 2...<br>DU KAN LÄMNA SIDAN OCH KOMMA TILLBAKA.'}
- else if(st.need==="over"){{const w=g[0]>g[1]?0:1;t=(w===idx?"🏆 VINST! DU VANN":"FÖRLUST. "+nm(w)+" VANN")+"<br>"+g[0]+" – "+g[1];if(db&&!repd[code]){repd[code]=1;if(M.tn)reportWin(M.tn.c,M.tn.k,M.p[w]);if(M.lg)reportLeague(M.lg.c,M.lg.k,M.p[w]);if(acct())recordGame(w)}}ok.textContent="TILLBAKA";ok.classList.remove("hide")}
+ else if(st.need==="over"){{const w=g[0]>g[1]?0:1;t=(w===idx?"🏆 VINST! DU VANN":"FÖRLUST. "+nm(w)+" VANN")+"<br>"+g[0]+" – "+g[1];if(db&&!repd[code]){repd[code]=1;if(M.tn)reportWin(M.tn.c,M.tn.k,M.p[w]);if(M.lg)reportLeague(M.lg.c,M.lg.k,M.p[w]);if(acct()&&!M.tr)recordGame(w);if(!M.tr){db.doc("played/"+code).set({p:M.p.filter(x=>!isAI(x)),t:Date.now()}).catch(()=>{});db.doc("live/"+code).delete().catch(()=>{})}}}ok.textContent="TILLBAKA";ok.classList.remove("hide")}
  else if(mode==="shoot")t="DIN TUR ATT SLÅ! 🥅<br>VÄLJ RUTA"+(sel>=0?": "+ZN[sel]:"");
  else if(mode==="save")t="RÄDDA! 🧤<br>VAR KASTAR DU DIG"+(sel>=0?"? "+ZN[sel]:"?");
  else t=(st.need==="shoot"?"VÄNTAR PÅ ATT "+nm(st.who)+" SKA SLÅ":"VÄNTAR PÅ ATT "+nm(st.who)+" SKA RÄDDA")+"...";
@@ -390,13 +402,13 @@ function defeat(s,l){
  R(0,0,160,8,"#000");R(0,106,160,8,"#000");
 }
 const GL={A:"010101111101101",B:"110101110101110",C:"011100100100011",D:"110101101101110",E:"111100110100111",F:"111100110100100",G:"011100101101011",H:"101101111101101",I:"111010010010111",J:"001001001101010",K:"101101110101101",L:"100100100100111",M:"101111111101101",N:"110101101101101",O:"010101101101010",P:"110101110100100",Q:"010101101111011",R:"110101110101101",S:"011100010001110",T:"111010010010010",U:"101101101101111",V:"101101101101010",W:"101101111111101",X:"101101010101101",Y:"101101010010010",Z:"111001010100111","-":"000000111000000"};
-for(let i=0;i<10;i++)GL[String(i)]=DG[i];GL["."]="000000000000010";
+for(let i=0;i<10;i++)GL[String(i)]=DG[i];GL["."]="000000000000010";GL["'"]="010010000000000";
 function txt(str,mx,y,col,sc,sh){sc=sc||1;
  const items=[];for(const c of String(str).toUpperCase().normalize("NFD")){if(/[\u0300-\u036f]/.test(c)){if(items.length)items[items.length-1].m=c}else items.push({c,m:""})}
- const n=items.length,sp=(n*4-1<=40||sc>1)?4:3,w=(n*sp-(sp-3))*sc,x0=Math.round(mx-w/2);
+ const n=items.length,sp=(n*4*sc<=158)?4:3,w=(n*sp-(sp-3))*sc,x0=Math.round(mx-w/2);
  const dr=(ox,oy,cl)=>items.forEach((it,i)=>{const g=GL[it.c];if(!g)return;const bx=x0+i*sp*sc+ox;
   for(let r=0;r<5;r++)for(let q=0;q<3;q++)if(g[r*3+q]==="1")R(bx+q*sc,y+r*sc+oy,sc,sc,cl);
-  const m=it.m;if(m==="\u0308"){R(bx,y-2*sc+oy,sc,sc,cl);R(bx+2*sc,y-2*sc+oy,sc,sc,cl)}else if(m==="\u030A"){R(bx+sc,y-2*sc+oy,sc,sc,cl)}else if(m==="\u0301"){R(bx+2*sc,y-2*sc+oy,sc,sc,cl)}});
+  const m=it.m;if(m==="\u0308"){R(bx,y-2*sc+oy,sc,sc,cl);R(bx+2*sc,y-2*sc+oy,sc,sc,cl)}else if(m==="\u030A"||m==="\u0303"){R(bx+sc,y-2*sc+oy,sc,sc,cl)}else if(m==="\u0300"){R(bx,y-2*sc+oy,sc,sc,cl)}else if(m==="\u0301"){R(bx+2*sc,y-2*sc+oy,sc,sc,cl)}});
  if(sh)dr(sc,sc,"#000000");dr(0,0,col);
 }
 function podium(s,team){
@@ -421,9 +433,19 @@ function render(s,k,goal,cel,fin){
  else{scene(frameOf(s,k,goal,cel));b.style.top="38%";b.textContent=s>1.05?(goal?"MÅL!":"RÄDDAT!"):""}
 }
 const fb=i=>((i*7+3)%24)+2;
+let MYL={};
+function seeded(sd){let h=2166136261;for(const c of String(sd)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return()=>{h^=h<<13;h^=h>>>17;h^=h<<5;return((h>>>0)%100000)/100000}}
+function lineupOf(team,who){
+ const R=ROSTER[team]||[];if(!R.length)return null;
+ if(who===idx&&MYL[team]&&MYL[team].length===R.length)return MYL[team];
+ const top=(TOP5[team]||[]).slice(),rest=R.map(q=>q.num).filter(n=>!top.includes(n)),rnd=seeded(String(code)+team+who);
+ for(let i=rest.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[rest[i],rest[j]]=[rest[j],rest[i]]}
+ return top.concat(rest);
+}
 function pickNum(who){
- {const tm=(M.c||[])[who],RS=ROSTER[tm];if(RS&&RS.length){const used=M.kicks.filter(k=>k.s===who&&k.num).map(k=>k.num),av=RS.filter(q=>!used.includes(q.num)),pl=av.length?av:RS;return pl[Math.floor(Math.random()*pl.length)].num}}
-const u=M.kicks.filter(k=>k.s===who&&k.num).map(k=>k.num);let n;do{n=2+Math.floor(Math.random()*24)}while(u.includes(n)&&u.length<24);return n}
+ const tm=(M.c||[])[who],L=lineupOf(tm,who);
+ if(L)return L[M.kicks.filter(k=>k.s===who).length%L.length];
+ const u=M.kicks.filter(k=>k.s===who&&k.num).map(k=>k.num);let n;do{n=2+Math.floor(Math.random()*24)}while(u.includes(n)&&u.length<24);return n}
 function dnum(st){if(st.need==="shoot"&&st.who===idx)return nextNum||undefined;if(st.need==="save"){const i=M.kicks.length-1;return M.kicks[i].num||fb(i)}}
 function frameOf(s,k,goal,cel){
  const sh=k.s,ke=1-k.s,bt=zc(k.shot),kt=zc(k.save),d=kt.x<70?-1:kt.x>90?1:0,mid=d===0,hi=kt.y<40,caught=!goal&&mid,kd=(k.num||0)%2?1:-1;
@@ -512,7 +534,7 @@ $("ok").onclick=async()=>{
  busy=true;const K=M.kicks.slice();
  if(st.need==="shoot"){K.push({s:idx,shot:sel,num:nextNum||pickNum(idx)});nextNum=0}else K[K.length-1]={...K[K.length-1],save:sel};
  try{await ref.update({kicks:K})}catch(e){$("st").textContent="KUNDE INTE SPARA. FÖRSÖK IGEN."}
- sel=-1;busy=false;ui();
+ touchLive();sel=-1;busy=false;ui();
 };
 
 async function loadNames(){}
@@ -570,7 +592,7 @@ function renderMine(docs){
  docs.forEach(d=>{const m=d.data();if(!m||!m.p||overM(m))return;n++;
   const dn=(m.kicks||[]).filter(k=>k.save!==undefined).length,o=m.p[0]===meId?1:0;
   const r=document.createElement("div");r.className="ml";
-  const l=document.createElement("span");l.textContent=(m.p[1]?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE")+" · "+dn+"/10 · "+d.id;
+  const l=document.createElement("span");l.textContent=(m.p[1]?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE")+" · "+dn+"/10 · "+d.id+(m.tr?" · TRÄNING":"");
   const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>{ls("name",myName());join(d.id)};
   r.append(l,b);if(!m.tn&&!m.lg){const x=document.createElement("button");x.textContent="TA BORT";x.onclick=()=>delMatch(d.id);r.appendChild(x)}el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU";
@@ -632,7 +654,7 @@ function renderAcc(){
  else{t.textContent="DU SPELAR UTAN KONTO. MED KONTO ÄR DU ALLTID SAMMA SPELARE, ÄVEN I ANDRA WEBBLÄSARE.";btn("LOGGA IN / SKAPA KONTO",()=>$("accf").classList.toggle("hide"))}
 }
 function initAccount(){
- renderAcc();if(acct())setupSocial();const u=fbAuth.currentUser;
+ renderAcc();if(acct())setupSocial();startGlobal();const u=fbAuth.currentUser;
  if(u&&!u.isAnonymous&&!$("nm").value)$("nm").value=String(u.displayName||(u.email||"").split("@")[0]||"").toUpperCase().slice(0,10);
  if(inApp){$("agg").classList.add("hide");$("agl").classList.add("hide")}
  $("auc").onclick=async()=>{const n=$("au").value.trim().toLowerCase(),p=$("ap").value;
@@ -663,7 +685,9 @@ const mkE=(tag,txt,cls)=>{const e=document.createElement(tag);if(txt!=null)e.tex
 const btnE=(txt,fn)=>{const b=mkE("button",txt);b.onclick=fn;return b};
 const pmsg=m=>{$("pmsg").textContent=m};
 function setupSocial(){
- const n0=aName();db.doc("players/"+meId).set({name:n0,nk:String(n0).toLowerCase(),t:Date.now()}).catch(()=>{});
+ const n0=aName(),pr=db.doc("players/"+meId);pr.get().then(sn=>sn.exists?pr.update({name:n0,nk:String(n0).toLowerCase()}):pr.set({name:n0,nk:String(n0).toLowerCase(),t:Date.now(),lineup:{}})).catch(()=>{});
+ pr.onSnapshot(sn=>{if(sn.exists){MYL=(sn.data().lineup)||{};if(onProf)renderSquad()}},e=>{});
+ db.collection("players/"+meId+"/trophies").limit(200).onSnapshot(sn=>{TR=sn.docs.map(d=>d.data());if(onProf)renderCab()},e=>{});
  ["mypage","lgbox","lgl"].forEach(i=>$(i).classList.remove("hide"));
  db.collection("friendships").where("u","array-contains",meId).limit(200).onSnapshot(sn=>{FR=sn.docs.map(d=>({id:d.id,...d.data()}));renderNotes();if(onProf)renderProf()},e=>{});
  db.collection("invites").where("to","==",meId).limit(50).onSnapshot(sn=>{INV=sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.st==="new");renderNotes()},e=>{});
@@ -696,7 +720,7 @@ function renderProf(){
  [...$("ph2h").querySelectorAll(".gr[data-i]")].forEach(r=>r.onclick=()=>{const nx=r.nextSibling;if(nx&&nx.className==="det"){nx.remove();return}
   const o=H[+r.dataset.i],d=mkE("div",null,"det");d.style.fontSize="8px";d.style.textAlign="left";
   d.textContent=o.l.slice().sort((a,b)=>b.t-a.t).map(g=>(g.win?"V ":"F ")+g.my+"-"+g.their+" "+new Date(g.t).toLocaleDateString("sv-SE")).join("  ·  ");r.after(d)});
- renderFriends();
+ renderFriends();renderSquad();renderCab();
 }
 function renderFriends(){
  const el=$("pfl");el.innerHTML="";
@@ -719,7 +743,7 @@ async function addFriend(){
 }
 function renderLgd(){const el=$("lgd");el.innerHTML="";[[false,"ENKEL"],[true,"DUBBEL"]].forEach(([v,l])=>{const b=mkE("button",l);b.style.opacity=lgDbl===v?1:.45;b.onclick=()=>{lgDbl=v;renderLgd()};el.appendChild(b)})}
 function renderLgl(docs){const el=$("lgm");el.innerHTML="";let n=0;
- docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;const r=mkE("div",null,"ml");r.appendChild(mkE("span",String(t.name||"LIGA")+" · "+d.id+" · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"KLAR")));r.appendChild(btnE("ÖPPNA",()=>openLeague(d.id)));el.appendChild(r)});
+ docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;if(t.st==="done"&&t.win===meId)awardTrophy("l_"+d.id,{st:1,title:"LIGA "+String(t.name||""),detail:t.dbl?"DUBBLA MÖTEN":"ENKLA MÖTEN"});const r=mkE("div",null,"ml");r.appendChild(mkE("span",String(t.name||"LIGA")+" · "+d.id+" · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"KLAR")));r.appendChild(btnE("ÖPPNA",()=>openLeague(d.id)));el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU"}
 async function mkLeague(){
  if(!db)return $("err").textContent=NOLOGIN;if(!acct())return $("err").textContent="LOGGA IN FÖR ATT SKAPA EN LIGA.";
@@ -763,7 +787,8 @@ async function playLeague(k){
  if(!x||(x.a!==meId&&x.b!==meId))return;
  const mid="L"+lcode+"-"+k,r2=db.doc("matches/"+mid),me=t.pl[meId];
  try{const sn=await r2.get();
-  if(!sn.exists){await r2.set({p:[meId,null],n:[me.n,null],c:[me.t,null],open:false,tod:t.tod||"night",kicks:[],t:Date.now(),lg:{c:lcode,k}});idx=0}
+  const op=x.a===meId?x.b:x.a,ao=isAI(op),pa=ao?t.pl[op]:null;
+  if(!sn.exists){await r2.set({p:[meId,ao?op:null],n:[me.n,ao?pa.n:null],c:[me.t,ao?pa.t:null],open:false,tod:t.tod||"night",kicks:[],t:Date.now(),lg:{c:lcode,k}});idx=0}
   else{const md=sn.data();
    if(md.p[0]===meId)idx=0;else if(md.p[1]===meId)idx=1;
    else if(!md.p[1]){await r2.update({p:[md.p[0],meId],n:[(md.n||[])[0]||"?",me.n],c:[(md.c||[])[0]||"SWE",me.t],open:false});idx=1}
@@ -773,6 +798,7 @@ async function playLeague(k){
 async function inviteLeague(o){try{await db.doc("invites/"+lcode+"_"+o).set({to:o,from:meId,fromName:aName(),kind:"l",code:lcode,st:"new",t:Date.now()});$("err").textContent="INBJUDAN SKICKAD."}catch(e){$("err").textContent="KUNDE INTE BJUDA IN: "+(e.message||e.code)}}
 async function delLeague(c){if(!window.confirm("TA BORT LIGAN "+c+" FÖR ALLA DELTAGARE?"))return;try{await db.doc("leagues/"+c).delete();leaveLeague()}catch(e){$("err").textContent="KUNDE INTE TA BORT: "+(e.message||e.code)}}
 function renderLeague(){
+ leagueAI(ldata);
  const t=ldata,pl=t.pl||{},nmo=id=>esc((pl[id]||{}).n||"?"),fx=t.fx||{};
  $("lginfo").innerHTML="LIGA: "+esc(t.name)+"<br><span class=\"code\">"+esc(lcode)+"</span><br>"+(t.dbl?"DUBBLA MÖTEN":"ENKLA MÖTEN")+" · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"AVSLUTAD");
  let h="";
@@ -787,12 +813,112 @@ function renderLeague(){
  if(t.st==="lobby"){
   ac.appendChild(btnE("DELA INBJUDAN",()=>shareInvite("l",lcode,ac.lastChild)));
   FR.filter(f=>f.st==="ok").forEach(f=>{const o=f.u.find(x=>x!==meId);if(!t.u.includes(o))ac.appendChild(btnE("BJUD IN "+String((f.n||{})[o]||"VÄN").toUpperCase(),()=>inviteLeague(o)))});
+  if(t.o===meId)ac.appendChild(btnE("+ AI-SPELARE",addLeagueAI));
   if(t.o===meId)ac.appendChild(btnE(t.u.length<2?"STARTA LIGAN (MINST 2 SPELARE)":"STARTA LIGAN",startLeague));
  }
  if(t.st==="done"&&t.win){ac.appendChild(mkE("p","VINNARE: "+((pl[t.win]||{}).n||"?")));ac.appendChild(btnE("SE FIRANDET",()=>showPodium(t)));if(!ls("pod_"+lcode)){ls("pod_"+lcode,"1");showPodium(t)}}
  if(t.o===meId)ac.appendChild(btnE("TA BORT LIGAN",()=>delLeague(lcode)));
 }
 $("prbtn").onclick=openProfile;$("pbk").onclick=closeProf;$("fad").onclick=addFriend;$("lgmk").onclick=mkLeague;$("lgjn").onclick=()=>joinLeague($("lci").value);$("lgbk").onclick=leaveLeague;renderLgd();
+const isAI=id=>String(id||"").startsWith("AI_");
+const FIRSTN=["ALEX","MARCO","JONAS","LUCAS","OMAR","DIEGO","HUGO","LEO","NICO","ELIAS","FELIX","IVAN","MATEO","SAMI","KARL"],LASTN=["ANDERSEN","ROSSI","MULLER","SILVA","DUBOIS","NOVAK","KHAN","BERG","LOPEZ","HAYES","TANAKA","ESPOSITO","OKAFOR","JANSEN"];
+function aiEnt(i){if(i<22)return{n:BOTS[i],t:"BOT"};const r=seeded("ai"+i);return{n:FIRSTN[Math.floor(r()*FIRSTN.length)]+" "+LASTN[Math.floor(r()*LASTN.length)]+" (AI)",t:TEAMS[Math.floor(r()*TEAMS.length)]}}
+function aiPick(used,count){const ids=[];let i=0;while(ids.length<count){const id="AI_"+i;if(!used.includes(id))ids.push(id);i++}return ids}
+let aiBusy=false;const aiSet={};let TR=[];const awd={};
+function touchLive(){if(db&&db.doc&&code&&!(M&&M.tr))db.doc("live/"+code).set({lu:Date.now()}).catch(()=>{})}
+function aiTurn(){
+ if(aiBusy)return;aiBusy=true;
+ setTimeout(async()=>{try{
+  if(!M||playing)return;const s2=state();
+  if((s2.need!=="shoot"&&s2.need!=="save")||!isAI(M.p[s2.who]))return;
+  const z=Math.floor(Math.random()*6),K=M.kicks.slice();
+  if(s2.need==="shoot")K.push({s:s2.who,shot:z,num:pickNum(s2.who)});else K[K.length-1]={...K[K.length-1],save:z};
+  await ref.update({kicks:K});touchLive();
+ }catch(e){console.error(e)}finally{aiBusy=false}},1000+Math.random()*900);
+}
+async function mkTraining(){
+ if(!db)return $("err").textContent=NOLOGIN;ls("name",myName());
+ const c=genCode(),i=Math.floor(Math.random()*22),a=aiEnt(i);
+ try{ref=db.doc("matches/"+c);await ref.set({p:[meId,"AI_"+i],n:[myName(),a.n],c:[TEAMS[myCol],a.t],open:false,tod:myTod,tr:true,kicks:[],t:Date.now()});idx=0;code=c;enter()}
+ catch(e){$("err").textContent="KUNDE INTE STARTA TRÄNINGEN: "+(e.message||e.code)}
+}
+function tourAI(t){
+ if(!t||t.st!=="run")return;const m=t.m||{};
+ Object.keys(m).forEach(k=>{const e=m[k];if(!e||e.w||!e.a||!e.b)return;const A=isAI(e.a),B=isAI(e.b);
+  if(A&&B){if(!aiSet[tcode+k]){aiSet[tcode+k]=1;reportWin(tcode,+k,seeded(tcode+k)()<.5?e.a:e.b)}}
+  else if((A||B)&&e.dl&&Date.now()>e.dl&&!aiSet["w"+tcode+k]){aiSet["w"+tcode+k]=1;aiWo(+k)}});
+}
+async function aiWo(k){
+ const e=(tdata.m||{})[k],ai=isAI(e.a)?e.a:e.b,hu=ai===e.a?e.b:e.a;let win=ai;
+ try{const sn=await db.doc("matches/"+tcode+"-"+k).get();
+  if(sn.exists){const md=sn.data(),K=md.kicks||[],l=K[K.length-1];let pend;
+   if(!md.p[1])pend=1;else if(!l||l.save!==undefined)pend=l?1-l.s:0;else pend=1-l.s;
+   if(isAI(md.p[pend]))win=hu}}catch(x){}
+ reportWin(tcode,k,win,true);
+}
+async function fillStartTour(){
+ const t=tdata;if(!t||t.o!==meId||t.st!=="lobby")return;
+ const ids=aiPick(t.u,t.sz-t.u.length),upd={};
+ ids.forEach(id=>{const a=aiEnt(+id.slice(3));upd["pl."+id]={n:a.n,t:a.t,ai:true}});
+ const all=t.u.concat(ids),u=all.slice();
+ for(let i=u.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[u[i],u[j]]=[u[j],u[i]]}
+ const m={},now=Date.now();for(let j=0;j<t.sz/2;j++)m[j]={a:u[2*j],b:u[2*j+1],dl:now+H24};
+ upd.u=all;upd.st="run";upd.m=m;upd.drawn=now;
+ try{await tref.update(upd)}catch(e){$("err").textContent="FEL: "+(e.message||e.code)}
+}
+async function addLeagueAI(){
+ const t=ldata;if(!t||t.o!==meId||t.st!=="lobby")return;
+ const id=aiPick(t.u,1)[0],a=aiEnt(+id.slice(3));
+ try{await lref.update({u:FBU(id),["pl."+id]:{n:a.n,t:a.t,ai:true}})}catch(e){$("err").textContent="FEL: "+(e.message||e.code)}
+}
+function leagueAI(t){
+ if(!t||t.st!=="run")return;const fx=t.fx||{};
+ Object.keys(fx).forEach(k=>{const x=fx[k];if(x&&!x.w&&isAI(x.a)&&isAI(x.b)&&!aiSet[lcode+"L"+k]){aiSet[lcode+"L"+k]=1;reportLeague(lcode,+k,seeded(lcode+k)()<.5?x.a:x.b)}});
+ if(t.o===meId&&Object.keys(fx).length&&Object.values(fx).every(x=>x.w)&&!aiSet[lcode+"done"]){aiSet[lcode+"done"]=1;lref.update({st:"done",win:leagueTable(t)[0].id}).catch(()=>{})}
+}
+async function refreshGlobal(){
+ if(!db||!db.count)return;
+ try{const r=await Promise.all([db.count("players"),db.count("played"),db.count("live",[["lu",">",Date.now()-1800000]])]);
+  $("gstn").innerHTML="REGISTRERADE SPELARE: "+r[0]+"<br>SPELADE MATCHER: "+r[1]+"<br>PÅGÅENDE MATCHER NU: "+r[2]}catch(e){}
+}
+function startGlobal(){refreshGlobal();setInterval(refreshGlobal,60000)}
+const TG="#fcc419",TD="#e0a800",TL="#fff3bf",TN2="#5d4037";
+const TRS=[
+ [[8,4,16,10,TG],[10,14,12,3,TG],[14,17,4,8,TD],[9,25,14,3,TG],[4,6,4,2,TG],[4,6,2,7,TG],[4,11,4,2,TG],[24,6,4,2,TG],[26,6,2,7,TG],[24,11,4,2,TG],[10,5,2,8,TL],[6,28,20,8,TN2],[10,30,12,4,"#222222"]],
+ [[10,3,12,12,"#ffffff"],[14,7,4,4,"#000000"],[10,4,2,2,"#000000"],[20,4,2,2,"#000000"],[10,12,2,2,"#000000"],[20,12,2,2,"#000000"],[15,3,2,2,"#000000"],[15,13,2,2,"#000000"],[13,15,6,14,TG],[11,15,10,2,TD],[7,29,18,7,TN2],[10,31,12,4,"#222222"]],
+ [[11,2,10,10,"#2e86de"],[13,4,4,3,"#2ecc71"],[17,8,3,3,"#2ecc71"],[8,10,3,4,TG],[21,10,3,4,TG],[14,12,4,4,TG],[12,16,8,10,TG],[12,26,3,4,TD],[17,26,3,4,TD],[7,30,18,6,"#0b6b3a"],[10,32,12,3,"#222222"]],
+ [[12,8,8,8,TG],[14,2,4,6,TG],[4,9,8,4,TG],[20,9,8,4,TG],[8,16,5,6,TG],[19,16,5,6,TG],[13,22,6,8,"#74c0fc"],[7,30,18,6,"#1c3f95"],[10,32,12,3,"#222222"]],
+ [[7,10,18,9,TG],[7,10,18,2,TD],[8,5,3,5,TG],[14,3,4,7,TG],[21,5,3,5,TG],[15,13,2,3,"#e03131"],[14,19,4,7,TD],[10,26,12,3,TG],[6,29,20,7,"#a61e2f"],[10,31,12,4,"#222222"]],
+ [...disc(8,1,16,"#ffffff"),[14,6,4,4,"#000000"],[15,2,2,2,"#000000"],[9,6,2,3,"#000000"],[21,6,2,3,"#000000"],[10,13,3,2,"#000000"],[19,13,3,2,"#000000"],[13,17,6,12,TG],[11,17,10,2,TD],[7,29,18,7,TN2],[10,31,12,4,"#222222"]],
+ [...disc(8,1,16,TG),[14,6,4,4,TD],[15,2,2,2,TD],[9,6,2,3,TD],[21,6,2,3,TD],[10,13,3,2,TD],[19,13,3,2,TD],[6,18,20,3,"#2ecc71"],[8,21,16,3,"#27ae60"],[13,24,6,5,TD],[7,29,18,7,"#0b6b3a"],[10,31,12,4,"#222222"]],
+ [[5,3,22,22,"#a5d8ff"],...disc(10,7,12,"#ffffff"),[14,11,4,4,"#000000"],[11,9,2,2,"#000000"],[19,9,2,2,"#000000"],[5,25,22,3,TG],[7,28,18,8,"#3e2723"],[10,31,12,4,"#222222"]],
+ [...disc(8,2,16,"#ffffff"),[14,7,4,4,"#000000"],[10,6,2,3,"#000000"],[20,6,2,3,"#000000"],[13,18,2,12,TG],[17,18,2,12,TG],[9,28,6,3,TG],[17,28,6,3,TG],[13,25,6,3,TD],[7,31,18,5,TN2],[10,32,12,3,"#222222"]]];
+function disc(x0,y0,d,col){const r=[];for(let j=0;j<d;j++){const dy=j-(d-1)/2,h=Math.sqrt(Math.max(0,(d/2)*(d/2)-dy*dy)),w=Math.round(h*2);r.push([x0+Math.round((d-w)/2),y0+j,w,1,col])}return r}
+function drawTrophy(c,st){const P=TRS[st%TRS.length],f=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};P.forEach(q=>f(q[0]-1,q[1]-1,q[2]+2,q[3]+2,"#000000"));P.forEach(q=>f(q[0],q[1],q[2],q[3],q[4]))}
+function awardTrophy(id,o){if(!acct()||awd[id]||!db)return;awd[id]=1;db.doc("players/"+meId+"/trophies/"+id).set({...o,t:Date.now()}).catch(()=>{})}
+function renderCab(){
+ const el=$("ptr");el.innerHTML="";el.appendChild(mkE("p","PRISSKÅP"));
+ if(!TR.length){el.appendChild(mkE("div","INGA POKALER ÄNNU. VINN EN TURNERING ELLER LIGA!"));return}
+ const g=mkE("div");g.style.cssText="display:flex;flex-wrap:wrap;gap:10px;justify-content:center";
+ TR.slice().sort((a,b)=>(b.t||0)-(a.t||0)).forEach(o=>{const c=mkE("div");c.style.cssText="width:100px;font-size:7px;line-height:1.5";
+  const cv=document.createElement("canvas");cv.width=32;cv.height=40;cv.style.cssText="width:80px;height:100px;image-rendering:pixelated";try{drawTrophy(cv.getContext("2d"),o.st||0)}catch(e){}
+  c.appendChild(cv);c.appendChild(mkE("div",String(o.title||"")));c.appendChild(mkE("div",String(o.detail||"")));g.appendChild(c)});
+ el.appendChild(g);
+}
+let sqTeam=null;
+function lineupNow(team){const R=ROSTER[team]||[];if(MYL[team]&&MYL[team].length===R.length)return MYL[team].slice();const top=TOP5[team]||[];return top.concat(R.map(q=>q.num).filter(n=>!top.includes(n)))}
+async function saveLineup(team,L){MYL[team]=L;renderSquad();try{await db.doc("players/"+meId).update({["lineup."+team]:L})}catch(e){pmsg("KUNDE INTE SPARA: "+(e.message||e.code))}}
+function mvL(team,i,d){const L=lineupNow(team),j=i+d;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];saveLineup(team,L)}
+async function resetLineup(team){delete MYL[team];renderSquad();try{await db.doc("players/"+meId).update({["lineup."+team]:FBD()})}catch(e){}}
+function renderSquad(){
+ const el=$("psq");el.innerHTML="";const team=sqTeam||TEAMS[myCol];sqTeam=team;
+ el.appendChild(mkE("p","MIN TRUPP"));
+ const sel=document.createElement("select");TEAMS.forEach(t=>{const o=document.createElement("option");o.value=t;o.textContent=TN[t];if(t===team)o.selected=true;sel.appendChild(o)});sel.onchange=()=>{sqTeam=sel.value;renderSquad()};el.appendChild(sel);
+ el.appendChild(mkE("p","DE FEM FÖRSTA SLÅR STRAFFARNA I ORDNING. RESTEN SLÅR I SUDDEN DEATH. FLYTTA MED PILARNA."));
+ lineupNow(team).forEach((num,i)=>{const r=mkE("div",null,"ml");r.appendChild(mkE("span",(i<5?"STRAFF "+(i+1)+": ":(i+1)+": ")+num+". "+pname(team,num)));r.append(btnE("▲",()=>mvL(team,i,-1)),btnE("▼",()=>mvL(team,i,1)));el.appendChild(r)});
+ el.appendChild(btnE("NOLLSTÄLL",()=>resetLineup(team)));
+}
+$("trb").onclick=mkTraining;
 const repd={},dlSet={},H24=86400000;
 let tsz=8,tref=null,tunsub=null,tcode="",tdata=null;
 const rnds=sz=>{const a=[];let st=0,c=sz/2;while(c>=1){a.push({st,c});st+=c;c/=2}return a};
@@ -801,7 +927,7 @@ const genCode=()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";for(let i
 const roundName=c=>c===1?"FINAL":c===2?"SEMIFINAL":c===4?"KVARTSFINAL":"OMGÅNG MED "+(c*2)+" SPELARE";
 function renderTz(){const el=$("tz");el.innerHTML="";[4,8,16,32].forEach(n=>{const b=document.createElement("button");b.textContent=n;b.style.opacity=tsz===n?1:.45;b.onclick=()=>{tsz=n;ls("tsz",String(n));renderTz()};el.appendChild(b)})}
 function renderTl(docs){const el=$("tl");el.innerHTML="";let n=0;
- docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;const r=document.createElement("div");r.className="ml";
+ docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;if(t.st==="done"&&t.win===meId)awardTrophy("t_"+d.id,{st:0,title:"TURNERING",detail:t.sz+" SPELARE"});const r=document.createElement("div");r.className="ml";
   const l=document.createElement("span");l.textContent=d.id+" · "+t.sz+" SPELARE · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"KLAR");
   const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>openTour(d.id);r.append(l,b);if(t.o===meId){const x=document.createElement("button");x.textContent="TA BORT";x.onclick=()=>delTour(d.id);r.appendChild(x)}el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU"}
@@ -863,7 +989,8 @@ async function playTour(k){
  if(!e||(e.a!==meId&&e.b!==meId))return;
  const mid=tcode+"-"+k,r2=db.doc("matches/"+mid),me=t.pl[meId];
  try{const s=await r2.get();
-  if(!s.exists){await r2.set({p:[meId,null],n:[me.n,null],c:[me.t,null],open:false,tod:t.tod||"night",kicks:[],t:Date.now(),tn:{c:tcode,k}});idx=0}
+  const op=e.a===meId?e.b:e.a,ao=isAI(op),pa=ao?t.pl[op]:null;
+  if(!s.exists){await r2.set({p:[meId,ao?op:null],n:[me.n,ao?pa.n:null],c:[me.t,ao?pa.t:null],open:false,tod:t.tod||"night",kicks:[],t:Date.now(),tn:{c:tcode,k}});idx=0}
   else{const md=s.data();
    if(md.p[0]===meId)idx=0;else if(md.p[1]===meId)idx=1;
    else if(!md.p[1]){await r2.update({p:[md.p[0],meId],n:[(md.n||[])[0]||"?",me.n],c:[(md.c||[])[0]||"SWE",me.t],open:false});idx=1}
@@ -878,6 +1005,7 @@ function showPodium(t){
  (function loop(now){if(demoOn!==my||!M)return;const s=(now-t0)/1000,b=$("bn");podium(s,team);b.style.top="10%";b.innerHTML=s>.3?"MÄSTARE!<br><span style=\"font-size:10px\">"+esc(nmw)+"</span>":"";requestAnimationFrame(loop)})(t0);
 }
 function renderTour(){
+ tourAI(tdata);
  const t=tdata,pl=t.pl||{},sz=t.sz,m=t.m||{},nmo=id=>id?esc((pl[id]||{}).n||"?"):"—",fl=id=>(id&&pl[id]&&FL[pl[id].t])?flagSvg(pl[id].t):"";
  let h="TURNERING · "+sz+" SPELARE<br><span class=\"code\">"+esc(tcode)+"</span><br>"+(t.st==="lobby"?t.u.length+" / "+sz+" HAR CHECKAT IN":t.st==="run"?"PÅGÅR":"AVSLUTAD");
  $("tinfo").innerHTML=h;
@@ -890,7 +1018,7 @@ function renderTour(){
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
- if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}
+ if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}
  else if(t.st==="run"){
   const k=Object.keys(m).map(Number).find(k=>!m[k].w&&(m[k].a===meId||m[k].b===meId));
   if(k===undefined)note("DU ÄR UTE UR TURNERINGEN. DU KAN FORTFARANDE FÖLJA SLUTSPELET HÄR.");
