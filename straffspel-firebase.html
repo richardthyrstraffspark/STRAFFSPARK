@@ -668,7 +668,7 @@ function updateTurns(docs){
  const hh=$("nth");if(hh&&!hh.dataset.m&&isIOSdev()&&!isStandalone()){hh.textContent="PÅ IPHONE: ÖPPNA SPELET I SAFARI, TRYCK PÅ DELA OCH VÄLJ LÄGG TILL PÅ HEMSKÄRMEN. ÖPPNA SEDAN SPELET FRÅN HEMSKÄRMEN FÖR ATT SLÅ PÅ NOTISER.";hh.classList.remove("hide")}
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)updateTurns(LASTDOCS)});
-const VAPID_KEY="KLISTRA_IN_DIN_VAPID_NYCKEL";
+const VAPID_KEY="BFwD4ALzmYNEZyM7Dr1Z9mmLpcjMtYQqHBuZ3F2KtU0oegTeGx5ImZhcbyzlQYkH4cnifLpPClc5C9i7tJJ4Vvk";
 const isIOSdev=()=>{const u=navigator.userAgent||"";return/iPhone|iPad|iPod/.test(u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)};
 const isStandalone=()=>navigator.standalone===true||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
 function nhint(m){const h=$("nth");if(!h)return;h.dataset.m=m?"1":"";h.textContent=m||"";h.classList.toggle("hide",!m)}
