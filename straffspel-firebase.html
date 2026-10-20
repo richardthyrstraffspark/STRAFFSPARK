@@ -73,6 +73,8 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
 </div>
 <div id="tour" class="hide">
  <div class="box" id="tinfo"></div>
+ <div class="box hide" id="tvs"><p>TV</p><div id="tvsc"></div><div id="tvwr"></div><button class="sm" id="tvx">STÄNG TV</button></div>
+ <div class="box hide" id="tvl"></div>
  <div class="box" id="tbody"></div>
  <div class="box" id="tact"></div>
  <button class="sm" id="tbk">TILLBAKA</button>
@@ -492,7 +494,7 @@ function frameOf(s,k,goal,cel){
  if(goal&&s>1&&s<1.35)fx.shake=true;
  if(goal&&s>1&&s<1.12)fx.flash=true;
  if(!goal&&s>1)fx.dim=.28*cl((s-1)/.6);
- return{tk:s*1000,grid:false,fx,dust,sx,sy,keeper:{idx:ke,c:gk(ke),pose:kp,x:kx,y:ky,d:(mid&&hi)?kd:d},shooter:{idx:sh,c:kit(sh),pose:sp,num:k.num,rot,lift,sxs,front:frontv,dir:dirv},ball:{x:bx,y:by},plate:{team:(M.c||[])[k.s],num:k.num}};
+ return{tk:s*1000,grid:false,fx,dust,sx,sy,keeper:{idx:ke,c:gk(ke),pose:kp,x:kx,y:ky,d:(mid&&hi)?kd:d},shooter:{idx:sh,c:kit(sh),pose:sp,num:k.num,rot,lift,sxs,front:frontv,dir:dirv},ball:{x:bx,y:by},plate:tvK?null:{team:(M.c||[])[k.s],num:k.num}};
 }
 function play(li){
  playing=true;sel=-1;$("ok").classList.add("hide");
@@ -980,7 +982,7 @@ function grpHtml(t,nmo){
  Object.keys(t.g).sort().forEach(gn=>{
   x+="<p>GRUPP "+gn+"</p><div class=\"tb hd\" "+cs+"><span>#</span><span>SPELARE</span><span>SM</span><span>V</span><span>F</span><span>MS</span></div>";
   standings(t,gn).forEach((r,i)=>{x+="<div class=\"tb\" "+cs+"><span>"+(i+1)+"</span><span>"+(i<t.ga?"▶ ":"")+nmo(r.id)+"</span><span>"+r.sm+"</span><span>"+r.v+"</span><span>"+r.f+"</span><span>"+(r.gf-r.ga)+"</span></div>"});
-  Object.keys(gm).filter(k=>gm[k].g===gn).forEach(k=>{const e=gm[k],c=e.sc||{};x+="<div class=\"ml\"><span>"+nmo(e.a)+" – "+nmo(e.b)+(e.w?" · "+(c[e.a]||0)+"–"+(c[e.b]||0)+" 🏆 "+nmo(e.w):"")+"</span></div>"})});
+  Object.keys(gm).filter(k=>gm[k].g===gn).forEach(k=>{const e=gm[k],c=e.sc||{};x+="<div class=\"ml\"><span>"+nmo(e.a)+" "+dotH(PUBM["G"+k],e.a)+"<br>"+nmo(e.b)+" "+dotH(PUBM["G"+k],e.b)+(e.w?"<br>"+(c[e.a]||0)+"–"+(c[e.b]||0)+" 🏆 "+nmo(e.w):"")+"</span></div>"})});
  return x}
 function renderTg(){
  const el=$("tg");el.innerHTML="";
@@ -1024,7 +1026,7 @@ async function removeFromTour(id){
  if(!window.confirm("TA BORT "+String(n).toUpperCase()+" FRÅN TURNERINGEN?"))return;
  try{await tref.update({u:FBR(id),["pl."+id]:FBD()})}catch(e){$("err").textContent="KUNDE INTE TA BORT: "+(e.message||e.code)}
 }
-function hideTour(){if(tunsub)tunsub();tunsub=null;if(punsub)punsub();punsub=null;$("tour").classList.add("hide")}
+function hideTour(){tvStop();if(tunsub)tunsub();tunsub=null;if(punsub)punsub();punsub=null;$("tour").classList.add("hide")}
 function openTour(c){
  hideTour();tcode=c;tref=db.doc("tournaments/"+c);$("lobby").classList.add("hide");$("game").classList.add("hide");$("tour").classList.remove("hide");
  tunsub=tref.onSnapshot(s=>{if(!s.exists)return;tdata=s.data();renderTour()},e=>{$("err").textContent="FEL: "+e.message});
@@ -1068,6 +1070,44 @@ async function playTour(k){
    else return err("MATCHEN ÄR FULL.")}
   ref=r2;code=mid;hideTour();enter()}catch(x){err("KUNDE INTE ÖPPNA MATCHEN: "+(x.message||x.code))}
 }
+function dotH(P,id){if(!P||!P.p)return"";const i=P.p.indexOf(id);if(i<0)return"";let d="";const L=Math.max(5,Math.ceil(P.r.length/2));for(let q=0;q<L;q++){const c=P.r[q*2+i];d+="<span class=\"dot "+(c==="G"?"g":c==="M"?"m":"")+"\"></span>"}return d}
+let tvK=null,tvLoop=0;
+const enOf=(t,k)=>String(k)[0]==="G"?(t.gm||{})[+String(k).slice(1)]:(t.m||{})[k];
+const tvTeam=(t,id)=>((t.pl||{})[id]||{}).t||"SWE",tvName=(t,id)=>String(((t.pl||{})[id]||{}).n||"?");
+function renderTvList(t){
+ const el=$("tvl"),ks=Object.keys(PUBM).filter(k=>enOf(t,k));el.innerHTML="";
+ if(!ks.length){el.classList.add("hide");return}
+ el.classList.remove("hide");el.appendChild(mkE("p","TV: FÖLJ EN MATCH LIVE"));
+ ks.sort((a,b)=>(enOf(t,a).w?1:0)-(enOf(t,b).w?1:0)).forEach(k=>{const P=PUBM[k],e=enOf(t,k),r=mkE("div",null,"ml");
+  r.appendChild(mkE("span",tvName(t,e.a)+" – "+tvName(t,e.b)+(e.w?" · KLAR":" · LIVE")+" · "+P.r.length+" STRAFFAR"));
+  r.appendChild(btnE(tvK===k?"STÄNG":"TITTA",()=>{if(tvK===k){tvStop();renderTour()}else{tvStart(k);renderTour()}}));el.appendChild(r)});
+}
+function tvStop(){
+ if(!tvK)return;tvLoop++;tvK=null;M=null;playing=false;
+ const w=cv.parentNode;if(w.parentNode&&w.parentNode.id==="tvwr")$("game").insertBefore(w,$("st"));
+ $("tvs").classList.add("hide");$("bn").textContent="";
+}
+function tvStart(k){
+ tvStop();const t=tdata,P=PUBM[k];if(!P)return;
+ tvK=k;M={p:P.p,kicks:[],c:[tvTeam(t,P.p[0]),tvTeam(t,P.p[1])],n:[tvName(t,P.p[0]),tvName(t,P.p[1])],tod:t.tod||"night"};idx=-1;playing=true;
+ $("tvwr").appendChild(cv.parentNode);$("tvs").classList.remove("hide");
+ const my=++tvLoop;let n=Math.max(0,P.r.length-1),pl=false,t0=0,last="";
+ (function loop(now){
+  if(tvLoop!==my||!tvK)return;
+  const Q=PUBM[k];if(!Q){tvStop();return}
+  const r=Q.r;
+  if(!pl&&n<r.length){pl=true;t0=now}
+  if(pl){const s=(now-t0)/1000,i=n,goal=r[i]==="G";
+   if(s>=3.8){pl=false;n++}
+   else{const rn=seeded(k+"|"+i),z=Math.floor(rn()*6),sv=goal?(z+1+Math.floor(rn()*5))%6:z,num=2+Math.floor(rn()*20);
+    render(s,{s:i%2,shot:z,save:sv,num},goal,(i+num)%8,-1)}}
+  if(!pl){const nx=n%2;scene({tk:now,grid:false,keeper:{idx:1-nx,c:gk(1-nx),pose:"idle",x:80,y:60,d:0},shooter:{idx:nx,c:kit(nx),pose:"idle",num:fb(n)},ball:{x:80,y:82}});$("bn").textContent=""}
+  const R2=r.slice(0,n),e2=enOf(tdata,k)||{};
+  const sc=[0,1].map(p=>{let d="",gl=0;const L=Math.max(5,Math.ceil(R2.length/2));for(let q=0;q<L;q++){const c=R2[q*2+p];if(c==="G")gl++;d+="<span class=\"dot "+(c==="G"?"g":c==="M"?"m":"")+"\"></span>"}return esc(tvName(tdata,Q.p[p]))+"<br><b>"+gl+"</b><br>"+d});
+  const html="<div class=\"sc\"><div>"+sc[0]+"</div><div>"+sc[1]+"</div></div>"+(e2.w&&n>=r.length?"<p>"+esc(tvName(tdata,e2.w))+" VANN</p>":"");
+  if(html!==last){last=html;$("tvsc").innerHTML=html}
+  requestAnimationFrame(loop)})(performance.now());
+}
 function showPodium(t){
  const w=t.win,pw=(t.pl||{})[w]||{},team=pw.t||"SWE",nmw=pw.n||"?";
  hideTour();$("lgv").classList.add("hide");M={p:["d","e"],kicks:[],c:[team,team],n:[nmw,nmw],tod:t.tod||"night"};idx=0;playing=false;
@@ -1088,7 +1128,7 @@ function renderTour(){
    return"<div class=\"pl"+(lost?" out":"")+"\">"+fl(id)+"<div><b>"+nmo(id)+"</b>"+(e.w===id?" 🏆":"")+"<br>"+d+"</div></div>"};
   x+="<div class=\"mc\">"+plt(e.a)+"<div class=\"vs\">VS</div>"+plt(e.b)+"</div>"}});
  if(t.gs&&t.st!=="lobby")x+=grpHtml(t,nmo);
- $("tbody").innerHTML=x;
+ $("tbody").innerHTML=x;renderTvList(t);
  if(t.st==="lobby"&&t.o===meId){[...$("tbody").querySelectorAll(".ml")].forEach((row,i)=>{const id=t.u[i];if(id&&id!==meId){const b=document.createElement("button");b.textContent="TA BORT";b.className="dn";b.onclick=()=>removeFromTour(id);row.appendChild(b)}})}
  const act=$("tact");act.innerHTML="";
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
@@ -1115,7 +1155,7 @@ function renderTour(){
   if(!ls("pod_"+tcode)){ls("pod_"+tcode,"1");showPodium(t)}
  }
 }
-$("tmk").onclick=mkTour;$("tjn").onclick=()=>joinTour($("tci").value);$("tbk").onclick=leaveTour;
+$("tvx").onclick=()=>{tvStop();if(tdata)renderTour()};$("tmk").onclick=mkTour;$("tjn").onclick=()=>joinTour($("tci").value);$("tbk").onclick=leaveTour;
 tsz=parseInt(ls("tsz")||"8",10)||8;renderTz();
 try{$("nm").value=ls("name")||"";myCol=parseInt(ls("col")||"0",10)||0;renderSw();myTod=ls("tod")==="day"?"day":"night";renderTd()}catch(e){$("err").textContent="FEL: "+e.message}
 window.addEventListener("error",e=>{$("err").textContent="FEL: "+e.message});
