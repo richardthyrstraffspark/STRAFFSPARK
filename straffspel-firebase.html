@@ -61,7 +61,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box hide" id="mypage"><button id="prbtn">MIN SIDA: STATISTIK OCH VÄNNER</button></div>
  <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mkp">SKAPA MATCH</button><p>DU FÅR EN KOD ATT SKICKA TILL DIN MOTSTÅNDARE</p><button id="trb">TRÄNINGSMATCH AI</button><p style="font-size:8px">MOT EN AI-SPELARE. RÄKNAS INTE I STATISTIKEN.</p></div>
  <div class="box"><p>MINA MATCHER</p><div id="ml">INGA ÄNNU</div></div>
- <div class="box"><p>TURNERING</p><div id="tz"></div><div id="tg"></div><button id="tmk">SKAPA TURNERING</button><p>TURNERINGSKOD</p><input id="tci" maxlength="5" placeholder="KOD"><button id="tjn">GÅ MED</button></div>
+ <div class="box"><p>TURNERING</p><input id="tnm" maxlength="20" placeholder="NAMN (VALFRITT)" style="width:14em"><div id="tz"></div><div id="tg"></div><button id="tmk">SKAPA TURNERING</button><p>TURNERINGSKOD</p><input id="tci" maxlength="5" placeholder="KOD"><button id="tjn">GÅ MED</button></div>
  <div class="box"><p>MINA TURNERINGAR</p><div id="tl">INGA ÄNNU</div></div>
  <div class="box hide" id="lgbox"><p>LIGA</p><input id="lgn" maxlength="14" placeholder="LIGANS NAMN"><div id="lgd"></div><button id="lgmk">SKAPA LIGA</button><p>LIGAKOD</p><input id="lci" maxlength="5" placeholder="KOD"><button id="lgjn">GÅ MED</button></div>
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
@@ -638,7 +638,7 @@ async function handleInvite(kind,c){
   if(kind==="t"&&(d.st!=="lobby"||d.u.length>=d.sz)){$("err").textContent="TURNERINGEN ÄR FULL ELLER HAR STARTAT.";return}
   if(kind==="l"&&d.st!=="lobby"){$("err").textContent="LIGAN HAR REDAN STARTAT.";return}
   invite={kind,c};$("inv").classList.remove("hide");
-  $("invt").textContent=kind==="m"?"DU ÄR INBJUDEN TILL EN MATCH AV "+String((d.n||[])[0]||"EN SPELARE").slice(0,12):kind==="t"?"DU ÄR INBJUDEN TILL EN TURNERING MED "+d.sz+" SPELARE":"DU ÄR INBJUDEN TILL LIGAN "+String(d.name||"").slice(0,14)}
+  $("invt").textContent=kind==="m"?"DU ÄR INBJUDEN TILL EN MATCH AV "+String((d.n||[])[0]||"EN SPELARE").slice(0,12):kind==="t"?(d.name?"DU ÄR INBJUDEN TILL TURNERINGEN "+String(d.name).slice(0,20)+" MED "+d.sz+" SPELARE":"DU ÄR INBJUDEN TILL EN TURNERING MED "+d.sz+" SPELARE"):"DU ÄR INBJUDEN TILL LIGAN "+String(d.name||"").slice(0,14)}
  catch(e){console.error(e)}
 }
 $("invgo").onclick=()=>{if(!invite)return;const i=invite;$("inv").classList.add("hide");try{history.replaceState(null,"",location.pathname)}catch(e){}if(i.kind==="m")join(i.c);else if(i.kind==="t")joinTour(i.c);else joinLeague(i.c)};
@@ -1023,14 +1023,14 @@ function renderTg(){
 }
 function renderTz(){renderTg();const el=$("tz");el.innerHTML="";[4,8,16,32,64].forEach(n=>{const b=document.createElement("button");b.textContent=n;b.style.opacity=tsz===n?1:.45;b.onclick=()=>{tsz=n;ls("tsz",String(n));renderTz()};el.appendChild(b)})}
 function renderTl(docs){const el=$("tl");el.innerHTML="";let n=0;
- docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;if(t.st==="done"&&t.win===meId)awardTrophy("t_"+d.id,{st:0,title:"TURNERING",detail:t.sz+" SPELARE"});const r=document.createElement("div");r.className="ml";
-  const l=document.createElement("span");l.textContent=d.id+" · "+t.sz+" SPELARE · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"KLAR");
+ docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;if(t.st==="done"&&t.win===meId)awardTrophy("t_"+d.id,{st:0,title:String(t.name||"TURNERING"),detail:t.sz+" SPELARE"});const r=document.createElement("div");r.className="ml";
+  const l=document.createElement("span");l.textContent=(t.name?t.name+" · ":"")+d.id+" · "+t.sz+" SPELARE · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"KLAR");
   const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>openTour(d.id);r.append(l,b);if(t.o===meId){const x=document.createElement("button");x.textContent="TA BORT";x.className="dn";x.onclick=()=>delTour(d.id);r.appendChild(x)}el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU"}
 async function mkTour(){
  if(!db)return $("err").textContent=NOLOGIN;ls("name",myName());
  const c=genCode();
- try{await db.doc("tournaments/"+c).set({o:meId,sz:tsz,tod:myTod,st:"lobby",u:[meId],pl:{[meId]:{n:myName(),t:TEAMS[myCol]}},m:{},...(tgs?{gs:true,gz:tgz,ga:tga,ks:tsz/tgz*tga}:{ks:tsz}),t:Date.now()});openTour(c)}
+ try{await db.doc("tournaments/"+c).set({o:meId,name:($("tnm").value.trim()||"").toUpperCase().slice(0,20),sz:tsz,tod:myTod,st:"lobby",u:[meId],pl:{[meId]:{n:myName(),t:TEAMS[myCol]}},m:{},...(tgs?{gs:true,gz:tgz,ga:tga,ks:tsz/tgz*tga}:{ks:tsz}),t:Date.now()});openTour(c)}
  catch(e){$("err").textContent="KUNDE INTE SKAPA TURNERING: "+(e.message||e.code)}
 }
 async function joinTour(c){
@@ -1144,7 +1144,7 @@ function renderTour(){
  tourAI(tdata);
  if(tdata.gs&&tdata.ph==="g"&&Object.keys(tdata.gm||{}).length&&Object.values(tdata.gm).every(e=>e.w)&&!aiSet["adv"+tcode]){aiSet["adv"+tcode]=1;advanceGroups(tdata)}
  const t=tdata,pl=t.pl||{},sz=t.sz,m=t.m||{},nmo=id=>id?esc((pl[id]||{}).n||"?"):"—",fl=id=>(id&&pl[id]&&FL[pl[id].t])?flagSvg(pl[id].t):"";
- let h="TURNERING · "+sz+" SPELARE"+(t.gs?" · GRUPPSPEL<br>"+(sz/t.gz)+" GRUPPER, "+t.ga+" VIDARE PER GRUPP":"")+"<br><span class=\"code\">"+esc(tcode)+"</span><br>"+(t.st==="lobby"?t.u.length+" / "+sz+" HAR CHECKAT IN":t.st==="run"?"PÅGÅR":"AVSLUTAD");
+ let h=(t.name?esc(t.name):"TURNERING")+" · "+sz+" SPELARE"+(t.gs?" · GRUPPSPEL<br>"+(sz/t.gz)+" GRUPPER, "+t.ga+" VIDARE PER GRUPP":"")+"<br><span class=\"code\">"+esc(tcode)+"</span><br>"+(t.st==="lobby"?t.u.length+" / "+sz+" HAR CHECKAT IN":t.st==="run"?"PÅGÅR":"AVSLUTAD");
  $("tinfo").innerHTML=h;
  let x="";
  if(t.st==="lobby")x=t.u.map(id=>"<div class=\"ml\"><span>"+nmo(id)+"</span>"+fl(id)+"</div>").join("");
