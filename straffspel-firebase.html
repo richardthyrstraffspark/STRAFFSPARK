@@ -41,11 +41,11 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
 <main>
 <h1>STRAFFSPARK</h1>
 <div id="lobby">
+ <div class="box hide" id="nt" style="border-color:var(--ac)"></div>
  <div class="box hide" id="iab"><p>⚠ DU HAR ÖPPNAT SIDAN I EN APP-WEBBLÄSARE (T.EX. INSTAGRAM). DEN KOMMER INTE IHÅG DIG, SÅ DU KAN BLI TVÅ SPELARE. ÖPPNA LÄNKEN I CHROME ELLER SAFARI I STÄLLET.</p><button id="iabc">KOPIERA LÄNK</button><button id="iabg" class="hide">ÖPPNA I CHROME</button></div>
  <div class="box hide" id="inv"><p id="invt"></p><p>VÄLJ NAMN OCH LAG HÄR UNDER, OCH TRYCK SEDAN:</p><button id="invgo">GÅ MED</button></div>
  <div class="box"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
  <div class="box" id="teambox"><p>VÄLJ LAG</p><div id="sw" class="tg"></div></div>
- <div class="box hide" id="nt"></div>
  <div class="box" id="acc"><p id="acct"></p><div id="accb"></div>
  <div id="accf" class="hide">
   <p>ANVÄNDARNAMN OCH PIN</p>
@@ -66,7 +66,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box hide" id="lgbox"><p>LIGA</p><input id="lgn" maxlength="14" placeholder="LIGANS NAMN"><div id="lgd"></div><button id="lgmk">SKAPA LIGA</button><p>LIGAKOD</p><input id="lci" maxlength="5" placeholder="KOD"><button id="lgjn">GÅ MED</button></div>
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
- <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div></div>
+ <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
  <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-19 · TURNERING B</div>
  <div class="box hide" id="lout"><button id="lob" class="dn">LOGGA UT</button></div>
@@ -695,7 +695,7 @@ function setupSocial(){
  pr.onSnapshot(sn=>{if(sn.exists){MYL=(sn.data().lineup)||{};if(onProf)renderSquad()}},e=>{});
  db.collection("players/"+meId+"/trophies").limit(200).onSnapshot(sn=>{TR=sn.docs.map(d=>d.data());if(onProf)renderCab()},e=>{});
  ["mypage"].forEach(i=>$(i).classList.remove("hide"));
- db.collection("friendships").where("u","array-contains",meId).limit(200).onSnapshot(sn=>{FR=sn.docs.map(d=>({id:d.id,...d.data()}));renderNotes();if(onProf)renderProf()},e=>{});
+ db.collection("friendships").where("u","array-contains",meId).limit(200).onSnapshot(sn=>{FR=sn.docs.map(d=>({id:d.id,...d.data()}));renderNotes();if(onProf)renderProf();if(plOpen)renderPl()},e=>{});
  db.collection("invites").where("to","==",meId).limit(50).onSnapshot(sn=>{INV=sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.st==="new");renderNotes()},e=>{});
  db.collection("players/"+meId+"/games").limit(1000).onSnapshot(sn=>{GM=sn.docs.map(d=>d.data());if(onProf)renderProf()},e=>{});
  db.collection("leagues").where("u","array-contains",meId).limit(30).onSnapshot(sn=>renderLgl(sn.docs),e=>{});
@@ -899,9 +899,34 @@ function leagueAI(t){
 async function refreshGlobal(){
  if(!db||!db.count)return;
  try{const r=await Promise.all([db.count("players"),db.count("played"),db.count("live",[["lu",">",Date.now()-1800000]])]);
-  $("gstn").innerHTML="REGISTRERADE SPELARE: "+r[0]+"<br>SPELADE MATCHER: "+r[1]+"<br>PÅGÅENDE MATCHER NU: "+r[2]}catch(e){}
+  $("gstn").innerHTML="<span id=\"regl\" style=\"text-decoration:underline;cursor:pointer\">REGISTRERADE SPELARE: "+r[0]+" ▼</span><br>SPELADE MATCHER: "+r[1]+"<br>PÅGÅENDE MATCHER NU: "+r[2]}catch(e){}
 }
-function startGlobal(){refreshGlobal();setInterval(refreshGlobal,60000)}
+let plOpen=false,PLS=[];
+async function togglePl(){
+ if(!db)return;plOpen=!plOpen;const el=$("plst");el.classList.toggle("hide",!plOpen);if(!plOpen)return;el.textContent="LADDAR...";
+ try{const sn=await getOnce(db.collection("players").limit(300));PLS=sn.docs.map(d=>({id:d.id,name:String(d.data().name||"?")}));renderPl()}
+ catch(e){el.textContent="KUNDE INTE HÄMTA LISTAN."}
+}
+function renderPl(){
+ const el=$("plst");el.innerHTML="";
+ el.appendChild(mkE("p","ANSLUTNA SPELARE ("+PLS.length+")"));
+ if(!acct())el.appendChild(mkE("p","LOGGA IN FÖR ATT KUNNA BJUDA IN VÄNNER."));
+ PLS.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
+  const r=mkE("div",null,"ml");r.appendChild(mkE("span",p.name.toUpperCase()));
+  if(acct()){
+   if(p.id===meId)r.appendChild(mkE("span","DU"));
+   else{const f=FR.find(x=>x.u.includes(p.id));
+    if(!f)r.appendChild(btnE("BJUD IN SOM VÄN",()=>friendReq(p)));
+    else if(f.st==="ok")r.appendChild(mkE("span","VÄN"));
+    else if(f.from===meId)r.appendChild(mkE("span","FÖRFRÅGAN SKICKAD"));
+    else r.appendChild(btnE("ACCEPTERA",()=>db.doc("friendships/"+f.id).update({st:"ok"})))}}
+  el.appendChild(r)});
+}
+async function friendReq(p){
+ try{await db.doc("friendships/"+[meId,p.id].sort().join("_")).set({u:[meId,p.id],n:{[meId]:aName(),[p.id]:p.name},st:"pending",from:meId,t:Date.now()})}
+ catch(e){$("err").textContent="KUNDE INTE SKICKA: "+(e.message||e.code)}
+}
+function startGlobal(){$("gstn").onclick=e=>{if(e.target&&e.target.id==="regl")togglePl()};refreshGlobal();setInterval(refreshGlobal,60000)}
 const TG="#fcc419",TD="#e0a800",TL="#fff3bf",TN2="#5d4037";
 const TRS=[
  [[8,4,16,10,TG],[10,14,12,3,TG],[14,17,4,8,TD],[9,25,14,3,TG],[4,6,4,2,TG],[4,6,2,7,TG],[4,11,4,2,TG],[24,6,4,2,TG],[26,6,2,7,TG],[24,11,4,2,TG],[10,5,2,8,TL],[6,28,20,8,TN2],[10,30,12,4,"#222222"]],
