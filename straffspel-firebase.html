@@ -61,7 +61,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box hide" id="mypage"><button id="prbtn">MIN SIDA: STATISTIK OCH VÄNNER</button></div>
  <div class="box"><p>MATCHEN SPELAS PÅ</p><div id="td"></div><button id="mkp">SKAPA MATCH</button><p>DU FÅR EN KOD ATT SKICKA TILL DIN MOTSTÅNDARE</p><button id="trb">TRÄNINGSMATCH AI</button><p style="font-size:8px">MOT EN AI-SPELARE. RÄKNAS INTE I STATISTIKEN.</p></div>
  <div class="box"><p>MINA MATCHER</p><div id="ml">INGA ÄNNU</div></div>
- <div class="box"><p>TURNERING</p><div id="tz"></div><button id="tmk">SKAPA TURNERING</button><p>TURNERINGSKOD</p><input id="tci" maxlength="5" placeholder="KOD"><button id="tjn">GÅ MED</button></div>
+ <div class="box"><p>TURNERING</p><div id="tz"></div><div id="tg"></div><button id="tmk">SKAPA TURNERING</button><p>TURNERINGSKOD</p><input id="tci" maxlength="5" placeholder="KOD"><button id="tjn">GÅ MED</button></div>
  <div class="box"><p>MINA TURNERINGAR</p><div id="tl">INGA ÄNNU</div></div>
  <div class="box hide" id="lgbox"><p>LIGA</p><input id="lgn" maxlength="14" placeholder="LIGANS NAMN"><div id="lgd"></div><button id="lgmk">SKAPA LIGA</button><p>LIGAKOD</p><input id="lci" maxlength="5" placeholder="KOD"><button id="lgjn">GÅ MED</button></div>
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
@@ -862,9 +862,12 @@ function tourAI(t){
  Object.keys(m).forEach(k=>{const e=m[k];if(!e||e.w||!e.a||!e.b)return;const A=isAI(e.a),B=isAI(e.b);
   if(A&&B){if(!aiSet[tcode+k]){aiSet[tcode+k]=1;const wn=seeded(tcode+k)()<.5?e.a:e.b,tc0=tcode;setTimeout(()=>reportWin(tc0,+k,wn),(qn++)*300)}}
   else if((A||B)&&e.dl&&Date.now()>e.dl&&!aiSet["w"+tcode+k]){aiSet["w"+tcode+k]=1;aiWo(+k)}});
+ if(t.ph==="g")Object.keys(t.gm||{}).forEach(k=>{const e=t.gm[k];if(!e||e.w)return;const A=isAI(e.a),B=isAI(e.b);
+  if(A&&B){if(!aiSet[tcode+"G"+k]){aiSet[tcode+"G"+k]=1;const wn=seeded(tcode+"G"+k)()<.5?e.a:e.b,tc0=tcode;setTimeout(()=>reportWin(tc0,"G"+k,wn),(qn++)*300)}}
+  else if((A||B)&&e.dl&&Date.now()>e.dl&&!aiSet["wG"+tcode+k]){aiSet["wG"+tcode+k]=1;aiWo("G"+k)}});
 }
 async function aiWo(k){
- const e=(tdata.m||{})[k],ai=isAI(e.a)?e.a:e.b,hu=ai===e.a?e.b:e.a;let win=ai;
+ const e=String(k)[0]==="G"?(tdata.gm||{})[+String(k).slice(1)]:(tdata.m||{})[k],ai=isAI(e.a)?e.a:e.b,hu=ai===e.a?e.b:e.a;let win=ai;
  try{const sn=await db.doc("matches/"+tcode+"-"+k).get();
   if(sn.exists){const md=sn.data(),K=md.kicks||[],l=K[K.length-1];let pend;
    if(!md.p[1])pend=1;else if(!l||l.save!==undefined)pend=l?1-l.s:0;else pend=1-l.s;
@@ -877,8 +880,8 @@ async function fillStartTour(){
  ids.forEach(id=>{const a=aiEnt(+id.slice(3));upd["pl."+id]={n:a.n,t:a.t,ai:true}});
  const all=t.u.concat(ids),u=all.slice();
  for(let i=u.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[u[i],u[j]]=[u[j],u[i]]}
- const m={},now=Date.now();for(let j=0;j<t.sz/2;j++)m[j]={a:u[2*j],b:u[2*j+1],dl:now+H24};
- upd.u=all;upd.st="run";upd.m=m;upd.drawn=now;
+ const now=Date.now();
+ upd.u=all;Object.assign(upd,stageUpd(t,u,now));
  try{await tref.update(upd)}catch(e){$("err").textContent="FEL: "+(e.message||e.code)}
 }
 async function addLeagueAI(){
@@ -936,12 +939,62 @@ function renderSquad(){
 }
 $("trb").onclick=mkTraining;
 const repd={},dlSet={},H24=86400000;
+let tgs=ls("tgs")==="1",tgz=parseInt(ls("tgz")||"4",10)||4,tga=parseInt(ls("tga")||"2",10)||2;
 let tsz=8,tref=null,tunsub=null,tcode="",tdata=null,punsub=null,PUBM={};
 const rnds=sz=>{const a=[];let st=0,c=sz/2;while(c>=1){a.push({st,c});st+=c;c/=2}return a};
 const mpos=(sz,k)=>{const R2=rnds(sz);for(let r=0;r<R2.length;r++)if(k<R2[r].st+R2[r].c)return{r,j:k-R2[r].st,R2}};
 const genCode=()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";for(let i=0;i<5;i++)c+=A[Math.floor(Math.random()*A.length)];return c};
 const roundName=c=>c===1?"FINAL":c===2?"SEMIFINAL":c===4?"KVARTSFINAL":c===8?"ÅTTONDELSFINAL":"OMGÅNG MED "+(c*2)+" SPELARE";
-function renderTz(){const el=$("tz");el.innerHTML="";[4,8,16,32,64].forEach(n=>{const b=document.createElement("button");b.textContent=n;b.style.opacity=tsz===n?1:.45;b.onclick=()=>{tsz=n;ls("tsz",String(n));renderTz()};el.appendChild(b)})}
+const GN=i=>String.fromCharCode(65+i),pow2=n=>n>=2&&(n&(n-1))===0;
+function stageUpd(t,u,now){
+ if(!t.gs){const m={};for(let j=0;j<t.sz/2;j++)m[j]={a:u[2*j],b:u[2*j+1],dl:now+H24};return{st:"run",m,drawn:now}}
+ const G=t.sz/t.gz,g={},gm={};let k=0;
+ for(let i=0;i<G;i++){const a=u.slice(i*t.gz,(i+1)*t.gz);g[GN(i)]=a;
+  for(let x=0;x<a.length;x++)for(let y=x+1;y<a.length;y++)gm[k++]={g:GN(i),a:a[x],b:a[y],dl:now+H24*(t.gz-1)}}
+ return{st:"run",ph:"g",g,gm,m:{},drawn:now}
+}
+function standings(t,gn){
+ const T={};t.g[gn].forEach(i=>T[i]={id:i,sm:0,v:0,f:0,gf:0,ga:0});
+ Object.values(t.gm||{}).forEach(e=>{if(e.g!==gn||!e.w)return;const l=e.w===e.a?e.b:e.a,c=e.sc||{};T[e.w].v++;T[l].f++;[e.a,e.b].forEach(i=>{const o=i===e.a?e.b:e.a;T[i].sm++;T[i].gf+=c[i]||0;T[i].ga+=c[o]||0})});
+ const tb=i=>seeded(tcode+i)();
+ return Object.values(T).sort((a,b)=>b.v-a.v||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf||tb(a.id)-tb(b.id));
+}
+function advanceGroups(t){
+ const Gs=Object.keys(t.g).sort(),Q=Gs.length*t.ga,o=[],S={};Gs.forEach(g=>S[g]=standings(t,g));
+ for(let r=0;r<t.ga;r++)Gs.forEach(g=>o.push(S[g][r].id));
+ const dl=Math.max(...Object.values(t.gm).map(e=>e.ft||0))+H24,m={};
+ for(let j=0;j<Q/2;j++)m[j]={a:o[j],b:o[Q-1-j],dl};
+ tref.update({ph:"k",m}).catch(()=>{aiSet["adv"+tcode]=0});
+}
+async function reportGroup(tc,k,win,wo,n){
+ const gk=+String(k).slice(1);
+ try{const tr=db.doc("tournaments/"+tc),s=await tr.get();if(!s.exists)return;const t=s.data(),e=(t.gm||{})[gk];if(!e||e.w)return;
+  let sc={[e.a]:0,[e.b]:0};sc[win]=3;
+  if(!wo&&!(isAI(e.a)&&isAI(e.b))){const md=await db.doc("matches/"+tc+"-G"+gk).get();
+   if(md.exists){const d=md.data();sc={[e.a]:0,[e.b]:0};(d.kicks||[]).forEach(q=>{if(q.save!==undefined&&q.shot!==q.save){const id=d.p[q.s];if(id in sc)sc[id]++}})}}
+  const u={["gm."+gk+".w"]:win,["gm."+gk+".sc"]:sc,["gm."+gk+".ft"]:Date.now()};if(wo)u["gm."+gk+".wo"]=true;
+  await tr.update(u)}catch(x){console.error(x);if((n||0)<6)setTimeout(()=>reportGroup(tc,k,win,wo,(n||0)+1),800+Math.random()*2500)}
+}
+function grpHtml(t,nmo){
+ let x="<p>GRUPPSPEL</p>";const gm=t.gm||{},cs="style=\"grid-template-columns:1.6em 1fr 2.4em 2.4em 2.4em 3em\"";
+ Object.keys(t.g).sort().forEach(gn=>{
+  x+="<p>GRUPP "+gn+"</p><div class=\"tb hd\" "+cs+"><span>#</span><span>SPELARE</span><span>SM</span><span>V</span><span>F</span><span>MS</span></div>";
+  standings(t,gn).forEach((r,i)=>{x+="<div class=\"tb\" "+cs+"><span>"+(i+1)+"</span><span>"+(i<t.ga?"▶ ":"")+nmo(r.id)+"</span><span>"+r.sm+"</span><span>"+r.v+"</span><span>"+r.f+"</span><span>"+(r.gf-r.ga)+"</span></div>"});
+  Object.keys(gm).filter(k=>gm[k].g===gn).forEach(k=>{const e=gm[k],c=e.sc||{};x+="<div class=\"ml\"><span>"+nmo(e.a)+" – "+nmo(e.b)+(e.w?" · "+(c[e.a]||0)+"–"+(c[e.b]||0)+" 🏆 "+nmo(e.w):"")+"</span></div>"})});
+ return x}
+function renderTg(){
+ const el=$("tg");el.innerHTML="";
+ const mk=(l,on,fn)=>{const b=document.createElement("button");b.textContent=l;b.style.opacity=on?1:.45;b.onclick=fn;el.appendChild(b)};
+ el.appendChild(mkE("p","FORMAT"));
+ mk("ENBART SLUTSPEL",!tgs,()=>{tgs=false;ls("tgs","0");renderTg()});mk("GRUPPSPEL + SLUTSPEL",tgs,()=>{tgs=true;ls("tgs","1");renderTg()});
+ if(!tgs)return;
+ const zs=[4,8,16].filter(z=>z<=tsz);if(!zs.includes(tgz))tgz=zs[0];
+ const as=[];for(let a=1;a<tgz;a++)if(pow2(tsz/tgz*a))as.push(a);if(!as.includes(tga))tga=as.includes(2)?2:as[0];
+ el.appendChild(mkE("p","SPELARE PER GRUPP"));zs.forEach(z=>mk(String(z),z===tgz,()=>{tgz=z;ls("tgz",String(z));renderTg()}));
+ el.appendChild(mkE("p","VIDARE PER GRUPP"));as.forEach(a=>mk(String(a),a===tga,()=>{tga=a;ls("tga",String(a));renderTg()}));
+ el.appendChild(mkE("p",tsz/tgz+" GRUPPER (A–"+GN(tsz/tgz-1)+"), SLUTSPEL MED "+tsz/tgz*tga+" SPELARE"));
+}
+function renderTz(){renderTg();const el=$("tz");el.innerHTML="";[4,8,16,32,64].forEach(n=>{const b=document.createElement("button");b.textContent=n;b.style.opacity=tsz===n?1:.45;b.onclick=()=>{tsz=n;ls("tsz",String(n));renderTz()};el.appendChild(b)})}
 function renderTl(docs){const el=$("tl");el.innerHTML="";let n=0;
  docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;if(t.st==="done"&&t.win===meId)awardTrophy("t_"+d.id,{st:0,title:"TURNERING",detail:t.sz+" SPELARE"});const r=document.createElement("div");r.className="ml";
   const l=document.createElement("span");l.textContent=d.id+" · "+t.sz+" SPELARE · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"KLAR");
@@ -950,7 +1003,7 @@ function renderTl(docs){const el=$("tl");el.innerHTML="";let n=0;
 async function mkTour(){
  if(!db)return $("err").textContent=NOLOGIN;ls("name",myName());
  const c=genCode();
- try{await db.doc("tournaments/"+c).set({o:meId,sz:tsz,tod:myTod,st:"lobby",u:[meId],pl:{[meId]:{n:myName(),t:TEAMS[myCol]}},m:{},t:Date.now()});openTour(c)}
+ try{await db.doc("tournaments/"+c).set({o:meId,sz:tsz,tod:myTod,st:"lobby",u:[meId],pl:{[meId]:{n:myName(),t:TEAMS[myCol]}},m:{},...(tgs?{gs:true,gz:tgz,ga:tga,ks:tsz/tgz*tga}:{ks:tsz}),t:Date.now()});openTour(c)}
  catch(e){$("err").textContent="KUNDE INTE SKAPA TURNERING: "+(e.message||e.code)}
 }
 async function joinTour(c){
@@ -981,20 +1034,21 @@ function leaveTour(){hideTour();tdata=null;$("lobby").classList.remove("hide");$
 async function startTour(){
  const t=tdata;if(!t||t.o!==meId||t.u.length!==t.sz||t.st!=="lobby")return;
  const u=t.u.slice();for(let i=u.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[u[i],u[j]]=[u[j],u[i]]}
- const m={},now=Date.now();for(let j=0;j<t.sz/2;j++)m[j]={a:u[2*j],b:u[2*j+1],dl:now+H24};
- try{await tref.update({st:"run",m,drawn:now})}catch(e){$("err").textContent="FEL: "+(e.message||e.code)}
+ const now=Date.now();
+ try{await tref.update(stageUpd(t,u,now))}catch(e){$("err").textContent="FEL: "+(e.message||e.code)}
 }
 async function reportWin(tc,k,win,wo,n){
+ if(String(k)[0]==="G")return reportGroup(tc,k,win,wo,n);
  try{const tr=db.doc("tournaments/"+tc),s=await tr.get();if(!s.exists)return;const t=s.data();
   if(((t.m||{})[k]||{}).w)return;
-  const P=mpos(t.sz,k),R2=P.R2,u={};u["m."+k+".w"]=win;if(wo)u["m."+k+".wo"]=true;
+  const P=mpos(t.ks||t.sz,k),R2=P.R2,u={};u["m."+k+".w"]=win;if(wo)u["m."+k+".wo"]=true;
   if(P.r===R2.length-1){u.st="done";u.win=win}
   else{const nx=R2[P.r+1].st+Math.floor(P.j/2),slot=P.j%2?"b":"a",o=(t.m||{})[nx]||{},os=slot==="a"?o.b:o.a;
    u["m."+nx+"."+slot]=win;if(os)u["m."+nx+".dl"]=Date.now()+H24}
   await tr.update(u)}catch(e){console.error(e);if((n||0)<6)setTimeout(()=>reportWin(tc,k,win,wo,(n||0)+1),800+Math.random()*2500)}
 }
 async function claimWo(k){
- const t=tdata,m=(t.m||{})[k];if(!m||m.w||!m.dl||Date.now()<m.dl)return;
+ const t=tdata,m=String(k)[0]==="G"?(t.gm||{})[+String(k).slice(1)]:(t.m||{})[k];if(!m||m.w||!m.dl||Date.now()<m.dl)return;
  try{const s=await db.doc("matches/"+tcode+"-"+k).get();
   if(s.exists){const md=s.data(),K=md.kicks||[],l=K[K.length-1];let pend;
    if(!md.p[1])pend=1;else if(!l||l.save!==undefined)pend=l?1-l.s:0;else pend=1-l.s;
@@ -1002,7 +1056,7 @@ async function claimWo(k){
   await reportWin(tcode,k,meId,true)}catch(e){console.error(e)}
 }
 async function playTour(k){
- const t=tdata,e=(t.m||{})[k],err=m=>$("err").textContent=m;
+ const t=tdata,e=String(k)[0]==="G"?(t.gm||{})[+String(k).slice(1)]:(t.m||{})[k],err=m=>$("err").textContent=m;
  if(!e||(e.a!==meId&&e.b!==meId))return;
  const mid=tcode+"-"+k,r2=db.doc("matches/"+mid),me=t.pl[meId];
  try{const s=await r2.get();
@@ -1023,15 +1077,17 @@ function showPodium(t){
 }
 function renderTour(){
  tourAI(tdata);
+ if(tdata.gs&&tdata.ph==="g"&&Object.keys(tdata.gm||{}).length&&Object.values(tdata.gm).every(e=>e.w)&&!aiSet["adv"+tcode]){aiSet["adv"+tcode]=1;advanceGroups(tdata)}
  const t=tdata,pl=t.pl||{},sz=t.sz,m=t.m||{},nmo=id=>id?esc((pl[id]||{}).n||"?"):"—",fl=id=>(id&&pl[id]&&FL[pl[id].t])?flagSvg(pl[id].t):"";
- let h="TURNERING · "+sz+" SPELARE<br><span class=\"code\">"+esc(tcode)+"</span><br>"+(t.st==="lobby"?t.u.length+" / "+sz+" HAR CHECKAT IN":t.st==="run"?"PÅGÅR":"AVSLUTAD");
+ let h="TURNERING · "+sz+" SPELARE"+(t.gs?" · GRUPPSPEL<br>"+(sz/t.gz)+" GRUPPER, "+t.ga+" VIDARE PER GRUPP":"")+"<br><span class=\"code\">"+esc(tcode)+"</span><br>"+(t.st==="lobby"?t.u.length+" / "+sz+" HAR CHECKAT IN":t.st==="run"?"PÅGÅR":"AVSLUTAD");
  $("tinfo").innerHTML=h;
  let x="";
  if(t.st==="lobby")x=t.u.map(id=>"<div class=\"ml\"><span>"+nmo(id)+"</span>"+fl(id)+"</div>").join("");
- else rnds(sz).forEach(rr=>{x+="<p>"+roundName(rr.c)+"</p>";for(let j=0;j<rr.c;j++){const k=rr.st+j,e=m[k]||{},P=PUBM[k]||null;
+ else if(!(t.gs&&t.ph==="g"))rnds(t.ks||sz).forEach(rr=>{x+="<p>"+roundName(rr.c)+"</p>";for(let j=0;j<rr.c;j++){const k=rr.st+j,e=m[k]||{},P=PUBM[k]||null;
   const plt=id=>{if(!id)return"<div class=\"pl out\"><b>—</b></div>";const lost=e.w&&e.w!==id;let d="";if(P&&P.p){const i=P.p.indexOf(id);if(i>=0){const L=Math.max(5,Math.ceil(P.r.length/2));for(let q=0;q<L;q++){const c=P.r[q*2+i];d+="<span class=\"dot "+(c==="G"?"g":c==="M"?"m":"")+"\"></span>"}}}
    return"<div class=\"pl"+(lost?" out":"")+"\">"+fl(id)+"<div><b>"+nmo(id)+"</b>"+(e.w===id?" 🏆":"")+"<br>"+d+"</div></div>"};
   x+="<div class=\"mc\">"+plt(e.a)+"<div class=\"vs\">VS</div>"+plt(e.b)+"</div>"}});
+ if(t.gs&&t.st!=="lobby")x+=grpHtml(t,nmo);
  $("tbody").innerHTML=x;
  if(t.st==="lobby"&&t.o===meId){[...$("tbody").querySelectorAll(".ml")].forEach((row,i)=>{const id=t.u[i];if(id&&id!==meId){const b=document.createElement("button");b.textContent="TA BORT";b.className="dn";b.onclick=()=>removeFromTour(id);row.appendChild(b)}})}
  const act=$("tact");act.innerHTML="";
@@ -1039,7 +1095,12 @@ function renderTour(){
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
  if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}
- else if(t.st==="run"){
+ else if(t.st==="run"&&t.gs&&t.ph==="g"){
+  const my=Object.keys(t.gm||{}).filter(k=>!t.gm[k].w&&(t.gm[k].a===meId||t.gm[k].b===meId));
+  if(!my.length)note("DU HAR SPELAT ALLA DINA GRUPPMATCHER. VÄNTAR PÅ DE ANDRA.");
+  else{const left=t.gm[my[0]].dl-Date.now();note("TID KVAR I GRUPPSPELET: "+Math.max(0,Math.floor(left/3600000))+" T "+Math.max(0,Math.floor(left%3600000/60000))+" MIN");
+   my.forEach(k=>{const e=t.gm[k];note("GRUPP "+e.g+": "+nameOf(e.a)+" MOT "+nameOf(e.b));btn("SPELA",()=>playTour("G"+k));if(left<=0)btn("KRÄV WALKOVER",()=>claimWo("G"+k))})}
+ }else if(t.st==="run"){
   const k=Object.keys(m).map(Number).find(k=>!m[k].w&&(m[k].a===meId||m[k].b===meId));
   if(k===undefined)note("DU ÄR UTE UR TURNERINGEN. DU KAN FORTFARANDE FÖLJA SLUTSPELET HÄR.");
   else{const e=m[k];
