@@ -5,7 +5,7 @@ const admin=require("firebase-admin");
 admin.initializeApp();
 
 // Ska vara samma region som din Firestore-databas (kolla i Firebase-konsolen under Firestore).
-const REGION="europe-west1";
+const REGION="europe-north2";
 
 const isAI=id=>String(id||"").startsWith("AI_");
 
