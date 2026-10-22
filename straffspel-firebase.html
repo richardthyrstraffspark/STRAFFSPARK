@@ -602,7 +602,7 @@ $("ok").onclick=async()=>{
  busy=true;const K=M.kicks.slice();
  if(st.need==="shoot"){K.push({s:idx,shot:sel,num:nextNum||pickNum(idx)});nextNum=0}else K[K.length-1]={...K[K.length-1],save:sel};
  try{await ref.update({kicks:K})}catch(e){$("st").textContent="KUNDE INTE SPARA. FÖRSÖK IGEN."}
- touchLive();sel=-1;busy=false;ui();
+ pushPing(code);touchLive();sel=-1;busy=false;ui();
 };
 
 async function loadNames(){}
@@ -629,7 +629,7 @@ async function join(c){
   const m=s.data();
   if(m.p[0]===meId)idx=0;else if(m.p[1]===meId)idx=1;
   else if(!m.p[1]){const c0=(m.c||[])[0]||"SWE",c2=TEAMS[myCol];
-   await ref.update({p:[m.p[0],meId],n:[(m.n||[])[0]||"SPELARE 1",myName()],c:[c0,c2],open:false});idx=1}
+   await ref.update({p:[m.p[0],meId],n:[(m.n||[])[0]||"SPELARE 1",myName()],c:[c0,c2],open:false});pushPing(c);idx=1}
   else return err("MATCHEN ÄR REDAN FULL.");
   code=c;enter();
  }catch(e){err("KUNDE INTE GÅ MED: "+(e.message||e.code))}
@@ -695,6 +695,8 @@ async function enablePush(quiet){
  updateTurns(LASTDOCS);
 }
 $("ntb").onclick=()=>enablePush();
+const PUSH_URL="https://europe-north1-straffspark-93d2e.cloudfunctions.net/pushPing";
+async function pushPing(c){try{const u=fbAuth.currentUser;if(!u||!c)return;const t=await u.getIdToken();fetch(PUSH_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({c})}).catch(()=>{})}catch(e){}}
 function renderMine(docs){
  updateTurns(docs);
  const el=$("ml");el.innerHTML="";let n=0;
@@ -900,7 +902,7 @@ async function playLeague(k){
   if(!sn.exists){await r2.set({p:[meId,ao?op:null],n:[me.n,ao?pa.n:null],c:[me.t,ao?pa.t:null],open:false,tod:t.tod||"night",kicks:[],t:Date.now(),lg:{c:lcode,k}});idx=0}
   else{const md=sn.data();
    if(md.p[0]===meId)idx=0;else if(md.p[1]===meId)idx=1;
-   else if(!md.p[1]){await r2.update({p:[md.p[0],meId],n:[(md.n||[])[0]||"?",me.n],c:[(md.c||[])[0]||"SWE",me.t],open:false});idx=1}
+   else if(!md.p[1]){await r2.update({p:[md.p[0],meId],n:[(md.n||[])[0]||"?",me.n],c:[(md.c||[])[0]||"SWE",me.t],open:false});pushPing(mid);idx=1}
    else return err("MATCHEN ÄR FULL.")}
   ref=r2;code=mid;hideLeague();enter()}catch(e){err("KUNDE INTE ÖPPNA MATCHEN: "+(e.message||e.code))}
 }
@@ -1268,7 +1270,7 @@ async function playTour(k){
   if(!s.exists){await r2.set({p:[meId,ao?op:null],n:[me.n,ao?pa.n:null],c:[me.t,ao?pa.t:null],open:false,tod:t.tod||"night",kicks:[],t:Date.now(),tn:{c:tcode,k}});idx=0}
   else{const md=s.data();
    if(md.p[0]===meId)idx=0;else if(md.p[1]===meId)idx=1;
-   else if(!md.p[1]){await r2.update({p:[md.p[0],meId],n:[(md.n||[])[0]||"?",me.n],c:[(md.c||[])[0]||"SWE",me.t],open:false});idx=1}
+   else if(!md.p[1]){await r2.update({p:[md.p[0],meId],n:[(md.n||[])[0]||"?",me.n],c:[(md.c||[])[0]||"SWE",me.t],open:false});pushPing(mid);idx=1}
    else return err("MATCHEN ÄR FULL.")}
   ref=r2;code=mid;hideTour();enter()}catch(x){err("KUNDE INTE ÖPPNA MATCHEN: "+(x.message||x.code))}
 }
