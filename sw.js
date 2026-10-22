@@ -15,7 +15,7 @@ self.addEventListener("push",e=>{
 self.addEventListener("notificationclick",e=>{
   e.notification.close();
   const h=(e.notification.data&&e.notification.data.hash)||"";
-  const url=self.registration.scope+(h?"#"+h:"");
+  const url=self.registration.scope+"straffspel-firebase.html"+(h?"#"+h:"");
   e.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(cs=>{
     for(const c of cs){if(c.url.startsWith(self.registration.scope)&&"focus"in c){c.navigate(url).catch(()=>{});return c.focus()}}
     return self.clients.openWindow(url);
