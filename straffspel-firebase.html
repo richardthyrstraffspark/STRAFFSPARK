@@ -695,10 +695,11 @@ async function enablePush(quiet){
  updateTurns(LASTDOCS);
 }
 $("ntb").onclick=()=>enablePush();
-const PUSH_URL="https://europe-north1-straffspark-93d2e.cloudfunctions.net/pushPing";
+const PUSH_URL="https://pushping-apgrulbpiq-lz.a.run.app";
 async function pushPing(c){try{const u=fbAuth.currentUser;if(!u||!c)return;const t=await u.getIdToken();fetch(PUSH_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({c})}).catch(()=>{})}catch(e){}}
 function renderMine(docs){
  updateTurns(docs);
+ docs=docs.slice().sort((a,b)=>((b.data()||{}).t||0)-((a.data()||{}).t||0));
  const el=$("ml");el.innerHTML="";let n=0;
  docs.forEach(d=>{const m=d.data();if(!m||!m.p||overM(m))return;n++;
   const dn=(m.kicks||[]).filter(k=>k.save!==undefined).length,o=m.p[0]===meId?1:0;
@@ -1385,8 +1386,8 @@ window.addEventListener("error",e=>{$("err").textContent="FEL: "+e.message});
  if(typeof Notification!=="undefined"&&Notification.permission==="granted"&&ls("push")==="1")enablePush(true);
  let h="";try{h=(location.hash||"").replace("#","")}catch(e){}
  const mm=h.match(/^([mtl])=([A-Za-z0-9]{5})$/i);
- db.collection("matches").where("p","array-contains",meId).limit(20).onSnapshot(sn=>renderMine(sn.docs),e=>{});
- db.collection("tournaments").where("u","array-contains",meId).limit(20).onSnapshot(sn=>renderTl(sn.docs),e=>{});
+ db.collection("matches").where("p","array-contains",meId).limit(300).onSnapshot(sn=>renderMine(sn.docs),e=>{});
+ db.collection("tournaments").where("u","array-contains",meId).limit(100).onSnapshot(sn=>renderTl(sn.docs),e=>{});
  if(mm)handleInvite(mm[1].toLowerCase(),mm[2].toUpperCase());else{const c=h||ls("last");if(c)join(c)}
 })();
 </script>
