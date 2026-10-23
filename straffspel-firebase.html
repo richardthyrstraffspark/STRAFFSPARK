@@ -673,7 +673,11 @@ function updateTurns(docs){
    let f=0;blinkT=setInterval(()=>{if(!document.hidden){clearInterval(blinkT);blinkT=null;document.title=n?"("+n+") DIN TUR · "+base:base;return}document.title=(f++%2)?"("+n+") DIN TUR · "+base:"▶ DIN TUR!"},1000)}}
  prevTurn=n;
  const nb=$("ntb");if(nb)nb.classList.toggle("hide",typeof Notification==="undefined"||Notification.permission!=="default");
- const hh=$("nth");if(hh&&!hh.dataset.m&&isIOSdev()&&!isStandalone()){hh.textContent="PÅ IPHONE: ÖPPNA SPELET I SAFARI, TRYCK PÅ DELA OCH VÄLJ LÄGG TILL PÅ HEMSKÄRMEN. ÖPPNA SEDAN SPELET FRÅN HEMSKÄRMEN FÖR ATT SLÅ PÅ NOTISER.";hh.classList.remove("hide")}
+ const hh=$("nth");if(hh&&!hh.dataset.m){
+  const on=typeof Notification!=="undefined"&&Notification.permission==="granted"&&ls("push")==="1";
+  if(on){hh.textContent="NOTISER: PÅ ✓";hh.classList.remove("hide")}
+  else if(isIOSdev()&&!isStandalone()){hh.textContent="PÅ IPHONE: ÖPPNA SPELET I SAFARI, TRYCK PÅ DELA OCH VÄLJ LÄGG TILL PÅ HEMSKÄRMEN. ÖPPNA SEDAN SPELET FRÅN HEMSKÄRMEN FÖR ATT SLÅ PÅ NOTISER.";hh.classList.remove("hide")}
+  else{hh.textContent="";hh.classList.add("hide")}}
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)updateTurns(LASTDOCS)});
 const VAPID_KEY="BFwD4ALzmYNEZyM7Dr1Z9mmLpcjMtYQqHBuZ3F2KtU0oegTeGx5ImZhcbyzlQYkH4cnifLpPClc5C9i7tJJ4Vvk";
