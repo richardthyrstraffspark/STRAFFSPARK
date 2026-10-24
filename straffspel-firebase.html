@@ -673,9 +673,9 @@ function updateTurns(docs){
    let f=0;blinkT=setInterval(()=>{if(!document.hidden){clearInterval(blinkT);blinkT=null;document.title=n?"("+n+") DIN TUR · "+base:base;return}document.title=(f++%2)?"("+n+") DIN TUR · "+base:"▶ DIN TUR!"},1000)}}
  prevTurn=n;
  showPst();
- const nb=$("ntb");if(nb)nb.classList.toggle("hide",typeof Notification==="undefined"||Notification.permission!=="default");
+ const nb=$("ntb");if(nb)nb.classList.toggle("hide",typeof Notification==="undefined"||Notification.permission==="denied"||(Notification.permission==="granted"&&ls("pushuid")===meId));
  const hh=$("nth");if(hh&&!hh.dataset.m){
-  const on=typeof Notification!=="undefined"&&Notification.permission==="granted"&&ls("push")==="1";
+  const on=typeof Notification!=="undefined"&&Notification.permission==="granted"&&ls("push")==="1"&&ls("pushuid")===meId;
   if(on){hh.textContent="NOTISER: PÅ ✓";hh.classList.remove("hide")}
   else if(isIOSdev()&&!isStandalone()){hh.textContent="PÅ IPHONE: ÖPPNA SPELET I SAFARI, TRYCK PÅ DELA OCH VÄLJ LÄGG TILL PÅ HEMSKÄRMEN. ÖPPNA SEDAN SPELET FRÅN HEMSKÄRMEN FÖR ATT SLÅ PÅ NOTISER.";hh.classList.remove("hide")}
   else{hh.textContent="";hh.classList.add("hide")}}
@@ -695,7 +695,7 @@ async function enablePush(quiet){
   const tok=await mod.getToken(mod.getMessaging(fbApp),{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
   if(!tok)throw new Error("INGEN TOKEN");
   const r=db.doc("push/"+meId);try{await r.update({t:FBU(tok)})}catch(e){await r.set({t:[tok]})}
-  ls("push","1");nhint(quiet?"":"PUSH-NOTISER PÅ ✓");
+  ls("push","1");ls("pushuid",meId);nhint(quiet?"":"PUSH-NOTISER PÅ ✓");
  }catch(e){nhint("KUNDE INTE SLÅ PÅ PUSH: "+String(e.message||e.code).toUpperCase())}
  updateTurns(LASTDOCS);
 }
@@ -1390,7 +1390,7 @@ window.addEventListener("error",e=>{$("err").textContent="FEL: "+e.message});
  try{await authReady();if(!fbAuth.currentUser)await signInAnonymously(fbAuth);meId=fbAuth.currentUser.uid;db=dbA;usr=null;initAccount()}catch(e){console.error(e);$("err").textContent="FEL: "+(e.code||e.message)}
  if(db&&!$("nm").value){try{const me=await usr.me();$("nm").value=(me.name||"").toUpperCase().slice(0,10)}catch(e){}}
  if(!db||!meId){db=null;$("err").textContent=NOLOGIN;return}
- if(typeof Notification!=="undefined"&&Notification.permission==="granted"&&ls("push")==="1")enablePush(true);
+ if(typeof Notification!=="undefined"&&Notification.permission==="granted")enablePush(true);
  let h="";try{h=(location.hash||"").replace("#","")}catch(e){}
  const mm=h.match(/^([mtl])=([A-Za-z0-9]{5})$/i);
  db.collection("matches").where("p","array-contains",meId).limit(300).onSnapshot(sn=>renderMine(sn.docs),e=>{});
