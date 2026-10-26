@@ -76,7 +76,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-26 · UTSEENDE1</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-26 · MOTEN1</div>
  <div class="box hide" id="lout"><button id="lob" class="dn">LOGGA UT</button></div>
 </div>
 <div id="tour" class="hide">
@@ -387,7 +387,7 @@ function ui(){
  $("shr").classList.toggle("hide",st.need!=="open");
  if((st.need==="shoot"||st.need==="save")&&isAI(M.p[st.who]))aiTurn();
  if(st.need==="open"){t='TRYCK PÅ SKICKA INBJUDAN, ELLER GE KODEN TILL DIN MOTSTÅNDARE<br><span class=\"code\">'+code+'</span><br>VÄNTAR PÅ SPELARE 2...<br>DU KAN LÄMNA SIDAN OCH KOMMA TILLBAKA.'}
- else if(st.need==="over"){{const w=g[0]>g[1]?0:1;t=(w===idx?"🏆 VINST! DU VANN":"FÖRLUST. "+nm(w)+" VANN")+"<br>"+g[0]+" – "+g[1];if(db&&!repd[code]){repd[code]=1;if(M.tn)reportWin(M.tn.c,M.tn.k,M.p[w]);if(M.lg)reportLeague(M.lg.c,M.lg.k,M.p[w]);if(acct()&&!M.tr)recordGame(w);if(!M.tr){db.doc("played/"+code).set({p:M.p.filter(x=>!isAI(x)),t:Date.now()}).catch(()=>{});db.doc("live/"+code).delete().catch(()=>{})}}}ok.textContent="TILLBAKA";ok.classList.remove("hide")}
+ else if(st.need==="over"){{const w=g[0]>g[1]?0:1;t=(w===idx?"🏆 VINST! DU VANN":"FÖRLUST. "+nm(w)+" VANN")+"<br>"+g[0]+" – "+g[1];if(db&&!repd[code]){repd[code]=1;if(M.tn)reportWin(M.tn.c,M.tn.k,M.p[w]);if(M.lg)reportLeague(M.lg.c,M.lg.k,M.p[w]);if(acct()&&!M.tr)recordGame(code,M);if(!M.tr){db.doc("played/"+code).set({p:M.p.filter(x=>!isAI(x)),t:Date.now()}).catch(()=>{});db.doc("live/"+code).delete().catch(()=>{})}}}ok.textContent="TILLBAKA";ok.classList.remove("hide")}
  else if(mode==="shoot")t="DIN TUR ATT SLÅ! 🥅<br>VÄLJ RUTA"+(sel>=0?": "+ZN[sel]:"");
  else if(mode==="save")t="RÄDDA! 🧤<br>VAR KASTAR DU DIG"+(sel>=0?"? "+ZN[sel]:"?");
  else t=(st.need==="shoot"?"VÄNTAR PÅ ATT "+nm(st.who)+" SKA SLÅ":"VÄNTAR PÅ ATT "+nm(st.who)+" SKA RÄDDA")+"...";
@@ -718,6 +718,8 @@ function pstat(m){ls("pushlast",String(m).toUpperCase()+" ("+new Date().toLocale
 async function pushPing(c){try{const u=fbAuth.currentUser;if(!u||!c)return;const t=await u.getIdToken();const r=await fetch(PUSH_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({c})});let m="HTTP "+r.status;try{const j=await r.json();if(j&&j.sent!==undefined)m="SKICKADE "+j.sent+(j.why?" · "+j.why:"")+(j.err&&j.err.length?" · FEL "+j.err.join(","):"");else if(j&&j.why)m="HTTP "+r.status+" · "+j.why}catch(e){}pstat(m)}catch(e){pstat("FEL "+String(e&&e.message||e).slice(0,40))}}
 function renderMine(docs){
  updateTurns(docs);
+ if(acct()&&GML)docs.forEach(d=>{const m=d.data();
+  if(m&&m.p&&m.p[1]&&!m.tr&&overM(m)&&!repd[d.id]&&!GM.some(g=>g.id===d.id)){repd[d.id]=1;recordGame(d.id,m)}});
  docs=docs.slice().sort((a,b)=>((b.data()||{}).t||0)-((a.data()||{}).t||0));
  const el=$("ml");el.innerHTML="";let n=0;
  docs.forEach(d=>{const m=d.data();if(!m||!m.p||overM(m))return;n++;
@@ -810,7 +812,7 @@ function initAccount(){
 }
 const acct=()=>typeof fbAuth!=="undefined"&&!!fbAuth.currentUser&&!fbAuth.currentUser.isAnonymous;
 const aName=()=>{const u=fbAuth.currentUser;return u.displayName||(u.email||"").split("@")[0]||"SPELARE"};
-let FR=[],INV=[],GM=[],PLD=[],onPl=false,plSeq=0,onProf=false,lcode="",lref=null,lunsub=null,ldata=null,lgDbl=false;
+let FR=[],INV=[],GM=[],GML=false,PLD=[],onPl=false,plSeq=0,onProf=false,lcode="",lref=null,lunsub=null,ldata=null,lgDbl=false;
 const getOnce=q=>new Promise((res,rej)=>{let un=null,dn=false;un=q.onSnapshot(sn=>{if(dn)return;dn=true;res(sn);if(un)un()},rej)});
 const mkE=(tag,txt,cls)=>{const e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e};
 const btnE=(txt,fn,cls)=>{const b=mkE("button",txt);b.onclick=fn;if(cls)b.className=cls;return b};
@@ -822,7 +824,7 @@ function setupSocial(){
  ["mypage"].forEach(i=>$(i).classList.remove("hide"));
  db.collection("friendships").where("u","array-contains",meId).limit(200).onSnapshot(sn=>{FR=sn.docs.map(d=>({id:d.id,...d.data()}));renderNotes();if(onProf)renderProf();if(plOpen)renderPl();if(onPl)plRender()},e=>{});
  db.collection("invites").where("to","==",meId).limit(50).onSnapshot(sn=>{INV=sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.st==="new");renderNotes()},e=>{});
- db.collection("players/"+meId+"/games").limit(1000).onSnapshot(sn=>{GM=sn.docs.map(d=>d.data());if(onProf)renderProf()},e=>{});
+ db.collection("players/"+meId+"/games").limit(1000).onSnapshot(sn=>{GM=sn.docs.map(d=>({id:d.id,...d.data()}));GML=true;if(onProf)renderProf();if(LASTDOCS.length)renderMine(LASTDOCS)},e=>{});
  db.collection("leagues").where("u","array-contains",meId).limit(30).onSnapshot(sn=>renderLgl(sn.docs),e=>{});
 }
 function renderNotes(){
@@ -833,9 +835,12 @@ function renderNotes(){
  el.classList.toggle("hide",n===0);
 }
 async function acceptInv(v){try{await db.doc("invites/"+v.id).delete()}catch(e){}ls("name",myName());if(v.kind==="l")joinLeague(v.code);else join(v.code)}
-async function recordGame(w){
- try{const g=goals(),opp=M.p[1-idx],pd=await db.doc("players/"+opp).get(),od=pd.exists?pd.data():null;
-  await db.doc("players/"+meId+"/games/"+code).set({opp,oppName:od?od.name:String((M.n||[])[1-idx]||"?"),acc:!!od,my:g[idx],their:g[1-idx],win:w===idx,t:Date.now()})}catch(e){console.error(e)}
+async function recordGame(c,m){
+ try{const i=m.p.indexOf(meId);if(i<0)return;const g=[0,0];
+  (m.kicks||[]).forEach(k=>{if(k.save!==undefined&&k.shot!==k.save)g[k.s]++});
+  const opp=m.p[1-i],pd=await db.doc("players/"+opp).get(),od=pd.exists?pd.data():null;
+  await db.doc("players/"+meId+"/games/"+c).set({opp,oppName:od?od.name:String((m.n||[])[1-i]||"?"),acc:!!od,my:g[i],their:g[1-i],win:g[i]>g[1-i],t:Date.now()})}
+ catch(e){console.error(e);repd[c]=0}
 }
 function h2h(){const m={};GM.forEach(g=>{if(!g.acc)return;const o=m[g.opp]||(m[g.opp]={name:g.oppName,v:0,f:0,l:[]});o.name=g.oppName;if(g.win)o.v++;else o.f++;o.l.push(g)});
  return Object.keys(m).map(id=>({id,...m[id]})).sort((a,b)=>(b.v+b.f)-(a.v+a.f))}
