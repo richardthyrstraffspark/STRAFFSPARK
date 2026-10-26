@@ -76,7 +76,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-25 · NÄRVARO2</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-26 · UTSEENDE1</div>
  <div class="box hide" id="lout"><button id="lob" class="dn">LOGGA UT</button></div>
 </div>
 <div id="tour" class="hide">
@@ -205,12 +205,15 @@ const ROSTER={};Object.keys(RS).forEach(k=>{ROSTER[k]=RS[k].map(q=>({num:q[0],na
 const BOTS=["BOTALDO", "BOTTI", "BOTADONA", "NEYBOT", "BOTISTUTA", "GLENN BOTÉN", "BOTALDINHO", "BOTELLI", "BOTTUSO", "BOTTAVARO", "BOTUITA", "BOTRAHIMOVIC", "BOTBA", "BOTERTO CARLOS", "BOTANDOWSKI", "BOTHAM", "BOTIESTA", "BOTKAMP", "VAN BOTHORST", "BOTENBAUER", "F. DE BOT", "BOTO'O"],BOTNUM=[9, 21, 18, 16, 13, 15, 22, 8, 19, 20, 1, 17, 10, 2, 11, 7, 5, 4, 3, 14, 6, 12];
 ROSTER.BOT=BOTS.map((n,i)=>({num:BOTNUM[i],name:n}));
 const pname=(team,num)=>{const r=(ROSTER[team]||[]).find(q=>q.num===num);return r?r.name:"SPELARE"};
+const HAIRC=["#1A1210","#4A2C12","#8A5A2B","#E8C15A","#F5E6A8","#D0D0D0","#228BE6","#6D1022","#8B1226","#A50F2D","#D62828","#E8381A","#C2410C","#A33F1A","#5C1F14","#7A2E1B","#8F3B20","#A8602F","#B8541F","#D4742A","#E8731C","#D98A55","#EAA27C","#E0605A","#0A0A0A","#11141F","#2B1A10","#3A2212","#4F3220","#7A5230","#6B4423","#9C7A3C","#A07848","#6E5E50","#B8923F","#D2B574","#DCAE4A","#F0C648","#CFC09A","#F4EFD8","#F7F7F7","#8F8B87","#7D7D82","#B8BBC2","#1E3A8A","#74C0FC","#12B5B0","#2F9E44","#7048E8","#F783AC"],SKN=["#FAE6D2","#F6D8BA","#F2C9A0","#E3A672","#B87A4B","#8A5532","#5A3520","#3A2113"],APPD={SWE:"6.3.2.3 1.3.2.3 1.3.2.4 8.1.2.3 1.6.2.4 5.4.2.2 6.2.4.3 1.5.2.4 4.4.2.3 1.1.4.3 4.5.2.3 5.1.3.4 1.1.7.3 6.6.2.3 6.1.3.3 6.2.2.4 6.4.2.3 7.6.2.3 1.4.2.5 7.4.2.3 1.2.2.3 8.6.2.3",ARG:"2.1.2.3 2.2.2.3 1.4.2.3 2.1.2.3 2.2.2.3 1.1.2.3 2.4.2.4 10.1.2.2 2.3.2.3 1.2.2.1 10.1.2.1 1.1.2.3 2.3.2.4 1.1.2.3 7.1.2.3 2.2.2.3 5.1.2.2 2.1.2.2 1.1.2.2 7.1.2.3 5.6.4.3 2.1.2.3",ENG:"1.1.2.3 1.2.2.3 1.1.4.3 1.3.2.3 1.1.4.3 1.3.2.3 6.3.2.3 1.6.2.3 4.2.1.3 4.3.2.3 4.3.2.3 5.6.2.3 5.4.2.3 1.3.2.3 1.3.2.3 6.6.2.3 6.3.1.5 7.5.1.3 7.3.2.3 7.4.2.3 8.1.4.3 8.1.5.3",FRA:"5.1.2.2 1.1.6.4 5.1.6.4 8.3.2.3 1.1.6.3 1.6.2.2 1.1.2.3 7.1.4.3 1.1.6.3 5.1.2.3 5.1.4.4 5.1.5.3 1.1.3.3 1.1.3.3 7.1.3.2 5.1.6.4 5.1.8.3 1.1.6.3 9.1.5.3 5.1.7.3 7.1.3.3 2.4.2.3",GER:"2.4.2.3 1.6.2.3 1.3.2.2 10.2.2.3 2.5.2.3 1.2.2.3 6.4.2.3 7.4.2.3 10.1.2.3 2.4.2.3 1.3.2.3 5.4.2.3 10.5.2.3 2.4.2.3 1.4.2.3 1.5.2.3 1.3.2.3 7.3.2.3 7.4.2.3 1.2.2.3 1.1.2.4 8.4.2.3",ESP:"1.1.2.3 2.3.2.3 7.1.2.3 1.3.2.3 1.1.2.3 7.1.2.2 7.1.2.3 5.1.2.2 10.3.2.3 1.2.2.3 7.1.2.3 7.1.2.2 5.1.2.2 1.1.2.3 2.1.2.3 1.1.2.4 6.2.2.3 7.1.2.2 7.4.2.4 1.2.2.3 8.4.2.3 1.2.2.2",BRA:"1.1.2.3 5.1.5.3 1.1.6.3 8.2.4.3 1.1.6.3 1.3.2.3 6.3.4.3 7.1.2.3 4.6.5.3 4.4.6.3 4.2.7.3 10.1.6.3 1.1.4.3 10.1.3.3 2.1.2.3 1.1.4.3 3.1.5.3 10.2.3.3 8.3.5.3 1.1.2.3 2.2.2.3 10.3.2.3",NED:"1.6.2.5 1.1.4.4 5.3.2.3 1.2.2.3 1.4.2.3 5.1.2.3 1.3.1.3 1.4.2.3 1.1.6.3 2.1.7.3 4.2.2.3 2.3.2.3 1.1.2.3 1.6.2.3 10.1.2.3 6.6.5.3 6.4.2.3 7.1.7.3 8.1.2.3 5.5.2.3 5.3.2.2 7.1.2.3",NOR:"1.1.2.4 1.6.2.3 1.1.2.3 1.4.2.3 1.4.2.3 5.5.2.3 1.3.2.3 1.1.2.3 9.5.2.3 4.4.2.3 4.2.2.3 1.1.2.3 1.5.2.3 5.3.4.3 7.1.2.3 1.4.2.5 7.4.2.3 7.2.2.3 5.4.2.3 10.3.2.3 8.3.2.3 1.1.2.3",DEN:"1.4.2.5 1.6.2.3 7.4.2.3 8.2.2.3 2.3.2.3 2.3.2.3 1.4.2.3 1.3.2.3 1.4.2.3 1.2.2.3 1.2.2.3 1.5.2.4 5.5.2.3 5.3.2.3 5.1.2.3 2.5.2.3 6.4.2.3 2.2.2.3 1.3.2.3 5.5.2.3 1.4.2.3 1.4.2.3",JPN:"1.1.1.3 1.1.1.3 7.1.1.3 8.1.1.3 1.1.1.3 5.1.1.3 6.1.1.3 7.1.1.3 4.1.1.3 4.1.1.3 4.1.1.3 5.1.1.3 5.1.1.3 5.1.1.3 6.1.1.3 6.1.1.3 6.1.1.3 7.1.1.3 7.1.1.3 7.1.1.3 8.1.1.3 8.1.1.3",POR:"1.1.2.3 1.1.2.3 5.4.4.3 7.1.2.3 1.1.2.3 8.2.2.3 7.1.3.3 7.1.3.3 1.1.2.3 10.1.3.3 1.2.2.2 1.2.2.3 1.1.5.3 7.1.3.3 2.2.2.3 2.1.2.3 1.1.4.3 2.1.2.3 1.1.2.3 10.1.2.3 1.1.2.3 7.1.3.2",EGY:"7.1.4.3 1.6.4.3 1.1.4.3 1.1.4.3 1.1.4.3 5.1.4.4 1.1.4.3 1.1.4.3 5.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 1.1.4.3 7.1.4.3 1.1.4.3",CMR:"1.1.7.3 1.1.6.3 7.1.6.3 8.2.6.3 1.1.7.3 5.1.7.3 6.1.6.3 7.1.7.3 4.1.6.3 4.2.6.3 1.1.7.3 5.1.7.3 5.2.6.3 5.1.6.3 6.1.6.3 6.2.7.3 6.1.6.3 5.1.7.3 7.2.6.3 7.2.6.3 8.1.7.3 8.1.6.3",NGA:"1.1.7.3 1.1.7.3 7.1.6.3 8.1.6.3 1.1.6.3 5.1.7.3 6.1.6.3 7.1.6.3 4.1.6.3 4.1.7.3 4.1.6.3 5.1.6.3 5.1.7.3 5.1.6.3 6.1.6.3 6.1.7.3 6.1.6.3 7.1.6.3 7.1.6.3 7.1.6.3 8.1.7.3 8.1.6.3",ITA:"2.1.3.3 5.1.3.3 2.1.3.4 1.1.3.3 5.1.2.2 2.1.2.4 10.1.2.3 7.1.2.3 9.1.2.3 2.4.2.3 5.2.2.3 1.4.2.3 1.1.2.3 5.1.2.3 1.1.2.3 1.1.2.3 1.2.2.3 8.1.2.3 2.1.2.3 7.1.2.3 1.6.2.3 2.3.2.3",CIV:"1.1.7.3 1.1.6.3 7.1.7.3 8.1.7.3 1.1.6.3 5.1.7.3 6.1.5.3 7.1.6.3 4.1.6.3 8.1.7.3 2.1.7.3 7.1.5.3 5.1.6.3 7.1.6.3 6.1.4.3 6.1.7.3 6.1.5.3 5.1.6.3 5.1.6.3 7.1.5.3 7.1.7.3 2.1.5.3",BOT:"10.1.4.3 5.6.5.3 1.1.2.3 1.4.2.3 5.1.1.2 5.5.7.3 5.1.2.3 2.1.2.4 5.1.5.3 2.1.7.4 7.1.2.3 5.7.7.2 2.3.2.4 1.6.2.4 1.6.2.4 7.3.4.3 7.1.3.3 1.1.2.1 8.1.3.2 5.1.3.2 2.1.3.1 10.1.5.3"},APPC={};
+const tmOf=i=>(M&&M.c||[])[i];
+function appOf(t,n){const k=t+"|"+n;if(k in APPC)return APPC[k];const s=APPD[t]&&n>=1&&n<=22?APPD[t].split(" ")[n-1]:null;let o=null;if(s){const v=s.split(".").map(Number);o={st:v[0]>=1&&v[0]<=10?v[0]-1:0,hc:HAIRC[(v[1]||1)-1]||HAIRC[0],sk:SKN[(v[2]||3)-1]||SKN[2],lh:[4,5,6,7,8][(v[3]||3)-1]||6}}return APPC[k]=o}
 const HC=["#1a1210","#4a2c12","#8a5a2b","#e8c15a","#c2410c","#d0d0d0","#228be6"];
 const SKT=["#f2c9a0","#e3a672","#b87a4b","#8a5532","#5a3520"],PT={"#e03131":1,"#1c7ed6":2,"#f76707":2,"#212529":1,"#7048e8":2},LT=["#fcc419","#f1f3f5","#e64980","#f76707"];
 const shade=(h,f)=>{const n=parseInt(h.slice(1),16),r=Math.min(255,(n>>16&255)*f)|0,g=Math.min(255,(n>>8&255)*f)|0,b=Math.min(255,(n&255)*f)|0;return"#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)};
-function fig(x,y,kit,pose,d,tk,gl,num,ns,seed,front){
- const K=(kit&&kit.s)?kit:kitOf(kit),c=K.s,SLc=K.m||c,fr=gl||front,sd=gl?100:(seed||0),SK=SKT[(sd*3+1)%5],sty=gl?0:(q=>q===1||q===2?[0,3,4,5,6,7][(sd+q)%6]:q)(Math.floor(sd/3)%8),hc=gl?HC[0]:HC[(sd*5+2)%7];
- const fd=(pose==="scorpion"||pose==="guns3")?(d<0?-1:1):d,hw=8,hh=8,bw=8,bh=6,sh=3,lh=6,SC=K.h,P=[],A=(a,b,w,h,col)=>P.push([a,b,w,h,col]);
+function fig(x,y,kit,pose,d,tk,gl,num,ns,seed,front,ap){
+ const K=(kit&&kit.s)?kit:kitOf(kit),c=K.s,SLc=K.m||c,fr=gl||front,sd=gl?100:(seed||0),SK=ap?ap.sk:SKT[(sd*3+1)%5],sty=ap?ap.st:gl?0:(q=>q===1||q===2?[0,3,4,5,6,7][(sd+q)%6]:q)(Math.floor(sd/3)%8),hc=ap?ap.hc:gl?HC[0]:HC[(sd*5+2)%7];
+ const fd=(pose==="scorpion"||pose==="guns3")?(d<0?-1:1):d,hw=8,hh=8,bw=8,bh=6,sh=3,lh=ap?ap.lh:6,SC=K.h,P=[],A=(a,b,w,h,col)=>P.push([a,b,w,h,col]);
  let yy=y,T=null,Hd=null;
  if(!ns){R(x-8,y-2,16,3,"rgba(0,0,0,.28)");R(x-6,y,12,2,"rgba(0,0,0,.28)")}
  const kn=pose==="slide"||pose==="sad"||pose==="knee",up=pose==="cheer"||pose==="slide"||pose==="run"||pose==="tuck"||pose==="jump"||pose==="hop"||pose==="sit";
@@ -287,10 +290,12 @@ function fig(x,y,kit,pose,d,tk,gl,num,ns,seed,front){
   else if(sty===1){if(fr)F.push([hx,hy,hw,4],[hx,hy+4,1,4],[hx+7,hy+4,1,4]);else F.push([hx,hy,hw,hh],[hx+1,hy+hh,6,2])}
   else if(sty===2)F.push([hx-1,hy-2,hw+2,5],[hx-1,hy+3,1,3],[hx+8,hy+3,1,3]);
   else if(sty===3)F.push([hx+3,hy-3,2,5],[hx+2,hy,4,2]);
-  else if(sty===5)F.push([hx,hy,hw,2]);
+  else if(sty===5)F.push([hx,hy+2,2,5],[hx+6,hy+2,2,5]);
   else if(sty===6)F.push([hx,hy,hw,2],[hx,hy-2,1,2],[hx+2,hy-3,1,3],[hx+4,hy-3,1,3],[hx+6,hy-2,1,2]);
-  else if(sty===7)F.push([hx,hy,hw,3],[hx,hy+2,hw,1,"#e03131"]);
-  if(sty===1||sty===2||sty===3||sty===6)F.forEach(q=>R(x+q[0]-1,yy+q[1]-1,q[2]+2,q[3]+2,"#000"));
+  else if(sty===7)F.push([hx,hy,hw,3],[hx,hy+2,hw,1,"#e03131"])
+  else if(sty===8){if(fr)F.push([hx,hy,hw,4],[hx,hy+4,1,4],[hx+7,hy+4,1,4],[hx+6,hy+hh,2,3],[hx+7,hy+hh+3,1,3]);else F.push([hx,hy,hw,hh],[hx+1,hy+hh,6,2],[hx+2,hy+hh+2,4,2],[hx+3,hy+hh+4,2,3])}
+  else if(sty===9){const dk=shade(hc,.7);if(fr)F.push([hx-1,hy-1,hw+2,5],[hx-1,hy+4,1,3],[hx+hw,hy+4,1,3],[hx+1,hy+1,1,1,dk],[hx+4,hy,1,1,dk],[hx+6,hy+2,1,1,dk]);else F.push([hx-1,hy-1,hw+2,hh],[hx,hy+hh-1,hw,2],[hx+1,hy+1,1,1,dk],[hx+4,hy+3,1,1,dk],[hx+6,hy+1,1,1,dk],[hx+2,hy+6,1,1,dk],[hx+5,hy+6,1,1,dk])};
+  if(sty===1||sty===2||sty===3||sty===5||sty===6||sty>=8)F.forEach(q=>R(x+q[0]-1,yy+q[1]-1,q[2]+2,q[3]+2,"#000"));
   F.forEach(q=>R(x+q[0],yy+q[1],q[2],q[3],q[4]||hc));
   if(fr){
    const pc=sd%3===0?"#2b6cb0":"#111";
@@ -321,16 +326,16 @@ function scene(o){
  R(0,62,160,1,W);
  for(let k=0;k<34;k++){R(GX+(10-GX)*k/34,62+k,1,1,W);R(GX+GW+(149-GX-GW)*k/34,62+k,1,1,W)}
  R(79,81,2,2,W);
- const k=o.keeper;fig(k.x,k.y,k.c,k.pose,k.d,o.tk,true,undefined,false,100+(k.idx||0)*31);
+ const k=o.keeper;fig(k.x,k.y,k.c,k.pose,k.d,o.tk,true,undefined,false,100+(k.idx||0)*31,undefined,appOf(tmOf(k.idx),1));
  if(!o.bf)ball(Math.round(o.ball.x),Math.round(o.ball.y));
  R(GX-3,GY-3,GW+6,3,"#000");R(GX-3,GY-3,3,45,"#000");R(GX+GW,GY-3,3,45,"#000");
  R(GX-2,GY-2,GW+4,2,W);R(GX-2,GY-2,2,44,W);R(GX+GW,GY-2,2,44,W);
  if(o.bf)ball(Math.round(o.ball.x),Math.round(o.ball.y));
  (o.dust||[]).forEach(q=>R(q.x,q.y,q.s,q.s,"#e9ddb5"));
- const s=o.shooter,px=o.sx??72,py=o.sy??97;
- if(s.rot){R(px-9,py-1,18,2,"rgba(0,0,0,.3)");cx.save();cx.translate(Math.round(px),Math.round(py-(s.lift||0)-12));cx.rotate(s.rot);fig(0,12,s.c,"tuck",0,o.tk,false,s.num,true,s.num);cx.restore()}
- else if(s.sxs){cx.save();cx.translate(Math.round(px),0);cx.scale(s.sxs,1);fig(0,py-(s.lift||0),s.c,s.pose,s.dir||0,o.tk,false,s.num,false,s.num,s.front);cx.restore()}
- else fig(px,py-(s.lift||0),s.c,s.pose,s.dir||0,o.tk,false,s.num,false,s.num,s.front);
+ const s=o.shooter,px=o.sx??72,py=o.sy??97,AP=appOf(tmOf(s.idx),s.num);
+ if(s.rot){R(px-9,py-1,18,2,"rgba(0,0,0,.3)");cx.save();cx.translate(Math.round(px),Math.round(py-(s.lift||0)-12));cx.rotate(s.rot);fig(0,12,s.c,"tuck",0,o.tk,false,s.num,true,s.num,undefined,AP);cx.restore()}
+ else if(s.sxs){cx.save();cx.translate(Math.round(px),0);cx.scale(s.sxs,1);fig(0,py-(s.lift||0),s.c,s.pose,s.dir||0,o.tk,false,s.num,false,s.num,s.front,AP);cx.restore()}
+ else fig(px,py-(s.lift||0),s.c,s.pose,s.dir||0,o.tk,false,s.num,false,s.num,s.front,AP);
  if(o.grid){
   cx.setLineDash([2,2]);cx.strokeStyle="rgba(255,255,255,.75)";
   for(let i=0;i<6;i++){const x=GX+(i%3)*CW,y=GY+Math.floor(i/3)*CH;
