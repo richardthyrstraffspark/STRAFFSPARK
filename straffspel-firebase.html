@@ -50,7 +50,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box hide" id="nt" style="border-color:var(--ac)"></div>
  <div class="box hide" id="swc"></div>
  <div class="box hide" id="iab"><p>⚠ DU HAR ÖPPNAT SIDAN I EN APP-WEBBLÄSARE (T.EX. INSTAGRAM). DEN KOMMER INTE IHÅG DIG, SÅ DU KAN BLI TVÅ SPELARE. ÖPPNA LÄNKEN I CHROME ELLER SAFARI I STÄLLET.</p><button id="iabc">KOPIERA LÄNK</button><button id="iabg" class="hide">ÖPPNA I CHROME</button></div>
- <div class="box hide" id="inv"><p id="invt"></p><p>VÄLJ NAMN OCH LAG HÄR UNDER, OCH TRYCK SEDAN:</p><button id="invgo">GÅ MED</button></div>
+ <div class="box hide" id="inv"><p id="invt"></p><p id="invn" class="hide" style="color:var(--ac)">NY HÄR? SKAPA ETT KONTO ELLER LOGGA IN HÄR UNDER FÖRST. DÅ ÄR DU ALLTID SAMMA SPELARE, ÄVEN I ANDRA WEBBLÄSARE. DU KAN OCKSÅ GÅ MED UTAN KONTO.</p><p>VÄLJ NAMN OCH LAG HÄR UNDER, OCH TRYCK SEDAN:</p><button id="invgo">GÅ MED</button></div>
  <div class="box"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
  <div class="box" id="teambox"><p>VÄLJ LAG</p><div id="sw" class="tg"></div></div>
  <div class="box" id="acc"><p id="acct"></p><div id="accb"></div>
@@ -76,7 +76,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-26 · MOTEN1</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-28 · NAMN1</div>
  <div class="box hide" id="lout"><button id="lob" class="dn">LOGGA UT</button></div>
 </div>
 <div id="tour" class="hide">
@@ -633,15 +633,23 @@ async function join(c){
   if(!s.exists)return err("HITTAR INGEN MATCH MED KODEN "+c+".");
   const m=s.data();
   if(m.p[0]===meId)idx=0;else if(m.p[1]===meId)idx=1;
-  else if(!m.p[1]){const c0=(m.c||[])[0]||"SWE",c2=TEAMS[myCol];
+  else if(!m.p[1]){if(!hasName())return;const c0=(m.c||[])[0]||"SWE",c2=TEAMS[myCol];
    await ref.update({p:[m.p[0],meId],n:[(m.n||[])[0]||"SPELARE 1",myName()],c:[c0,c2],open:false});pushPing(c);idx=1}
   else return err("MATCHEN ÄR REDAN FULL.");
   code=c;enter();
  }catch(e){err("KUNDE INTE GÅ MED: "+(e.message||e.code))}
 }
 const myName=()=>($("nm").value.trim()||"SPELARE").toUpperCase().slice(0,10);
+const hasName=()=>{if($("nm").value.trim())return true;$("err").textContent="SKRIV ETT NAMN I RUTAN DITT NAMN FÖRST.";try{$("nm").focus();$("nm").scrollIntoView({block:"center"})}catch(e){}return false};
+async function renameMe(kind){
+ const t=kind==="t"?tdata:ldata,r=kind==="t"?tref:lref;if(!t||!r)return;
+ let v=window.prompt("NYTT NAMN (MAX 10 TECKEN):",String(((t.pl||{})[meId]||{}).n||""));if(v===null)return;
+ v=v.trim().toUpperCase().slice(0,10);if(!v)return;
+ try{await r.update({["pl."+meId+".n"]:v});ls("name",v);$("nm").value=v}catch(e){$("err").textContent="KUNDE INTE ÄNDRA NAMN: "+(e.message||e.code)}
+}
 async function mkMatch(open,friend){
  if(!db)return $("err").textContent=NOLOGIN;
+ if(!hasName())return;
  ls("name",myName());
  const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";for(let i=0;i<5;i++)c+=A[Math.floor(Math.random()*A.length)];
  try{ref=db.doc("matches/"+c);await ref.set({p:[meId,null],n:[myName(),null],c:[TEAMS[myCol],null],open,tod:myTod,kicks:[],t:Date.now()});if(friend)await db.doc("invites/"+c+"_"+friend).set({to:friend,from:meId,fromName:aName(),kind:"m",code:c,st:"new",t:Date.now()});idx=0;code=c;enter()}
@@ -764,7 +772,7 @@ async function handleInvite(kind,c){
   if(kind==="m"&&d.p[1]){$("err").textContent="MATCHEN ÄR REDAN FULL.";return}
   if(kind==="t"&&(d.st!=="lobby"||d.u.length>=d.sz)){$("err").textContent="TURNERINGEN ÄR FULL ELLER HAR STARTAT.";return}
   if(kind==="l"&&d.st!=="lobby"){$("err").textContent="LIGAN HAR REDAN STARTAT.";return}
-  invite={kind,c};$("inv").classList.remove("hide");
+  invite={kind,c};$("inv").classList.remove("hide");if(!acct()){$("invn").classList.remove("hide");$("inv").after($("acc"));$("accf").classList.remove("hide")}
   $("invt").textContent=kind==="m"?"DU ÄR INBJUDEN TILL EN MATCH AV "+String((d.n||[])[0]||"EN SPELARE").slice(0,12):kind==="t"?(d.name?"DU ÄR INBJUDEN TILL TURNERINGEN "+String(d.name).slice(0,20)+" MED "+d.sz+" SPELARE":"DU ÄR INBJUDEN TILL EN TURNERING MED "+d.sz+" SPELARE"):"DU ÄR INBJUDEN TILL LIGAN "+String(d.name||"").slice(0,14)}
  catch(e){console.error(e)}
 }
@@ -883,7 +891,7 @@ function renderLgl(docs){const el=$("lgm");el.innerHTML="";let n=0;
  if(!n)el.textContent="INGA ÄNNU"}
 async function mkLeague(){
  if(!db)return $("err").textContent=NOLOGIN;if(!acct())return $("err").textContent="LOGGA IN FÖR ATT SKAPA EN LIGA.";
- const c=genCode(),nm0=($("lgn").value.trim()||"LIGA").toUpperCase().slice(0,14);ls("name",myName());
+ if(!hasName())return;const c=genCode(),nm0=($("lgn").value.trim()||"LIGA").toUpperCase().slice(0,14);ls("name",myName());
  try{await db.doc("leagues/"+c).set({o:meId,name:nm0,dbl:lgDbl,tod:myTod,st:"lobby",u:[meId],pl:{[meId]:{n:myName(),t:TEAMS[myCol]}},fx:{},t:Date.now()});openLeague(c)}
  catch(e){$("err").textContent="KUNDE INTE SKAPA LIGA: "+(e.message||e.code)}
 }
@@ -893,7 +901,7 @@ async function joinLeague(c){
  c=(c||"").trim().toUpperCase();if(!c)return err("ANGE EN LIGAKOD.");
  try{const r=db.doc("leagues/"+c),sn=await r.get();if(!sn.exists)return err("HITTAR INGEN LIGA MED KODEN "+c+".");
   const t=sn.data();
-  if(!t.u.includes(meId)){if(t.st!=="lobby")return err("LIGAN HAR REDAN STARTAT.");ls("name",myName());await r.update({u:FBU(meId),["pl."+meId]:{n:myName(),t:TEAMS[myCol]}})}
+  if(!t.u.includes(meId)){if(t.st!=="lobby")return err("LIGAN HAR REDAN STARTAT.");if(!hasName())return;ls("name",myName());await r.update({u:FBU(meId),["pl."+meId]:{n:myName(),t:TEAMS[myCol]}})}
   openLeague(c)}catch(e){err("KUNDE INTE GÅ MED: "+(e.message||e.code))}
 }
 function hideLeague(){if(lunsub)lunsub();lunsub=null;$("lgv").classList.add("hide")}
@@ -947,6 +955,7 @@ function renderLeague(){
   if(!x.w&&(x.a===meId||x.b===meId))r.appendChild(btnE("SPELA",()=>playLeague(k)));fb.appendChild(r)})}
  const ac=$("lgact");ac.innerHTML="";
  if(t.st==="lobby"){
+  if(t.u.includes(meId))ac.appendChild(btnE("ÄNDRA MITT NAMN",()=>renameMe("l")));
   ac.appendChild(btnE("DELA INBJUDAN",()=>shareInvite("l",lcode,ac.lastChild)));
   FR.filter(f=>f.st==="ok").forEach(f=>{const o=f.u.find(x=>x!==meId);if(!t.u.includes(o))ac.appendChild(btnE("BJUD IN "+String((f.n||{})[o]||"VÄN").toUpperCase(),()=>inviteLeague(o)))});
   if(t.o===meId)ac.appendChild(btnE("+ AI-SPELARE",addLeagueAI));
@@ -1241,7 +1250,7 @@ function renderTl(docs){const el=$("tl");el.innerHTML="";let n=0;
   const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>openTour(d.id);r.append(l,b);if(t.o===meId){const x=document.createElement("button");x.textContent="TA BORT";x.className="dn";x.onclick=()=>delTour(d.id);r.appendChild(x)}el.appendChild(r)});
  if(!n)el.textContent="INGA ÄNNU"}
 async function mkTour(){
- if(!db)return $("err").textContent=NOLOGIN;ls("name",myName());
+ if(!db)return $("err").textContent=NOLOGIN;if(!hasName())return;ls("name",myName());
  const c=genCode();
  try{await db.doc("tournaments/"+c).set({o:meId,name:($("tnm").value.trim()||"").toUpperCase().slice(0,20),sz:tsz,tod:myTod,st:"lobby",u:[meId],pl:{[meId]:{n:myName(),t:TEAMS[myCol]}},m:{},...(tgs?{gs:true,gz:tgz,ga:tga,ks:tsz/tgz*tga}:{ks:tsz}),t:Date.now()});openTour(c)}
  catch(e){$("err").textContent="KUNDE INTE SKAPA TURNERING: "+(e.message||e.code)}
@@ -1255,6 +1264,7 @@ async function joinTour(c){
    if(t.st!=="lobby")return err("TURNERINGEN HAR REDAN STARTAT.");
    if(t.swc&&Date.now()>=t.swc.c)return err("ANMÄLAN TILL CUPEN HAR STÄNGT.");
    if(t.u.length>=t.sz)return err("TURNERINGEN ÄR FULL.");
+   if(!hasName())return;
    if(Object.values(t.pl||{}).some(q=>String(q.n).toUpperCase()===myName())&&!window.confirm("DET FINNS REDAN EN SPELARE MED NAMNET "+myName()+" I TURNERINGEN. ÄR DET DU? I SÅ FALL: AVBRYT OCH ÖPPNA LÄNKEN I SAMMA WEBBLÄSARE SOM FÖRUT. VILL DU GÅ MED SOM EN NY SPELARE?"))return;
    ls("name",myName());await tr.update({u:FBU(meId),["pl."+meId]:{n:myName(),t:TEAMS[myCol]}})}
   openTour(c)}catch(e){err("KUNDE INTE GÅ MED: "+(e.message||e.code))}
@@ -1404,7 +1414,7 @@ function renderTour(){
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
- if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.swc)note("CUPEN STARTAR AUTOMATISKT "+new Date(t.swc.s).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+". TOMMA PLATSER FYLLS MED AI. GRUPPSPELET OCH SLUTSPELET HAR VARSIN FRIST PÅ 48 TIMMAR.");else{if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}}
+ if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");if(t.u.includes(meId)&&(!t.swc||Date.now()<t.swc.c))btn("ÄNDRA MITT NAMN",()=>renameMe("t"));btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.swc)note("CUPEN STARTAR AUTOMATISKT "+new Date(t.swc.s).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+". TOMMA PLATSER FYLLS MED AI. GRUPPSPELET OCH SLUTSPELET HAR VARSIN FRIST PÅ 48 TIMMAR.");else{if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}}
  else if(t.st==="run"&&t.gs&&t.ph==="g"){
   const my=Object.keys(t.gm||{}).filter(k=>!t.gm[k].w&&(t.gm[k].a===meId||t.gm[k].b===meId));
   if(!my.length)note("DU HAR SPELAT ALLA DINA GRUPPMATCHER. VÄNTAR PÅ DE ANDRA.");
