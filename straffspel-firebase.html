@@ -76,8 +76,8 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-29 · REPRIS1</div>
- <div class="box hide" id="lout"><button id="lob" class="dn">LOGGA UT</button></div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-29 · CUPMENY1</div>
+ <div class="box hide" id="lout"><p id="loutt"></p><button id="lob" class="dn">LOGGA UT</button></div>
 </div>
 <div id="tour" class="hide">
  <div class="box" id="tinfo"></div>
@@ -739,7 +739,19 @@ function renderMine(docs){
   const l=document.createElement("span");l.textContent=(m.p[1]?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE")+" · "+dn+"/10 · "+d.id+(m.tr?" · TRÄNING":"")+(((t0)=>t0&&m.p[t0.w]===meId)(turnOf(m))?" · DIN TUR":"");
   const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>{ls("name",myName());join(d.id)};
   r.append(l,b);if(!m.tn&&!m.lg){const x=document.createElement("button");x.textContent="TA BORT";x.className="dn";x.onclick=()=>delMatch(d.id);r.appendChild(x)}el.appendChild(r)});
+ const ids=new Set(docs.map(d=>d.id));
+ TDOCS.forEach(d=>{const t=d.data();if(!t||t.st!=="run"||!t.pl)return;const tl=t.name||d.id;
+  const add=(key,e,label)=>{if(!e||e.w||!e.a||!e.b||(e.a!==meId&&e.b!==meId)||ids.has(d.id+"-"+key))return;
+   const op=e.a===meId?e.b:e.a,on=String(((t.pl||{})[op]||{}).n||"?"),r=mkE("div",null,"ml");
+   r.appendChild(mkE("span",label+" · MOT "+on+(e.dl?" · FRIST "+new Date(e.dl).toLocaleString("sv-SE",{weekday:"short",hour:"2-digit",minute:"2-digit"}).toUpperCase():"")));
+   r.appendChild(btnE("SPELA",()=>playTourX(d.id,key)));el.appendChild(r);n++};
+  if(t.gs&&t.ph==="g")Object.keys(t.gm||{}).forEach(k=>add("G"+k,t.gm[k],tl+" · GRUPP "+t.gm[k].g));
+  else Object.keys(t.m||{}).forEach(k=>{const P=mpos(t.ks||t.sz,+k);if(P)add(k,t.m[k],tl+" · "+roundName(P.R2[P.r].c))})});
  if(!n)el.textContent="INGA ÄNNU";
+}
+async function playTourX(tc,k){
+ try{const sn=await db.doc("tournaments/"+tc).get();if(!sn.exists)return;tcode=tc;tref=db.doc("tournaments/"+tc);tdata=sn.data();playTour(k)}
+ catch(e){$("err").textContent="KUNDE INTE ÖPPNA MATCHEN: "+(e.message||e.code)}
 }
 async function delMatch(id){
  if(!db||!window.confirm("TA BORT MATCHEN "+id+"? DEN FÖRSVINNER FÖR BÅDA SPELARNA."))return;
@@ -794,7 +806,7 @@ const uOk=u=>/^[a-z0-9_-]{3,16}$/.test(u);
 function renderAcc(){
  const u=fbAuth.currentUser,t=$("acct"),b=$("accb");b.innerHTML="";
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;b.appendChild(q)};
- if(u&&!u.isAnonymous){const n=u.displayName||(u.email||"").split("@")[0]||"SPELARE";t.textContent="INLOGGAD SOM "+n.toUpperCase();$("lout").classList.remove("hide");$("lob").onclick=doOut}
+ if(u&&!u.isAnonymous){const n=u.displayName||(u.email||"").split("@")[0]||"SPELARE";$("loutt").textContent="INLOGGAD SOM "+n.toUpperCase();$("acc").classList.add("hide");$("lout").classList.remove("hide");$("lob").onclick=doOut}
  else{t.textContent="DU SPELAR UTAN KONTO. MED KONTO ÄR DU ALLTID SAMMA SPELARE, ÄVEN I ANDRA WEBBLÄSARE.";btn("LOGGA IN / SKAPA KONTO",()=>$("accf").classList.toggle("hide"))}
 }
 function initAccount(){
@@ -823,7 +835,7 @@ function initAccount(){
 }
 const acct=()=>typeof fbAuth!=="undefined"&&!!fbAuth.currentUser&&!fbAuth.currentUser.isAnonymous;
 const aName=()=>{const u=fbAuth.currentUser;return u.displayName||(u.email||"").split("@")[0]||"SPELARE"};
-let FR=[],INV=[],GM=[],GML=false,PLD=[],onPl=false,plSeq=0,onProf=false,lcode="",lref=null,lunsub=null,ldata=null,lgDbl=false;
+let TDOCS=[],FR=[],INV=[],GM=[],GML=false,PLD=[],onPl=false,plSeq=0,onProf=false,lcode="",lref=null,lunsub=null,ldata=null,lgDbl=false;
 const getOnce=q=>new Promise((res,rej)=>{let un=null,dn=false;un=q.onSnapshot(sn=>{if(dn)return;dn=true;res(sn);if(un)un()},rej)});
 const mkE=(tag,txt,cls)=>{const e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e};
 const btnE=(txt,fn,cls)=>{const b=mkE("button",txt);b.onclick=fn;if(cls)b.className=cls;return b};
@@ -1253,7 +1265,7 @@ function renderTg(){
  el.appendChild(mkE("p",tsz/tgz+" GRUPPER (A–"+GN(tsz/tgz-1)+"), SLUTSPEL MED "+tsz/tgz*tga+" SPELARE"));
 }
 function renderTz(){renderTg();const el=$("tz");el.innerHTML="";[4,8,16,32,64].forEach(n=>{const b=document.createElement("button");b.textContent=n;b.style.opacity=tsz===n?1:.45;b.onclick=()=>{tsz=n;ls("tsz",String(n));renderTz()};el.appendChild(b)})}
-function renderTl(docs){const el=$("tl");el.innerHTML="";let n=0;
+function renderTl(docs){TDOCS=docs;renderMine(LASTDOCS);const el=$("tl");el.innerHTML="";let n=0;
  docs.forEach(d=>{const t=d.data();if(!t||!t.u)return;n++;if(t.st==="done"&&t.win===meId)awardTrophy("t_"+d.id,t.swc?{st:"cup",n:t.swc.n,title:"STRAFFSPARK CUP "+roman(t.swc.n),detail:"VINNARE"}:{st:0,title:String(t.name||"TURNERING"),detail:t.sz+" SPELARE"});const r=document.createElement("div");r.className="ml";
   const l=document.createElement("span");l.textContent=(t.name?t.name+" · ":"")+d.id+" · "+t.sz+" SPELARE · "+(t.st==="lobby"?"LOBBY":t.st==="run"?"PÅGÅR":"KLAR");
   const b=document.createElement("button");b.textContent="ÖPPNA";b.onclick=()=>openTour(d.id);r.append(l,b);if(t.o===meId){const x=document.createElement("button");x.textContent="TA BORT";x.className="dn";x.onclick=()=>delTour(d.id);r.appendChild(x)}el.appendChild(r)});
@@ -1416,7 +1428,7 @@ function renderTour(){
  else if(!(t.gs&&t.ph==="g"))rnds(t.ks||sz).forEach(rr=>{x+="<p>"+roundName(rr.c)+"</p>";for(let j=0;j<rr.c;j++){const k=rr.st+j,e=m[k]||{},P=PUBM[k]||null;
   const plt=id=>{if(!id)return"<div class=\"pl out\"><b>—</b></div>";const lost=e.w&&e.w!==id;let d="";if(P&&P.p){const i=P.p.indexOf(id);if(i>=0){const L=Math.max(5,Math.ceil(P.r.length/2));for(let q=0;q<L;q++){const c=P.r[q*2+i];d+="<span class=\"dot "+(c==="G"?"g":c==="M"?"m":"")+"\"></span>"}}}
    return"<div class=\"pl"+(lost?" out":"")+"\">"+fl(id)+"<div><b>"+nmo(id)+"</b>"+(e.w===id?" 🏆":"")+"<br>"+d+"</div></div>"};
-  x+="<div class=\"mc\">"+plt(e.a)+"<div class=\"vs\">VS</div>"+plt(e.b)+"</div>"}});
+  x+="<div class=\"mc\">"+plt(e.a)+"<div class=\"vs\">VS</div>"+plt(e.b)+(e.w&&P?"<div style=\"text-align:center\"><button data-rp=\""+k+"\">"+(tvK===String(k)?"STÄNG":"REPRIS")+"</button></div>":"")+"</div>"}});
  if(t.gs&&t.st!=="lobby")x+=grpHtml(t,nmo);
  $("tbody").innerHTML=x;renderTvList(t);renderAdm(t);
  [...$("tbody").querySelectorAll("button[data-rp]")].forEach(b=>b.onclick=()=>{const k=b.dataset.rp;if(tvK===k){tvStop();renderTour()}else{tvStart(k,true);renderTour();try{$("tvs").scrollIntoView({block:"center"})}catch(e){}}});
