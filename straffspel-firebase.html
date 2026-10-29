@@ -76,7 +76,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-28 · NAMN1</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-29 · AIMATCH1</div>
  <div class="box hide" id="lout"><button id="lob" class="dn">LOGGA UT</button></div>
 </div>
 <div id="tour" class="hide">
@@ -726,6 +726,9 @@ function pstat(m){ls("pushlast",String(m).toUpperCase()+" ("+new Date().toLocale
 async function pushPing(c){try{const u=fbAuth.currentUser;if(!u||!c)return;const t=await u.getIdToken();const r=await fetch(PUSH_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({c})});let m="HTTP "+r.status;try{const j=await r.json();if(j&&j.sent!==undefined)m="SKICKADE "+j.sent+(j.why?" · "+j.why:"")+(j.err&&j.err.length?" · FEL "+j.err.join(","):"");else if(j&&j.why)m="HTTP "+r.status+" · "+j.why}catch(e){}pstat(m)}catch(e){pstat("FEL "+String(e&&e.message||e).slice(0,40))}}
 function renderMine(docs){
  updateTurns(docs);
+ docs.forEach(d=>{const m=d.data();if(!m||!m.p||!m.p[1]||!(m.tn||m.lg)||!overM(m)||repd["r"+d.id])return;repd["r"+d.id]=1;
+  const g=[0,0];(m.kicks||[]).forEach(k=>{if(k.save!==undefined&&k.shot!==k.save)g[k.s]++});
+  const w=m.p[g[0]>g[1]?0:1];if(m.tn)reportWin(m.tn.c,m.tn.k,w);else reportLeague(m.lg.c,m.lg.k,w)});
  if(acct()&&GML)docs.forEach(d=>{const m=d.data();
   if(m&&m.p&&m.p[1]&&!m.tr&&overM(m)&&!repd[d.id]&&!GM.some(g=>g.id===d.id)){repd[d.id]=1;recordGame(d.id,m)}});
  docs=docs.slice().sort((a,b)=>((b.data()||{}).t||0)-((a.data()||{}).t||0));
@@ -1037,8 +1040,14 @@ function tourAI(t){
   if(A&&B){if(!aiSet[tcode+k]){aiSet[tcode+k]=1;const wn=seeded(tcode+k)()<.5?e.a:e.b,tc0=tcode;setTimeout(()=>reportWin(tc0,+k,wn),(qn++)*300)}}
   else if((A||B)&&e.dl&&Date.now()>e.dl&&!aiSet["w"+tcode+k]){aiSet["w"+tcode+k]=1;aiWo(+k)}});
  if(t.ph==="g")Object.keys(t.gm||{}).forEach(k=>{const e=t.gm[k];if(!e||e.w)return;const A=isAI(e.a),B=isAI(e.b);
-  if(A&&B){if(!aiSet[tcode+"G"+k]){aiSet[tcode+"G"+k]=1;const wn=seeded(tcode+"G"+k)()<.5?e.a:e.b,tc0=tcode;setTimeout(()=>reportWin(tc0,"G"+k,wn),(qn++)*300)}}
+  if(A&&B){if(!aiSet[tcode+"G"+k]){aiSet[tcode+"G"+k]=1;const q=simAI(tcode,"G"+k,e.a,e.b),tc0=tcode;setTimeout(()=>reportWin(tc0,"G"+k,q.win,false,0,q.sc),(qn++)*300)}}
   else if((A||B)&&e.dl&&Date.now()>e.dl&&!aiSet["wG"+tcode+k]){aiSet["wG"+tcode+k]=1;aiWo("G"+k)}});
+}
+function simAI(tc,k,a,b){
+ const rnd=seeded(tc+"S"+k),K=[];let n=0;
+ while(winnerOf(K)<0&&n<80){K.push({s:n%2,shot:Math.floor(rnd()*6),save:Math.floor(rnd()*6)});n++}
+ const g=[0,0];K.forEach(q=>{if(q.shot!==q.save)g[q.s]++});
+ return{win:g[0]>g[1]?a:b,sc:{[a]:g[0],[b]:g[1]}}
 }
 async function aiWo(k){
  const e=String(k)[0]==="G"?(tdata.gm||{})[+String(k).slice(1)]:(tdata.m||{})[k],ai=isAI(e.a)?e.a:e.b,hu=ai===e.a?e.b:e.a;let win=ai;
@@ -1215,14 +1224,14 @@ function advanceGroups(t){
  for(let j=0;j<Q/2;j++)m[j]={a:o[j],b:o[Q-1-j],dl};
  tref.update({ph:"k",m}).catch(()=>{aiSet["adv"+tcode]=0});
 }
-async function reportGroup(tc,k,win,wo,n){
+async function reportGroup(tc,k,win,wo,n,sc0){
  const gk=+String(k).slice(1);
  try{const tr=db.doc("tournaments/"+tc),s=await tr.get();if(!s.exists)return;const t=s.data(),e=(t.gm||{})[gk];if(!e||e.w)return;
   let sc={[e.a]:0,[e.b]:0};sc[win]=3;
-  if(!wo&&!(isAI(e.a)&&isAI(e.b))){const md=await db.doc("matches/"+tc+"-G"+gk).get();
+  if(sc0)sc=sc0;else if(!wo&&!(isAI(e.a)&&isAI(e.b))){const md=await db.doc("matches/"+tc+"-G"+gk).get();
    if(md.exists){const d=md.data();sc={[e.a]:0,[e.b]:0};(d.kicks||[]).forEach(q=>{if(q.save!==undefined&&q.shot!==q.save){const id=d.p[q.s];if(id in sc)sc[id]++}})}}
   const u={["gm."+gk+".w"]:win,["gm."+gk+".sc"]:sc,["gm."+gk+".ft"]:Date.now()};if(wo)u["gm."+gk+".wo"]=true;
-  await tr.update(u)}catch(x){console.error(x);if((n||0)<6)setTimeout(()=>reportGroup(tc,k,win,wo,(n||0)+1),800+Math.random()*2500)}
+  await tr.update(u)}catch(x){console.error(x);if((n||0)<6)setTimeout(()=>reportGroup(tc,k,win,wo,(n||0)+1,sc0),800+Math.random()*2500)}
 }
 function grpHtml(t,nmo){
  let x="<p>GRUPPSPEL</p>";const gm=t.gm||{},cs="style=\"grid-template-columns:1.6em 1fr 2.4em 2.4em 2.4em 3em\"";
@@ -1288,8 +1297,8 @@ async function startTour(){
  const now=Date.now();
  try{await tref.update(stageUpd(t,u,now))}catch(e){$("err").textContent="FEL: "+(e.message||e.code)}
 }
-async function reportWin(tc,k,win,wo,n){
- if(String(k)[0]==="G")return reportGroup(tc,k,win,wo,n);
+async function reportWin(tc,k,win,wo,n,sc0){
+ if(String(k)[0]==="G")return reportGroup(tc,k,win,wo,n,sc0);
  try{const tr=db.doc("tournaments/"+tc),s=await tr.get();if(!s.exists)return;const t=s.data();
   if(((t.m||{})[k]||{}).w)return;
   const P=mpos(t.ks||t.sz,k),R2=P.R2,u={};u["m."+k+".w"]=win;if(wo)u["m."+k+".wo"]=true;
