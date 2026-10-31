@@ -41,6 +41,33 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:4px solid var(-
 select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--fg);padding:6px;margin:4px;max-width:100%}
 .code{font-size:20px;color:var(--ac);letter-spacing:4px}
 .pl{display:flex;align-items:center;gap:8px;background:var(--ac);color:#10163a;border:4px solid var(--fg);padding:8px 10px;box-shadow:3px 3px 0 var(--fg);text-align:left}.pl.out{background:var(--card);color:var(--mu)}.pl.out b{text-decoration:line-through;font-weight:400}.pl .dot{border-color:#10163a}.pl.out .dot{border-color:var(--mu)}.pl .dot.g{background:#37b24d;border-color:#37b24d}.pl .dot.m{background:#f03e3e;border-color:#f03e3e}.vs{color:var(--mu);font-size:8px;margin:5px 0;text-align:center}.mc{margin:0 0 14px}
+
+#tvs{margin-bottom:10px}
+.tvf{background:#0a0a0a;border:10px solid #000;box-shadow:0 0 0 3px var(--fg),5px 5px 0 3px var(--fg);padding:0 0 8px}
+.tvt{display:flex;justify-content:space-between;align-items:center;color:#f1f3ff;font-size:9px;padding:2px 2px 8px}
+.tvt span:nth-child(2){letter-spacing:2px}.tvt span:first-child,.tvt span:last-child{width:64px;font-size:7px}.tvt span:last-child{text-align:right}
+.tvscr{background:#050505;border:3px solid #2a2a2a}
+#tvwr canvas{border:0}
+#tvoff{display:none;aspect-ratio:160/114;align-items:center;justify-content:center;color:#555;letter-spacing:2px;font-size:9px}
+#tvs.off #tvoff{display:flex}
+#tvs.off #tvwr{display:none}
+#tvsc{color:#f1f3ff;margin-top:6px;padding:0 4px}
+#tvsc .dot:not(.g):not(.m){border-color:#9aa3d6}
+#tvch{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+#tvch:empty{display:none}
+#tvch button{margin:0;padding:6px 6px;font-size:7px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}
+#tvch button.on{background:#ffd43b}
+.ml.gm{flex-wrap:nowrap;justify-content:space-between;align-items:center}
+.gm .mg{display:grid;grid-template-columns:14ch 120px;column-gap:6px;row-gap:6px;align-items:center;font-size:8px;text-align:left;min-width:0}
+.gm .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gm .sc2{grid-column:1 / span 2;font-size:8px;overflow-wrap:anywhere}
+.dd{display:grid;grid-template-columns:repeat(10,12px)}.dd .dot{width:8px;height:8px;margin:2px}
+@media (max-width:340px){.gm .mg,.gm .nm,.gm .sc2{font-size:7px}.ml.gm{gap:2px}}
+.ml>.mg+button{margin-left:0}
+.tvb{display:flex;align-items:center;justify-content:center;position:relative;flex:none}
+.ml button.tvb,.mc button.tvb{padding:3px 4px}
+.tvb.on{background:#ffd43b}
+.tvb .ld{position:absolute;top:-5px;right:-5px;width:8px;height:8px;background:#f03e3e;border:2px solid var(--fg)}
 </style>
 </head>
 <body>
@@ -76,12 +103,12 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-30 · KLOCKA2</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-31 · TV</div>
  <div class="box hide" id="lout"><p id="loutt"></p><button id="lob" class="dn">LOGGA UT</button></div>
 </div>
 <div id="tour" class="hide">
- <div class="box" id="tinfo"></div>
- <div class="box hide" id="tvs"><p>TV</p><div id="tvsc"></div><div id="tvwr"></div><button class="sm" id="tvx">STÄNG TV</button></div>
+ <div class="box"><div style="text-align:left"><button class="sm" id="tbk2">TILLBAKA</button></div><div id="tinfo"></div></div>
+ <div class="off hide" id="tvs"><div class="tvf"><div class="tvt"><span></span><span>STRAFFSPARK TV</span><span id="tvlv"></span></div><div class="tvscr"><div id="tvwr"></div><div id="tvoff">INGEN SÄNDNING</div></div><div id="tvsc"></div></div><div id="tvch"></div></div>
  <div class="box hide" id="tvl"></div>
  <div class="box" id="tbody"></div>
  <div class="box" id="tact"></div>
@@ -1257,7 +1284,7 @@ function grpHtml(t,nmo){
  Object.keys(t.g).sort().forEach(gn=>{
   x+="<p>GRUPP "+gn+"</p><div class=\"tb hd\" "+cs+"><span>#</span><span>SPELARE</span><span>SM</span><span>V</span><span>F</span><span>MS</span></div>";
   standings(t,gn).forEach((r,i)=>{x+="<div class=\"tb\" "+cs+"><span>"+(i+1)+"</span><span>"+(i<t.ga?"▶ ":"")+nmo(r.id)+"</span><span>"+r.sm+"</span><span>"+r.v+"</span><span>"+r.f+"</span><span>"+(r.gf-r.ga)+"</span></div>"});
-  Object.keys(gm).filter(k=>gm[k].g===gn).forEach(k=>{const e=gm[k],c=e.sc||{};x+="<div class=\"ml\"><span>"+nmo(e.a)+" "+dotH(PUBM["G"+k],e.a)+"<br>"+nmo(e.b)+" "+dotH(PUBM["G"+k],e.b)+(e.w?"<br>"+(c[e.a]||0)+"–"+(c[e.b]||0)+" 🏆 "+nmo(e.w):"")+"</span>"+tvBtn(t,"G"+k,e)+"</div>"})});
+  Object.keys(gm).filter(k=>gm[k].g===gn).forEach(k=>{const e=gm[k],c=e.sc||{},P=PUBM["G"+k];x+="<div class=\"ml gm\"><div class=\"mg\"><span class=\"nm\">"+nmo(e.a)+"</span>"+dotH(P,e.a)+"<span class=\"nm\">"+nmo(e.b)+"</span>"+dotH(P,e.b)+(e.w?"<span class=\"sc2\">"+(c[e.a]||0)+"–"+(c[e.b]||0)+" 🏆 "+nmo(e.w)+"</span>":"")+"</div>"+tvBtn(t,"G"+k,e)+"</div>"})});
  return x}
 function renderTg(){
  const el=$("tg");el.innerHTML="";
@@ -1307,7 +1334,7 @@ function hideTour(){tvStop();if(tunsub)tunsub();tunsub=null;if(punsub)punsub();p
 function openTour(c){
  hideTour();tcode=c;tref=db.doc("tournaments/"+c);$("lobby").classList.add("hide");$("game").classList.add("hide");$("tour").classList.remove("hide");
  tunsub=tref.onSnapshot(s=>{if(!s.exists)return;tdata=s.data();renderTour()},e=>{$("err").textContent="FEL: "+e.message});
- PUBM={};punsub=db.collection("pub").where("tc","==",c).limit(100).onSnapshot(sn=>{PUBM={};sn.docs.forEach(d=>{const v=d.data();PUBM[v.k]=v});if(tdata)renderTour()},e=>{});
+ PUBM={};PUBT={};PUBF=0;punsub=db.collection("pub").where("tc","==",c).limit(100).onSnapshot(sn=>{const o=PUBM;PUBM={};sn.docs.forEach(d=>{const v=d.data();PUBM[v.k]=v;if(PUBF&&(!o[v.k]||(o[v.k].r||[]).length!==(v.r||[]).length))PUBT[v.k]=Date.now()});PUBF=1;if(tdata)renderTour()},e=>{});
 }
 function leaveTour(){hideTour();tdata=null;$("lobby").classList.remove("hide");$("game").classList.add("hide")}
 async function startTour(){
@@ -1347,8 +1374,8 @@ async function playTour(k){
    else return err("MATCHEN ÄR FULL.")}
   ref=r2;code=mid;hideTour();enter()}catch(x){err("KUNDE INTE ÖPPNA MATCHEN: "+(x.message||x.code))}
 }
-function dotH(P,id){if(!P||!P.p)return"";const i=P.p.indexOf(id);if(i<0)return"";let d="";const L=Math.max(5,Math.ceil(P.r.length/2));for(let q=0;q<L;q++){const c=P.r[q*2+i];d+="<span class=\"dot "+(c==="G"?"g":c==="M"?"m":"")+"\"></span>"}return d}
-let tvK=null,tvLoop=0,tvUn=null;
+function dotH(P,id){let d="";if(P&&P.p){const i=P.p.indexOf(id);if(i>=0){const L=Math.max(5,Math.ceil(P.r.length/2));for(let q=0;q<L;q++){const c=P.r[q*2+i];d+="<span class=\"dot "+(c==="G"?"g":c==="M"?"m":"")+"\"></span>"}}}return"<span class=\"dd\">"+d+"</span>"}
+let tvK=null,tvLoop=0,tvUn=null,tvRep=false,tvMan=false,tvSig="",PUBT={},PUBF=0;const LIVE_MS=5*60*1000;
 const enOf=(t,k)=>String(k)[0]==="G"?(t.gm||{})[+String(k).slice(1)]:(t.m||{})[k];
 const tvTeam=(t,id)=>((t.pl||{})[id]||{}).t||"SWE",tvName=(t,id)=>String(((t.pl||{})[id]||{}).n||"?");
 async function resolveOverdue(){
@@ -1393,29 +1420,48 @@ function renderTvList(t){
 function tvStop(){
  if(!tvK)return;tvLoop++;tvK=null;if(tvUn){tvUn();tvUn=null}M=null;playing=false;
  const w=cv.parentNode;if(w.parentNode&&w.parentNode.id==="tvwr")$("game").insertBefore(w,$("st"));
- $("tvs").classList.add("hide");$("bn").textContent="";
+ tvRep=false;tvUi(false);$("bn").textContent="";
 }
 function aiRep(t,key,e){
  if(String(key)[0]!=="G"||!isAI(e.a)||!isAI(e.b)||e.wo||!e.sc||!e.w)return false;
  const q=simAI(tcode,key,e.a,e.b);return q.win===e.w&&q.sc[e.a]===e.sc[e.a]&&q.sc[e.b]===e.sc[e.b]
 }
+const TVI='<svg width="26" height="22" viewBox="0 0 13 11" style="shape-rendering:crispEdges;display:block" aria-hidden="true"><g fill="#10163a"><rect x="4" y="0" width="1" height="1"/><rect x="8" y="0" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="0" y="2" width="13" height="1"/><rect x="0" y="10" width="13" height="1"/><rect x="0" y="2" width="1" height="9"/><rect x="12" y="2" width="1" height="9"/></g><rect x="1" y="3" width="11" height="7" fill="#fff"/><g fill="#10163a"><rect x="5" y="4" width="5" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="3"/><rect x="9" y="6" width="1" height="2"/><rect x="5" y="8" width="4" height="1"/></g></svg>';
+const tvIsLive=k=>!!PUBT[k]&&Date.now()-PUBT[k]<LIVE_MS;
 function tvBtn(t,key,e){
- const P=PUBM[key];let lab=null;
- if(e.w){if(P||aiRep(t,key,e))lab="REPRIS"}
- else if(P&&P.r&&P.r.length&&e.a&&e.b)lab="LIVE";
- if(!lab)return"";
- return"<button data-rp=\""+key+"\" data-m=\""+(e.w?"r":"l")+"\">"+(tvK===String(key)?"STÄNG":lab)+"</button>"
+ const P=PUBM[key];let rep=false,show=false;
+ if(e.w){if(P||aiRep(t,key,e)){show=true;rep=true}}
+ else if(P&&P.r&&P.r.length&&e.a&&e.b)show=true;
+ if(!show)return"";
+ const on=tvK===String(key),lv=!rep&&tvIsLive(String(key));
+ return"<button class=\"tvb"+(on?" on":"")+"\" data-rp=\""+key+"\" data-m=\""+(rep?"r":"l")+"\" aria-label=\""+(rep?"REPRIS":"TITTA")+"\">"+TVI+(lv?"<i class=\"ld\"></i>":"")+"</button>"
+}
+function tvUi(on,rep){
+ const s=$("tvs");s.classList.toggle("off",!on);
+ const l=$("tvlv");l.textContent=on?(rep?"REPRIS":"● LIVE"):"";l.style.color=rep?"#ffd43b":"#ff5a5a";
+ if(!on)$("tvsc").innerHTML=""
+}
+function tvLiveList(t){return Object.keys(PUBM).filter(k=>{const e=enOf(t,k),P=PUBM[k];return e&&e.a&&e.b&&!e.w&&P&&P.r&&P.r.length&&tvIsLive(k)})}
+function tvSync(){
+ const t=tdata;if(!t||$("tour").classList.contains("hide")||t.st==="lobby")return;
+ let L=tvLiveList(t);
+ if(tvK&&!tvMan&&!L.includes(tvK))tvStop();
+ if(!tvK&&L.length){tvMan=false;tvStart(L[0],false)}
+ const show=L.length>1||(L.length===1&&tvK!==L[0]);
+ const sig=show?L.map((k,i)=>k+(k===tvK?"*":"")+tvName(t,enOf(t,k).a)+tvName(t,enOf(t,k).b)).join("|"):"";
+ if(sig===tvSig)return;tvSig=sig;
+ const el=$("tvch");el.innerHTML="";
+ if(show)L.forEach((k,i)=>{const e=enOf(t,k),b=document.createElement("button");b.dataset.k=k;if(k===tvK)b.className="on";b.textContent=(i+1)+" "+tvName(t,e.a).slice(0,6)+"–"+tvName(t,e.b).slice(0,6);el.appendChild(b)})
 }
 function tvStart(k,rep){
  tvStop();const t=tdata;if(!t)return;k=String(k);const e0=enOf(t,k);if(!e0)return;
- tvK=k;idx=-1;playing=true;
+ tvK=k;tvRep=!!rep;idx=-1;playing=true;
  const my=++tvLoop;let D=null,n=0,pl=false,t0=0,last="",got=false;
  const mk=p=>({p,kicks:[],c:[tvTeam(t,p[0]),tvTeam(t,p[1])],n:[tvName(t,p[0]),tvName(t,p[1])],tod:t.tod||"night"});
  M=mk([e0.a,e0.b]);
  const feed=(md,K)=>{const p=[md.p&&md.p[0]||e0.a,md.p&&md.p[1]||e0.b],ks=(K||md.kicks||[]).filter(q=>q.save!==undefined);
   D={p,K:ks};M=mk(p);if(!got){got=true;n=rep?0:Math.max(0,ks.length-1)}};
- $("tvwr").appendChild(cv.parentNode);$("tvs").classList.remove("hide");
- const ttl=$("tvs").querySelector("p");if(ttl)ttl.textContent=rep?"REPRIS":"LIVE";
+ $("tvwr").appendChild(cv.parentNode);tvUi(true,rep);
  const mid=tcode+"-"+k;
  if(rep){
   db.doc("matches/"+mid).get().then(sn=>{if(tvLoop!==my)return;
@@ -1460,7 +1506,7 @@ function tclkInfo(t){
 function clkPut(el,i){el.textContent=i?i.txt:"";if(i)el.style.color=i.red?"#f03e3e":"var(--ac)"}
 function tclkSet(){const el=$("tclk");if(el)clkPut(el,tclkInfo(tdata))}
 function swclkSet(){const el=$("swclk");if(el)clkPut(el,tclkInfo(SWCT))}
-setInterval(()=>{if(tdata&&!$("tour").classList.contains("hide"))tclkSet();swclkSet()},1000);
+setInterval(()=>{if(tdata&&!$("tour").classList.contains("hide")){tclkSet();tvSync()}swclkSet()},1000);
 function renderTour(){
  tourAI(tdata);
  if(tdata.swc&&tdata.st==="lobby"&&Date.now()>=tdata.swc.s&&tdata.u.includes(meId)&&!aiSet["st"+tcode]){aiSet["st"+tcode]=1;autoStartCup(tdata,tcode)}
@@ -1476,7 +1522,9 @@ function renderTour(){
   x+="<div class=\"mc\">"+plt(e.a)+"<div class=\"vs\">VS</div>"+plt(e.b)+(()=>{const bq=tvBtn(t,String(k),e);return bq?"<div style=\"text-align:center\">"+bq+"</div>":""})()+"</div>"}});
  if(t.gs&&t.st!=="lobby")x+=grpHtml(t,nmo);
  $("tbody").innerHTML=x;renderTvList(t);renderAdm(t);
- [...$("tbody").querySelectorAll("button[data-rp]")].forEach(b=>b.onclick=()=>{const k=b.dataset.rp;if(tvK===k){tvStop();renderTour()}else{tvStart(k,b.dataset.m==="r");renderTour();try{$("tvs").scrollIntoView({block:"center"})}catch(e){}}});
+ $("tvs").classList.toggle("hide",t.st==="lobby");
+ [...$("tbody").querySelectorAll("button[data-rp]")].forEach(b=>b.onclick=()=>{const k=b.dataset.rp;if(tvK===k){tvStop();tvSig="";renderTour()}else{tvMan=true;tvStart(k,b.dataset.m==="r");tvSig="";renderTour();try{$("tvs").scrollIntoView({block:"center"})}catch(e){}}});
+ tvSync();
  if(t.st==="lobby"&&t.o===meId){[...$("tbody").querySelectorAll(".ml")].forEach((row,i)=>{const id=t.u[i];if(id&&id!==meId){const b=document.createElement("button");b.textContent="TA BORT";b.className="dn";b.onclick=()=>removeFromTour(id);row.appendChild(b)}})}
  const act=$("tact");act.innerHTML="";
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
@@ -1503,7 +1551,7 @@ function renderTour(){
   if(!ls("pod_"+tcode)){ls("pod_"+tcode,"1");showPodium(t)}
  }
 }
-$("tvx").onclick=()=>{tvStop();if(tdata)renderTour()};$("tmk").onclick=mkTour;$("tjn").onclick=()=>joinTour($("tci").value);$("tbk").onclick=leaveTour;
+$("tbk2").onclick=leaveTour;$("tvch").onclick=e=>{const b=e.target.closest("button");if(!b||!b.dataset.k)return;tvMan=false;tvStart(b.dataset.k,false);tvSig="";tvSync()};$("tmk").onclick=mkTour;$("tjn").onclick=()=>joinTour($("tci").value);$("tbk").onclick=leaveTour;
 tsz=parseInt(ls("tsz")||"8",10)||8;renderTz();
 try{$("nm").value=ls("name")||"";myCol=parseInt(ls("col")||"0",10)||0;renderSw();myTod=ls("tod")==="day"?"day":"night";renderTd()}catch(e){$("err").textContent="FEL: "+e.message}
 window.addEventListener("error",e=>{$("err").textContent="FEL: "+e.message});
