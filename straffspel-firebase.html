@@ -68,6 +68,32 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
 .ml button.tvb,.mc button.tvb{padding:3px 4px}
 .tvb.on{background:#ffd43b}
 .tvb .ld{position:absolute;top:-5px;right:-5px;width:8px;height:8px;background:#f03e3e;border:2px solid var(--fg)}
+
+.kc{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.krs{flex:1;min-width:0;border:3px solid var(--fg);box-shadow:3px 3px 0 var(--fg);background:var(--card);text-align:left}
+.kr{display:flex;align-items:center;gap:7px;padding:5px 8px;min-height:30px;font-size:8px}
+.kr+.kr{border-top:2px dotted var(--mu)}
+.kr.w{background:var(--ac);color:#10163a}
+.kr.l{color:var(--mu)}.kr.l .kn{text-decoration:line-through}
+.kn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.you{background:var(--fg);color:var(--bg);font-style:normal;padding:1px 3px;margin-left:4px;font-size:7px}
+.tvs{width:36px;height:32px;flex:none;display:flex;align-items:center;justify-content:center}
+.tvs button.tvb{margin:0;padding:3px 4px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}
+button.kv{flex:1;margin:0;font-size:8px;padding:8px 4px}
+button.kv.on{background:#ffd43b}
+.ksc{overflow-x:auto;padding-bottom:6px}
+.kd{display:flex;align-items:center;position:relative}
+.kk{display:flex;flex-direction:column;position:relative;margin-right:14px}
+.kk::after{content:"";position:absolute;right:-14px;top:50%;width:14px;border-top:2px solid var(--fg)}
+.kk>.kd{padding:4px 14px 4px 0}
+.kk>.kd::after{content:"";position:absolute;right:0;top:50%;width:14px;border-top:2px solid var(--fg)}
+.kk>.kd:first-child::before{content:"";position:absolute;right:0;top:50%;bottom:0;border-right:2px solid var(--fg)}
+.kk>.kd:last-child::before{content:"";position:absolute;right:0;top:0;bottom:50%;border-right:2px solid var(--fg)}
+.kcm{width:128px;border:2px solid var(--fg);background:var(--card);flex:none;text-align:left}
+.kcm .kr{min-height:20px;padding:2px 4px;gap:4px;font-size:7px}
+.kcm .kr+.kr{border-top:1px solid var(--fg)}
+.kth{display:flex;margin-bottom:6px;font-size:7px}
+.kth span{width:128px;margin-right:28px;flex:none;text-align:center;border-bottom:2px solid var(--fg);padding-bottom:3px}.kth span:last-child{margin-right:0}
 </style>
 </head>
 <body>
@@ -103,7 +129,7 @@ select{font:inherit;background:var(--bg);color:var(--fg);border:4px solid var(--
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-31 · TV</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-31 · SLUTSPEL</div>
  <div class="box hide" id="lout"><p id="loutt"></p><button id="lob" class="dn">LOGGA UT</button></div>
 </div>
 <div id="tour" class="hide">
@@ -1507,6 +1533,29 @@ function clkPut(el,i){el.textContent=i?i.txt:"";if(i)el.style.color=i.red?"#f03e
 function tclkSet(){const el=$("tclk");if(el)clkPut(el,tclkInfo(tdata))}
 function swclkSet(){const el=$("swclk");if(el)clkPut(el,tclkInfo(SWCT))}
 setInterval(()=>{if(tdata&&!$("tour").classList.contains("hide")){tclkSet();tvSync()}swclkSet()},1000);
+let kview=ls("kview")==="t"?"t":"l";
+const flS=(t,id,w,h)=>{const q=id&&(t.pl||{})[id];return q&&FL[q.t]?"<svg viewBox=\"0 0 30 20\" width=\""+w+"\" height=\""+h+"\" style=\"border:1px solid #000;display:block;flex:none\">"+FL[q.t]+"</svg>":""};
+const shortRn=c=>c===1?"FINAL":c===2?"SEMI":c===4?"KVART":c===8?"ÅTTONDEL":c*2+" SPELARE";
+function kGoals(P,id){if(!P||!P.p||!P.r)return"";const i=P.p.indexOf(id);if(i<0)return"";let g=0;for(let q=i;q<P.r.length;q+=2)if(P.r[q]==="G")g++;return String(g)}
+function kRow(t,e,P,side,big){
+ const id=side?e.b:e.a;if(!id)return"<div class=\"kr\"><span class=\"kn\" style=\"color:var(--mu)\">—</span></div>";
+ const st=!e.w?"":(e.w===id?" w":" l"),sc=(e.w||(P&&P.r&&P.r.length))?kGoals(P,id):"";
+ return"<div class=\"kr"+st+"\">"+flS(t,id,big?18:12,big?12:8)+"<span class=\"kn\">"+esc(String(((t.pl||{})[id]||{}).n||"?"))+(big&&id===meId?"<i class=\"you\">DU</i>":"")+"</span><span>"+sc+"</span></div>"}
+function kCard(t,k){const e=(t.m||{})[k]||{},P=PUBM[k]||null;
+ return"<div class=\"kc\"><div class=\"krs\">"+kRow(t,e,P,0,1)+kRow(t,e,P,1,1)+"</div><div class=\"tvs\">"+tvBtn(t,String(k),e)+"</div></div>"}
+function kTree(t,R2){
+ const cell=k=>{const e=(t.m||{})[k]||{},P=PUBM[k]||null;return"<div class=\"kcm\">"+kRow(t,e,P,0,0)+kRow(t,e,P,1,0)+"</div>"};
+ const build=(r,j)=>{const k=R2[r].st+j;if(r===0)return"<div class=\"kd\">"+cell(k)+"</div>";return"<div class=\"kd\"><div class=\"kk\">"+build(r-1,2*j)+build(r-1,2*j+1)+"</div>"+cell(k)+"</div>"};
+ let th="<div class=\"kth\">";R2.forEach(rr=>{th+="<span>"+shortRn(rr.c)+"</span>"});th+="</div>";
+ return"<div class=\"ksc\">"+th+build(R2.length-1,0)+"</div>"}
+function kHtml(t){
+ const R2=rnds(t.ks||t.sz);
+ let x="<div style=\"display:flex;gap:6px\"><button class=\"kv"+(kview==="l"?" on":"")+"\" data-kv=\"l\">LISTA</button><button class=\"kv"+(kview==="t"?" on":"")+"\" data-kv=\"t\">TRÄD</button></div>";
+ if(kview==="t")x+="<p style=\"font-size:8px;color:var(--mu)\">SVEPA ÅT SIDAN ▸</p>"+kTree(t,R2);
+ else R2.forEach(rr=>{let n=0;for(let j=0;j<rr.c;j++)if(((t.m||{})[rr.st+j]||{}).w)n++;
+  x+="<p>"+roundName(rr.c)+"<br><span style=\"font-size:8px;color:var(--mu)\">"+n+"/"+rr.c+" KLARA</span></p>";
+  for(let j=0;j<rr.c;j++)x+=kCard(t,rr.st+j)});
+ return x}
 function renderTour(){
  tourAI(tdata);
  if(tdata.swc&&tdata.st==="lobby"&&Date.now()>=tdata.swc.s&&tdata.u.includes(meId)&&!aiSet["st"+tcode]){aiSet["st"+tcode]=1;autoStartCup(tdata,tcode)}
@@ -1516,12 +1565,12 @@ function renderTour(){
  $("tinfo").innerHTML=h+"<br><span id=\"tclk\"></span>";tclkSet();
  let x="";
  if(t.st==="lobby")x=t.u.map(id=>"<div class=\"ml\"><span>"+nmo(id)+"</span>"+fl(id)+"</div>").join("");
- else if(!(t.gs&&t.ph==="g"))rnds(t.ks||sz).forEach(rr=>{x+="<p>"+roundName(rr.c)+"</p>";for(let j=0;j<rr.c;j++){const k=rr.st+j,e=m[k]||{},P=PUBM[k]||null;
-  const plt=id=>{if(!id)return"<div class=\"pl out\"><b>—</b></div>";const lost=e.w&&e.w!==id;let d="";if(P&&P.p){const i=P.p.indexOf(id);if(i>=0){const L=Math.max(5,Math.ceil(P.r.length/2));for(let q=0;q<L;q++){const c=P.r[q*2+i];d+="<span class=\"dot "+(c==="G"?"g":c==="M"?"m":"")+"\"></span>"}}}
-   return"<div class=\"pl"+(lost?" out":"")+"\">"+fl(id)+"<div><b>"+nmo(id)+"</b>"+(e.w===id?" 🏆":"")+"<br>"+d+"</div></div>"};
-  x+="<div class=\"mc\">"+plt(e.a)+"<div class=\"vs\">VS</div>"+plt(e.b)+(()=>{const bq=tvBtn(t,String(k),e);return bq?"<div style=\"text-align:center\">"+bq+"</div>":""})()+"</div>"}});
+ else if(!(t.gs&&t.ph==="g"))x+=kHtml(t);
  if(t.gs&&t.st!=="lobby")x+=grpHtml(t,nmo);
- $("tbody").innerHTML=x;renderTvList(t);renderAdm(t);
+ const ksc0=$("tbody").querySelector(".ksc"),kscL=ksc0?ksc0.scrollLeft:0;
+ $("tbody").innerHTML=x;{const k2=$("tbody").querySelector(".ksc");if(k2)k2.scrollLeft=kscL}
+ [...$("tbody").querySelectorAll("button[data-kv]")].forEach(b=>b.onclick=()=>{kview=b.dataset.kv;ls("kview",kview);renderTour()});
+ renderTvList(t);renderAdm(t);
  $("tvs").classList.toggle("hide",t.st==="lobby");
  [...$("tbody").querySelectorAll("button[data-rp]")].forEach(b=>b.onclick=()=>{const k=b.dataset.rp;if(tvK===k){tvStop();tvSig="";renderTour()}else{tvMan=true;tvStart(k,b.dataset.m==="r");tvSig="";renderTour();try{$("tvs").scrollIntoView({block:"center"})}catch(e){}}});
  tvSync();
