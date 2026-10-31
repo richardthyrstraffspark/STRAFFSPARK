@@ -94,6 +94,19 @@ button.kv.on{background:#ffd43b}
 .kcm .kr+.kr{border-top:1px solid var(--fg)}
 .kth{display:flex;margin-bottom:6px;font-size:7px}
 .kth span{width:128px;margin-right:28px;flex:none;text-align:center;border-bottom:2px solid var(--fg);padding-bottom:3px}.kth span:last-child{margin-right:0}
+
+.ti{font-size:12px;margin:2px 0 10px}
+.ttb{display:grid;grid-template-columns:auto 1fr;column-gap:0;text-align:left;margin:0 0 12px;font-size:8px}
+.ttb>span{padding:6px 0;border-top:2px dotted var(--mu);display:flex;align-items:center}
+.ttb>span:nth-child(-n+2){border-top:0}
+.ttb>span:nth-child(odd){color:var(--mu)}
+.ttb>span:nth-child(even){display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;padding-left:12px}
+.tch{border:2px solid var(--fg);padding:4px 6px;background:var(--card);font-size:8px;line-height:1.2}
+.tch.on{background:var(--ac);color:#10163a}
+.tdl{border:4px solid var(--fg);box-shadow:3px 3px 0 var(--fg);background:var(--card);padding:10px 8px;margin:4px 3px 14px;font-size:8px}
+.tbig{font-size:18px;margin:8px 0;letter-spacing:1px}
+.ao{position:relative;display:inline-block}
+.ao::before{content:"";position:absolute;left:.25em;top:-.4em;width:.375em;height:.375em;border:.125em solid currentColor;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -129,11 +142,11 @@ button.kv.on{background:#ffd43b}
  <div class="box"><p>FÅTT EN KOD?</p><input id="ci" maxlength="5" placeholder="KOD"><button id="jn">GÅ MED</button></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div id="err"></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-31 · SLUTSPEL</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-10-31 · TOPP</div>
  <div class="box hide" id="lout"><p id="loutt"></p><button id="lob" class="dn">LOGGA UT</button></div>
 </div>
 <div id="tour" class="hide">
- <div class="box"><div style="text-align:left"><button class="sm" id="tbk2">TILLBAKA</button></div><div id="tinfo"></div></div>
+ <div class="box"><div id="tinfo"></div><div style="margin-top:4px"><button id="tbk2">TILLBAKA</button></div></div>
  <div class="off hide" id="tvs"><div class="tvf"><div class="tvt"><span></span><span>STRAFFSPARK TV</span><span id="tvlv"></span></div><div class="tvscr"><div id="tvwr"></div><div id="tvoff">INGEN SÄNDNING</div></div><div id="tvsc"></div></div><div id="tvch"></div></div>
  <div class="box hide" id="tvl"></div>
  <div class="box" id="tbody"></div>
@@ -1519,7 +1532,7 @@ function showPodium(t){
  const my=++demoOn,t0=performance.now();
  (function loop(now){if(demoOn!==my||!M)return;const s=(now-t0)/1000,b=$("bn");podium(s,team);b.style.top="10%";b.innerHTML=s>.3?"MÄSTARE!<br><span style=\"font-size:10px\">"+esc(nmw)+"</span>":"";requestAnimationFrame(loop)})(t0);
 }
-const tclkF=ms=>{ms=Math.max(0,ms);const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4),s=Math.floor(ms%6e4/1e3),z=n=>String(n).padStart(2,"0");return(d?d+" D ":"")+z(h)+":"+z(m)+":"+z(s)};
+const tclkF=ms=>{ms=Math.max(0,ms);const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4),s=Math.floor(ms%6e4/1e3),z=n=>String(n).padStart(2,"0");return z(h)+":"+z(m)+":"+z(s)};
 let SWCT=null;
 function tclkInfo(t){
  if(!t||t.st!=="run")return null;
@@ -1527,10 +1540,10 @@ function tclkInfo(t){
  const dls=open.filter(e=>e.dl).map(e=>e.dl);
  if(!dls.length)return null;
  const left=Math.min(...dls)-Date.now(),cnt=open.filter(e=>!isAI(e.a)||!isAI(e.b)).length;
- return{red:left<6*36e5,txt:(left>0?(g?"TID KVAR I GRUPPSPELET: ":"NÄSTA FRIST I SLUTSPELET: ")+"⏱ "+tclkF(left):"FRISTEN HAR GÅTT UT")+" · "+cnt+(cnt===1?" MATCH KVAR":" MATCHER KVAR")}
+ return{red:left<6*36e5,exp:left<=0,lab:g?"TID KVAR I GRUPPSPELET":"NÄSTA FRIST I SLUTSPELET",time:left>0?tclkF(left):"FRISTEN HAR GÅTT UT",cnt:cnt+(cnt===1?" MATCH KVAR":" MATCHER KVAR"),txt:(left>0?(g?"TID KVAR I GRUPPSPELET: ":"NÄSTA FRIST I SLUTSPELET: ")+"⏱ "+tclkF(left):"FRISTEN HAR GÅTT UT")+" · "+cnt+(cnt===1?" MATCH KVAR":" MATCHER KVAR")}
 }
 function clkPut(el,i){el.textContent=i?i.txt:"";if(i)el.style.color=i.red?"#f03e3e":"var(--ac)"}
-function tclkSet(){const el=$("tclk");if(el)clkPut(el,tclkInfo(tdata))}
+function tclkSet(){const b=$("tcb");if(!b)return;const i=tclkInfo(tdata);b.classList.toggle("hide",!i);if(!i)return;$("tcl").textContent=i.lab;const q=$("tct");q.textContent=i.time;q.style.color=i.red?"#f03e3e":"var(--ac)";q.style.fontSize=i.exp?"10px":"18px";$("tcn").textContent=i.cnt}
 function swclkSet(){const el=$("swclk");if(el)clkPut(el,tclkInfo(SWCT))}
 setInterval(()=>{if(tdata&&!$("tour").classList.contains("hide")){tclkSet();tvSync()}swclkSet()},1000);
 let kview=ls("kview")==="t"?"t":"l";
@@ -1561,8 +1574,12 @@ function renderTour(){
  if(tdata.swc&&tdata.st==="lobby"&&Date.now()>=tdata.swc.s&&tdata.u.includes(meId)&&!aiSet["st"+tcode]){aiSet["st"+tcode]=1;autoStartCup(tdata,tcode)}
  if(tdata.gs&&tdata.ph==="g"&&Object.keys(tdata.gm||{}).length&&Object.values(tdata.gm).every(e=>e.w)&&!aiSet["adv"+tcode]){aiSet["adv"+tcode]=1;advanceGroups(tdata)}
  const t=tdata,pl=t.pl||{},sz=t.sz,m=t.m||{},nmo=id=>id?esc((pl[id]||{}).n||"?"):"—",fl=id=>(id&&pl[id]&&FL[pl[id].t])?flagSvg(pl[id].t):"";
- let h=(t.name?esc(t.name):"TURNERING")+" · "+sz+" SPELARE"+(t.gs?" · GRUPPSPEL<br>"+(sz/t.gz)+" GRUPPER, "+t.ga+" VIDARE PER GRUPP":"")+"<br><span class=\"code\">"+esc(tcode)+"</span><br>"+(t.st==="lobby"?t.u.length+" / "+sz+" HAR CHECKAT IN":t.st==="run"?"PÅGÅR":"AVSLUTAD");
- $("tinfo").innerHTML=h+"<br><span id=\"tclk\"></span>";tclkSet();
+  const ch=(v,on)=>"<i class=\"tch"+(on?" on":"")+"\" style=\"font-style:normal\">"+v+"</i>";
+ let rows="<span>SPELARE</span><span>"+ch(sz)+"</span><span>FORMAT</span><span>"+ch(t.gs?"GRUPPSPEL + SLUTSPEL":"SLUTSPEL")+"</span>";
+ if(t.gs)rows+="<span>GRUPPER</span><span>"+ch(sz/t.gz+" GRUPPER")+ch(t.ga+" VIDARE")+"</span>";
+ if(t.st==="lobby")rows+="<span>KOD</span><span>"+ch(esc(tcode),1)+"</span><span>ANMÄLDA</span><span>"+ch(t.u.length+" / "+sz)+"</span>";
+ else rows+="<span>STATUS</span><span>"+(t.st==="run"?ch("PÅGÅR",1)+ch(t.gs&&t.ph==="g"?"GRUPPSPEL":"SLUTSPEL"):ch("AVSLUTAD",1))+"</span>";
+ $("tinfo").innerHTML="<div class=\"ti\">"+(t.name?esc(t.name):"TURNERING")+"</div><div class=\"ttb\">"+rows+"</div><div class=\"tdl hide\" id=\"tcb\"><div id=\"tcl\" style=\"color:var(--mu)\"></div><div class=\"tbig\" id=\"tct\"></div><div id=\"tcn\"></div></div>";tclkSet();
  let x="";
  if(t.st==="lobby")x=t.u.map(id=>"<div class=\"ml\"><span>"+nmo(id)+"</span>"+fl(id)+"</div>").join("");
  else if(!(t.gs&&t.ph==="g"))x+=kHtml(t);
@@ -1601,6 +1618,14 @@ function renderTour(){
  }
 }
 $("tbk2").onclick=leaveTour;$("tvch").onclick=e=>{const b=e.target.closest("button");if(!b||!b.dataset.k)return;tvMan=false;tvStart(b.dataset.k,false);tvSig="";tvSync()};$("tmk").onclick=mkTour;$("tjn").onclick=()=>joinTour($("tci").value);$("tbk").onclick=leaveTour;
+
+function aoMk(){const e=document.createElement("span");e.className="ao";e.textContent="A";return e}
+function fixAo(root){
+ if(!root||!document.createTreeWalker)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),L=[];let n;
+ while((n=w.nextNode())){if(n.nodeValue.indexOf("Å")>=0){const pe=n.parentNode;if(pe&&pe.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|OPTION|TITLE)$/.test(pe.tagName))L.push(n)}}
+ L.forEach(n=>{const f=document.createDocumentFragment();n.nodeValue.split("Å").forEach((q,i)=>{if(i)f.appendChild(aoMk());if(q)f.appendChild(document.createTextNode(q))});n.parentNode.replaceChild(f,n)})
+}
+try{fixAo(document.body);new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==="characterData")fixAo(m.target.parentNode);else m.addedNodes.forEach(x=>{if(x.nodeType===1)fixAo(x);else if(x.nodeType===3&&x.parentNode)fixAo(x.parentNode)})})}).observe(document.body,{childList:true,subtree:true,characterData:true})}catch(e){}
 tsz=parseInt(ls("tsz")||"8",10)||8;renderTz();
 try{$("nm").value=ls("name")||"";myCol=parseInt(ls("col")||"0",10)||0;renderSw();myTod=ls("tod")==="day"?"day":"night";renderTd()}catch(e){$("err").textContent="FEL: "+e.message}
 window.addEventListener("error",e=>{$("err").textContent="FEL: "+e.message});
