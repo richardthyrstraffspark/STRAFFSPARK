@@ -168,7 +168,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-01 · STARTSIDA3</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-02 · PAMINN1</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -1491,11 +1491,21 @@ function renderAdm(t){
  if(t.gs&&t.ph==="g")Object.keys(t.gm||{}).forEach(k=>{const e=t.gm[k];if(e&&!e.w)L.push(["G"+k,e])});
  else Object.keys(t.m||{}).forEach(k=>{const e=t.m[k];if(e&&e.a&&e.b&&!e.w)L.push([k,e])});
  if(!L.length){el.classList.add("hide");return}
- el.classList.remove("hide");el.appendChild(mkE("p","ADMIN: AVGÖR MATCH MED WALKOVER"));
+ el.classList.remove("hide");el.appendChild(mkE("p","ADMIN: AVGÖR MATCH MED WALKOVER"));el.appendChild(btnE("PÅMINN ALLA SOM EJ STARTAT",()=>adminRemind(null)));
  if(L.some(q=>q[1].dl&&Date.now()>q[1].dl))el.appendChild(btnE("AVGÖR ALLA FÖRFALLNA",resolveOverdue));
  L.forEach(([k,e])=>{const r=mkE("div",null,"ml");r.appendChild(mkE("span",(e.g?"GRUPP "+e.g+": ":"")+nn(e.a)+" – "+nn(e.b)));
   [e.a,e.b].forEach(id=>r.appendChild(btnE(nn(id).slice(0,10)+" VINNER",()=>{if(window.confirm("LÅT "+nn(id).toUpperCase()+" VINNA MATCHEN "+nn(e.a).toUpperCase()+" – "+nn(e.b).toUpperCase()+" MED WALKOVER?"))reportWin(tcode,k,id,true)})));
+  r.appendChild(btnE("PÅMINN",()=>adminRemind([String(k)])));
   el.appendChild(r)});
+}
+const ADMIN_URL="https://europe-north1-straffspark-93d2e.cloudfunctions.net/adminRemind";
+async function adminRemind(keys){
+ try{const u=fbAuth.currentUser,tok=await u.getIdToken();
+  const r=await fetch(ADMIN_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tok},body:JSON.stringify({tc:tcode,keys})});
+  const j=await r.json();
+  if(!j.ok)return window.alert("KUNDE INTE SKICKA: "+(j.why||r.status));
+  window.alert(j.sent?("PÅMINNELSE SKICKAD TILL "+j.sent+" ENHETER ("+j.matches+" MATCHER)."):"INGEN SKICKADES."+(j.throttled?" "+j.throttled+" PÅMINDA FÖR KORT TID SEDAN.":"")+(j.started?" "+j.started+" MATCHER ÄR REDAN STARTADE.":"")+" SPELARE UTAN PÅSLAGNA NOTISER FÅR INGEN PUSH.")}
+ catch(e){window.alert("KUNDE INTE SKICKA: "+(e.message||e))}
 }
 function renderTvList(t){
  $("tvl").innerHTML="";$("tvl").classList.add("hide");return;
