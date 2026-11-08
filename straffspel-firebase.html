@@ -168,7 +168,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-02 · UTSEENDE3</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-08 · MANDAG1</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -1263,7 +1263,7 @@ const SWC_START=new Date(2026,9,26),swcId=n=>"SWC"+String(n).padStart(2,"0"),isA
 function swcInfo(now){
  const d=new Date(now),mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-(d.getDay()+6)%7),n=Math.round((mon-SWC_START)/6048e5)+1,s=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+3).getTime();
  const dd=x=>new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+x[0],x[1]||0).getTime();
- return{n,s,g:dd([5,0]),k:dd([7,0])};
+ return{n,s,g:dd([5,0]),k:dd([8,0])};
 }
 async function mkSwc(){
  const I=swcInfo(Date.now());if(I.n<1||Date.now()>=I.s||!isAdmin())return;
@@ -1285,8 +1285,11 @@ async function renderSwc(){
  const now=Date.now(),I=swcInfo(now);let t=null,id=swcId(I.n);
  if(I.n>=1){try{const sn=await db.doc("tournaments/"+id).get();if(sn.exists)t=sn.data()}catch(e){}}
  SWCT=t;
+ let P=null;if(I.n>=2){try{const sp=await db.doc("tournaments/"+swcId(I.n-1)).get();if(sp.exists)P=sp.data()}catch(e){}}
+ SWCT2=(P&&P.st==="run")?P:null;
  el.innerHTML="";el.classList.remove("hide");
  const ch=(v,on)=>"<i class=\"tch"+(on?" on":"")+"\" style=\"font-style:normal\">"+v+"</i>";
+ if(SWCT2){const d=document.createElement("div");d.style.cssText="margin-bottom:16px;padding-bottom:12px;border-bottom:2px dotted var(--mu)";d.appendChild(mkE("div","STRAFFSPARK CUP "+roman(I.n-1),"ti"));const c2=document.createElement("div");c2.style.cssText="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px";c2.innerHTML=ch("PÅGÅR",1)+ch(P.gs&&P.ph==="g"?"GRUPPSPEL":"SLUTSPEL");d.appendChild(c2);const q=document.createElement("div");q.className="tdl hide";q.id="swcb2";q.innerHTML="<div id=\"swl2\" style=\"color:var(--mu)\"></div><div class=\"tbig\" id=\"swt2\"></div><div id=\"swn2\"></div>";d.appendChild(q);d.appendChild(btnE("ÖPPNA",()=>openTour(swcId(I.n-1))));el.appendChild(d);swclkSet()}
  el.appendChild(mkE("div","STRAFFSPARK CUP"+(I.n>=1?" "+roman(I.n):""),"ti"));
  if(I.n<1){el.appendChild(mkE("div","FÖRSTA CUPEN KOMMER SNART."));return}
  if(!t){
@@ -1510,7 +1513,7 @@ function renderAdm(t){
  if(t.gs&&t.ph==="g")Object.keys(t.gm||{}).forEach(k=>{const e=t.gm[k];if(e&&!e.w)L.push(["G"+k,e])});
  else Object.keys(t.m||{}).forEach(k=>{const e=t.m[k];if(e&&e.a&&e.b&&!e.w)L.push([k,e])});
  if(!L.length){el.classList.add("hide");return}
- el.classList.remove("hide");el.appendChild(mkE("p","ADMIN: AVGÖR MATCH MED WALKOVER"));el.appendChild(btnE("PÅMINN ALLA SOM EJ STARTAT",()=>adminRemind(null)));
+ el.classList.remove("hide");el.appendChild(mkE("p","ADMIN: AVGÖR MATCH MED WALKOVER"));el.appendChild(btnE("PÅMINN ALLA SOM EJ STARTAT",()=>adminRemind(null)));el.appendChild(btnE("FÖRLÄNG FRISTEN 24 TIMMAR",extendDl));
  if(L.some(q=>q[1].dl&&Date.now()>q[1].dl))el.appendChild(btnE("AVGÖR ALLA FÖRFALLNA",resolveOverdue));
  L.forEach(([k,e])=>{const r=mkE("div",null,"ml");r.appendChild(mkE("span",(e.g?"GRUPP "+e.g+": ":"")+nn(e.a)+" – "+nn(e.b)));
   [e.a,e.b].forEach(id=>r.appendChild(btnE(nn(id).slice(0,10)+" VINNER",()=>{if(window.confirm("LÅT "+nn(id).toUpperCase()+" VINNA MATCHEN "+nn(e.a).toUpperCase()+" – "+nn(e.b).toUpperCase()+" MED WALKOVER?"))reportWin(tcode,k,id,true)})));
@@ -1518,6 +1521,15 @@ function renderAdm(t){
   el.appendChild(r)});
 }
 const ADMIN_URL="https://europe-north1-straffspark-93d2e.cloudfunctions.net/adminRemind";
+async function extendDl(){
+ const t=tdata;if(!isAdmin()||!t||t.st!=="run")return;
+ if(!window.confirm("FÖRLÄNG FRISTEN MED 24 TIMMAR FÖR ALLA OAVGJORDA MATCHER I DEN PÅGÅENDE FASEN?"))return;
+ const g=t.gs&&t.ph==="g",f=g?"gm":"m",u={};
+ if(g&&t.gdl)u.gdl=t.gdl+H24;if(!g&&t.kdl)u.kdl=t.kdl+H24;
+ Object.keys(t[f]||{}).forEach(k=>{const e=t[f][k];if(e&&!e.w&&e.dl)u[f+"."+k+".dl"]=e.dl+H24});
+ if(!Object.keys(u).length)return window.alert("INGET ATT FÖRLÄNGA.");
+ try{await tref.update(u);window.alert("FRISTEN ÄR FÖRLÄNGD MED 24 TIMMAR.")}catch(e){window.alert("KUNDE INTE FÖRLÄNGA: "+(e.message||e.code||e))}
+}
 async function adminRemind(keys){
  try{const u=fbAuth.currentUser,tok=await u.getIdToken();
   const r=await fetch(ADMIN_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tok},body:JSON.stringify({tc:tcode,keys})});
@@ -1612,7 +1624,7 @@ function showPodium(t){
  (function loop(now){if(demoOn!==my||!M)return;const s=(now-t0)/1000,b=$("bn");podium(s,team);b.style.top="10%";b.innerHTML=s>.3?"MÄSTARE!<br><span style=\"font-size:10px\">"+esc(nmw)+"</span>":"";requestAnimationFrame(loop)})(t0);
 }
 const tclkF=ms=>{ms=Math.max(0,ms);const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4),s=Math.floor(ms%6e4/1e3),z=n=>String(n).padStart(2,"0");return z(h)+":"+z(m)+":"+z(s)};
-let SWCT=null;
+let SWCT=null,SWCT2=null;
 function tclkInfo(t){
  if(!t||t.st!=="run")return null;
  const g=t.gs&&t.ph==="g",L=Object.values(g?(t.gm||{}):(t.m||{})).filter(e=>e&&e.a&&e.b),open=L.filter(e=>!e.w);
@@ -1623,7 +1635,7 @@ function tclkInfo(t){
 }
 function clkPut(el,i){el.textContent=i?i.txt:"";if(i)el.style.color=i.red?"#f03e3e":"var(--ac)"}
 function tclkSet(){const b=$("tcb");if(!b)return;const i=tclkInfo(tdata);b.classList.toggle("hide",!i);if(!i)return;$("tcl").textContent=i.lab;const q=$("tct");q.textContent=i.time;q.style.color=i.red?"#f03e3e":"var(--ac)";q.style.fontSize=i.exp?"10px":"18px";$("tcn").textContent=i.cnt}
-function swclkSet(){const b=$("swcb");if(!b)return;const i=tclkInfo(SWCT);b.classList.toggle("hide",!i);if(!i)return;$("swl").textContent=i.lab;const q=$("swt");q.textContent=i.time;q.style.color=i.red?"#f03e3e":"var(--ac)";q.style.fontSize=i.exp?"10px":"18px";$("swn").textContent=i.cnt}
+function swclkSet(){[["swcb","swl","swt","swn",SWCT],["swcb2","swl2","swt2","swn2",SWCT2]].forEach(a=>{const b=$(a[0]);if(!b)return;const i=tclkInfo(a[4]);b.classList.toggle("hide",!i);if(!i)return;$(a[1]).textContent=i.lab;const q=$(a[2]);q.textContent=i.time;q.style.color=i.red?"#f03e3e":"var(--ac)";q.style.fontSize=i.exp?"10px":"18px";$(a[3]).textContent=i.cnt})}
 setInterval(()=>{if(tdata&&!$("tour").classList.contains("hide")){tclkSet();tvSync()}swclkSet()},1000);
 let kview=ls("kview")==="t"?"t":"l";
 const flS=(t,id,w,h)=>{const q=id&&(t.pl||{})[id];return q&&FL[q.t]?"<svg viewBox=\"0 0 30 20\" width=\""+w+"\" height=\""+h+"\" style=\"border:1px solid #000;display:block;flex:none\">"+FL[q.t]+"</svg>":""};
@@ -1675,7 +1687,7 @@ function renderTour(){
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
- if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");if(t.u.includes(meId)&&(!t.swc||Date.now()<t.swc.c))btn("ÄNDRA MITT NAMN",()=>renameMe("t"));btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.swc)note("CUPEN STARTAR AUTOMATISKT "+new Date(t.swc.s).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+". TOMMA PLATSER FYLLS MED AI. GRUPPSPELET OCH SLUTSPELET HAR VARSIN FRIST PÅ 48 TIMMAR.");else{if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}}
+ if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");if(t.u.includes(meId)&&(!t.swc||Date.now()<t.swc.c))btn("ÄNDRA MITT NAMN",()=>renameMe("t"));btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.swc)note("CUPEN STARTAR AUTOMATISKT "+new Date(t.swc.s).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+". TOMMA PLATSER FYLLS MED AI. GRUPPSPELET HAR FRIST TILL LÖRDAG 00:00 OCH SLUTSPELET TILL TISDAG 00:00.");else{if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}}
  else if(t.st==="run"&&t.gs&&t.ph==="g"){
   const my=Object.keys(t.gm||{}).filter(k=>!t.gm[k].w&&(t.gm[k].a===meId||t.gm[k].b===meId));
   if(!my.length)note("DU HAR SPELAT ALLA DINA GRUPPMATCHER. VÄNTAR PÅ DE ANDRA.");
