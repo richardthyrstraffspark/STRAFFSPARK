@@ -134,6 +134,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
 #acc button,#accf button,#inv button,#iab button{font-size:8px;padding:8px 10px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}
 #acc button.sm{box-shadow:none;border:0;padding:4px}
 #acc input{font-size:9px;padding:8px;border-width:3px}
+#mclk{font-size:8px;margin:-4px 0 10px}
 </style>
 </head>
 <body>
@@ -168,7 +169,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-09 · CUP16B</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-09 · FRIST4H</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -205,6 +206,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box sc" id="score"></div>
  <div class="wrap"><canvas id="cv" width="160" height="114"></canvas><div id="bn"></div></div>
  <div class="box" id="st"></div>
+ <div id="mclk" class="kclk hide"></div>
  <button id="ok" class="hide"></button>
  <button id="shr" class="hide">SKICKA INBJUDAN</button>
  <button class="sm" id="lv">LÄMNA MATCH</button>
@@ -504,7 +506,7 @@ function ui(){
  else t=(st.need==="shoot"?"VÄNTAR PÅ ATT "+nm(st.who)+" SKA SLÅ":"VÄNTAR PÅ ATT "+nm(st.who)+" SKA RÄDDA")+"...";
  if((mode==="shoot"||mode==="save")&&sel>=0&&!busy){ok.textContent=mode==="shoot"?"SKJUT!":"KASTA DIG!";ok.classList.remove("hide")}
  if(st.done>=10&&st.need!=="over")t="⚡ SUDDEN DEATH ⚡<br>"+t;
- $("st").innerHTML=t;draw();
+ $("st").innerHTML=t;draw();mclkSet();kclkSet();
 }
 
 function check(){
@@ -717,7 +719,7 @@ $("ok").onclick=async()=>{
  if(sel<0||busy)return;
  busy=true;const K=M.kicks.slice(),m0=M,c0=code;
  if(st.need==="shoot"){K.push({s:idx,shot:sel,num:nextNum||pickNum(idx)});nextNum=0}else K[K.length-1]={...K[K.length-1],save:sel};
- try{await ref.update({kicks:K});earlyReport(c0,m0,K)}catch(e){$("st").textContent="KUNDE INTE SPARA. FÖRSÖK IGEN."}
+ try{await ref.update({kicks:K,ku:Date.now()});earlyReport(c0,m0,K)}catch(e){$("st").textContent="KUNDE INTE SPARA. FÖRSÖK IGEN."}
  pushPing(code);touchLive();sel=-1;busy=false;ui();
 };
 
@@ -809,7 +811,7 @@ function updateTurns(docs){
  docs.forEach(d=>{const m=d.data();if(!m||!m.p||d.id===code)return;const t=turnOf(m);if(t&&m.p[t.w]===meId)L.push({id:d.id,m,t})});
  el.classList.toggle("hide",!L.length);
  if(L.length){el.appendChild(mkE("p","DIN TUR ("+L.length+")"));
-  L.forEach(q=>{const o=q.m.p[0]===meId?0:1,r=mkE("div",null,"ml2"),l=mkE("div",null,"ml2l");l.appendChild(mkE("div",(q.t.need==="shoot"?"SLÅ MOT ":"RÄDDA MOT ")+String((q.m.n||[])[1-o]||"?"),"ml2n"));l.appendChild(mkE("div",q.id,"ml2s"));r.appendChild(l);r.appendChild(btnE("▸",()=>{ls("name",myName());join(q.id)},"go"));el.appendChild(r)})}
+  L.forEach(q=>{const o=q.m.p[0]===meId?0:1,r=mkE("div",null,"ml2"),l=mkE("div",null,"ml2l");l.appendChild(mkE("div",(q.t.need==="shoot"?"SLÅ MOT ":"RÄDDA MOT ")+String((q.m.n||[])[1-o]||"?"),"ml2n"));{const sd=mkE("div",q.id,"ml2s");if(q.m.tn&&cupCode(q.m.tn.c)&&q.m.ku&&!isAI(q.m.p[0])&&!isAI(q.m.p[1])){sd.className="ml2s kclk";sd.dataset.ku=q.m.ku;sd.dataset.pre=q.id+" · "}l.appendChild(sd)};r.appendChild(l);r.appendChild(btnE("▸",()=>{ls("name",myName());join(q.id)},"go"));el.appendChild(r)})}
  const n=L.length,base="STRAFFSPARK";
  if(blinkT){clearInterval(blinkT);blinkT=null}
  document.title=n?"("+n+") DIN TUR · "+base:base;
@@ -867,11 +869,11 @@ function renderMine(docs){
   if(m&&m.p&&m.p[1]&&!m.tr&&overM(m)&&!repd[d.id]&&!GM.some(g=>g.id===d.id)){repd[d.id]=1;recordGame(d.id,m)}});
  docs=docs.slice().sort((a,b)=>((b.data()||{}).t||0)-((a.data()||{}).t||0));
  const el=$("ml");el.innerHTML="";let n=0;
- const row=(name,sub,chips,go,del)=>{const r=mkE("div",null,"ml2"),L=mkE("div",null,"ml2l");L.appendChild(mkE("div",name,"ml2n"));if(sub)L.appendChild(mkE("div",sub,"ml2s"));r.appendChild(L);chips.forEach(c=>r.appendChild(mkE("i",c[0],"tch"+(c[1]?" on":""))));r.appendChild(btnE("▸",go,"go"));if(del)r.appendChild(btnE("X",del,"go dn"));el.appendChild(r)};
+ const row=(name,sub,chips,go,del,ck)=>{const r=mkE("div",null,"ml2"),L=mkE("div",null,"ml2l");L.appendChild(mkE("div",name,"ml2n"));if(sub){const sd=mkE("div",sub,"ml2s");if(ck){sd.className="ml2s kclk";sd.dataset.ku=ck;sd.dataset.pre=sub+" · "}L.appendChild(sd)}r.appendChild(L);chips.forEach(c=>r.appendChild(mkE("i",c[0],"tch"+(c[1]?" on":""))));r.appendChild(btnE("▸",go,"go"));if(del)r.appendChild(btnE("X",del,"go dn"));el.appendChild(r)};
  docs.forEach(d=>{const m=d.data();if(!m||!m.p||overM(m))return;n++;
   const dn=(m.kicks||[]).filter(k=>k.save!==undefined).length,o=m.p[0]===meId?1:0,mine=(t0=>t0&&m.p[t0.w]===meId)(turnOf(m)),ch=[];
   if(mine)ch.push(["DIN TUR",1]);if(m.tr)ch.push(["TRÄNING",0]);if(!m.p[1])ch.push(["VÄNTAR",0]);
-  row(m.p[1]?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE",dn+"/10 · "+d.id,ch,()=>{ls("name",myName());join(d.id)},(!m.tn&&!m.lg)?()=>delMatch(d.id):null)});
+  row(m.p[1]?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE",dn+"/10 · "+d.id,ch,()=>{ls("name",myName());join(d.id)},(!m.tn&&!m.lg)?()=>delMatch(d.id):null,(m.tn&&cupCode(m.tn.c)&&m.ku&&m.p[1]&&!isAI(m.p[0])&&!isAI(m.p[1])&&(m.kicks||[]).length)?m.ku:0)});
  const ids=new Set(docs.map(d=>d.id));
  TDOCS.forEach(d=>{const t=d.data();if(!t||t.st!=="run"||!t.pl)return;const tl=t.name||d.id;
   const add=(key,e,label)=>{if(!e||e.w||!e.a||!e.b||(e.a!==meId&&e.b!==meId)||ids.has(d.id+"-"+key))return;
@@ -1174,7 +1176,7 @@ function aiTurn(){
   if((s2.need!=="shoot"&&s2.need!=="save")||!isAI(M.p[s2.who]))return;
   const z=Math.floor(Math.random()*6),K=M.kicks.slice(),m0=M,c0=code;
   if(s2.need==="shoot")K.push({s:s2.who,shot:z,num:pickNum(s2.who)});else K[K.length-1]={...K[K.length-1],save:z};
-  await ref.update({kicks:K});touchLive();earlyReport(c0,m0,K);
+  await ref.update({kicks:K,ku:Date.now()});touchLive();earlyReport(c0,m0,K);
  }catch(e){console.error(e)}finally{aiBusy=false}},1000+Math.random()*900);
 }
 async function mkTraining(){
@@ -1448,7 +1450,15 @@ async function removeFromTour(id){
  if(!window.confirm("TA BORT "+String(n).toUpperCase()+" FRÅN TURNERINGEN?"))return;
  try{await tref.update({u:FBR(id),["pl."+id]:FBD()})}catch(e){$("err").textContent="KUNDE INTE TA BORT: "+(e.message||e.code)}
 }
-function hideTour(){tvStop();if(tunsub)tunsub();tunsub=null;if(punsub)punsub();punsub=null;$("tour").classList.add("hide")}
+let MKU={},MW={};
+function watchMine(t){
+ if(!db||!t||t.st!=="run"||!t.swc)return;
+ const keys=[];
+ if(t.gs&&t.ph==="g")Object.keys(t.gm||{}).forEach(k=>{const e=t.gm[k];if(e&&!e.w&&(e.a===meId||e.b===meId))keys.push("G"+k)});
+ else Object.keys(t.m||{}).forEach(k=>{const e=t.m[k];if(e&&e.a&&e.b&&!e.w&&(e.a===meId||e.b===meId))keys.push(String(k))});
+ keys.forEach(key=>{if(MW[key])return;MW[key]=db.doc("matches/"+tcode+"-"+key).onSnapshot(sn=>{let v=null;if(sn.exists){const m=sn.data(),tt=turnOf(m);if(m.ku&&tt&&!isAI(m.p[0])&&!isAI(m.p[1])&&(m.kicks||[]).length)v={ku:m.ku,pre:(m.p[tt.w]===meId?"DIN TID ATT AGERA: ":"MOTSTÅNDARENS TID: ")}}MKU[key]=v;if(tdata)renderTour()},()=>{})});
+}
+function hideTour(){tvStop();if(tunsub)tunsub();tunsub=null;Object.values(MW).forEach(u=>{if(u)u()});MW={};MKU={};if(punsub)punsub();punsub=null;$("tour").classList.add("hide")}
 function openTour(c){
  hideTour();tcode=c;tref=db.doc("tournaments/"+c);$("lobby").classList.add("hide");$("game").classList.add("hide");$("tour").classList.remove("hide");
  tunsub=tref.onSnapshot(s=>{if(!s.exists)return;tdata=s.data();renderTour()},e=>{$("err").textContent="FEL: "+e.message});
@@ -1630,6 +1640,18 @@ function showPodium(t){
  const my=++demoOn,t0=performance.now();
  (function loop(now){if(demoOn!==my||!M)return;const s=(now-t0)/1000,b=$("bn");podium(s,team);b.style.top="10%";b.innerHTML=s>.3?"MÄSTARE!<br><span style=\"font-size:10px\">"+esc(nmw)+"</span>":"";requestAnimationFrame(loop)})(t0);
 }
+const H4=4*36e5;
+const cupCode=c=>/^SWC\d{2}$/.test(String(c||""));
+const SFMT=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Stockholm",hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+function sthlm(ms){const p={};SFMT.formatToParts(ms).forEach(x=>{p[x.type]=x.value});const loc=Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second);return{off:loc-Math.floor(ms/1000)*1000,h:+p.hour,y:+p.year,mo:+p.month,d:+p.day}}
+function localMs(y,mo,d,h,mi,offGuess){const w=Date.UTC(y,mo-1,d,h,mi,0),g=w-offGuess;return w-sthlm(g).off}
+function activeBetween(a,b){let t=a,sum=0;for(let i=0;i<60&&t<b;i++){const p=sthlm(t);if(p.h>=23||p.h<9){t=localMs(p.y,p.mo,p.d+(p.h>=23?1:0),9,0,p.off);continue}const end=localMs(p.y,p.mo,p.d,23,0,p.off),e=Math.min(end,b);sum+=e-t;t=e}return sum}
+function ck4(ku,now){now=now||Date.now();const left=Math.max(0,H4-activeBetween(ku,now)),h=sthlm(now).h,paused=h>=23||h<9;return{left,paused,red:left<36e5,txt:(paused?"PAUS ":"")+tclkF(left)}}
+function kclkSet(){document.querySelectorAll(".kclk").forEach(el=>{const ku=+el.dataset.ku;if(!ku)return;const c=ck4(ku);el.textContent=(el.dataset.pre||"")+c.txt;el.style.color=c.red?"#f03e3e":""})}
+function mclkSet(){const el=$("mclk");if(!el)return;
+ const ok=M&&M.p&&M.p[1]&&M.ku&&M.tn&&cupCode(M.tn.c)&&!isAI(M.p[0])&&!isAI(M.p[1])&&(M.kicks||[]).length&&winnerOf(M.kicks)<0&&idx>=0&&!playing;
+ el.classList.toggle("hide",!ok);if(!ok){el.dataset.ku="";return}
+ el.dataset.ku=M.ku;el.dataset.pre=(state().who===idx?"DIN TID ATT AGERA: ":"MOTSTÅNDARENS TID: ")}
 const tclkF=ms=>{ms=Math.max(0,ms);const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4),s=Math.floor(ms%6e4/1e3),z=n=>String(n).padStart(2,"0");return z(h)+":"+z(m)+":"+z(s)};
 let SWCT=null,SWCT2=null;
 function tclkInfo(t){
@@ -1643,7 +1665,7 @@ function tclkInfo(t){
 function clkPut(el,i){el.textContent=i?i.txt:"";if(i)el.style.color=i.red?"#f03e3e":"var(--ac)"}
 function tclkSet(){const b=$("tcb");if(!b)return;const i=tclkInfo(tdata);b.classList.toggle("hide",!i);if(!i)return;$("tcl").textContent=i.lab;const q=$("tct");q.textContent=i.time;q.style.color=i.red?"#f03e3e":"var(--ac)";q.style.fontSize=i.exp?"10px":"18px";$("tcn").textContent=i.cnt}
 function swclkSet(){[["swcb","swl","swt","swn",SWCT],["swcb2","swl2","swt2","swn2",SWCT2]].forEach(a=>{const b=$(a[0]);if(!b)return;const i=tclkInfo(a[4]);b.classList.toggle("hide",!i);if(!i)return;$(a[1]).textContent=i.lab;const q=$(a[2]);q.textContent=i.time;q.style.color=i.red?"#f03e3e":"var(--ac)";q.style.fontSize=i.exp?"10px":"18px";$(a[3]).textContent=i.cnt})}
-setInterval(()=>{if(tdata&&!$("tour").classList.contains("hide")){tclkSet();tvSync()}swclkSet()},1000);
+setInterval(()=>{if(tdata&&!$("tour").classList.contains("hide")){tclkSet();tvSync()}swclkSet();if(M)mclkSet();kclkSet()},1000);
 let kview=ls("kview")==="t"?"t":"l";
 const flS=(t,id,w,h)=>{const q=id&&(t.pl||{})[id];return q&&FL[q.t]?"<svg viewBox=\"0 0 30 20\" width=\""+w+"\" height=\""+h+"\" style=\"border:1px solid #000;display:block;flex:none\">"+FL[q.t]+"</svg>":""};
 const shortRn=c=>c===1?"FINAL":c===2?"SEMI":c===4?"KVART":c===8?"ÅTTONDEL":c*2+" SPELARE";
@@ -1668,7 +1690,7 @@ function kHtml(t){
   for(let j=0;j<rr.c;j++)x+=kCard(t,rr.st+j)});
  return x}
 function renderTour(){
- tourAI(tdata);
+ tourAI(tdata);watchMine(tdata);
  if(tdata.swc&&tdata.st==="lobby"&&Date.now()>=tdata.swc.s&&tdata.u.includes(meId)&&!aiSet["st"+tcode]){aiSet["st"+tcode]=1;autoStartCup(tdata,tcode)}
  if(tdata.gs&&tdata.ph==="g"&&Object.keys(tdata.gm||{}).length&&Object.values(tdata.gm).every(e=>e.w)&&!aiSet["adv"+tcode]){aiSet["adv"+tcode]=1;advanceGroups(tdata)}
  const t=tdata,pl=t.pl||{},sz=t.sz,m=t.m||{},nmo=id=>id?esc((pl[id]||{}).n||"?"):"—",fl=id=>(id&&pl[id]&&FL[pl[id].t])?flagSvg(pl[id].t):"";
@@ -1694,12 +1716,13 @@ function renderTour(){
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
+ const ck=key=>{const v=MKU[key];if(!v)return;const q=document.createElement("p");q.className="kclk";q.dataset.ku=v.ku;q.dataset.pre=v.pre;act.appendChild(q);kclkSet()};
  if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");if(t.u.includes(meId)&&(!t.swc||Date.now()<t.swc.c))btn("ÄNDRA MITT NAMN",()=>renameMe("t"));btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.swc)note("CUPEN STARTAR AUTOMATISKT "+new Date(t.swc.s).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+". CUPEN BLIR PÅ 16 SPELARE, ELLER 32 OM FLER ÄN 16 ANMÄLER SIG. TOMMA PLATSER FYLLS MED AI. GRUPPSPELET HAR FRIST TILL LÖRDAG 14:00 OCH SLUTSPELET TILL TISDAG 00:00.");else{if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}}
  else if(t.st==="run"&&t.gs&&t.ph==="g"){
   const my=Object.keys(t.gm||{}).filter(k=>!t.gm[k].w&&(t.gm[k].a===meId||t.gm[k].b===meId));
   if(!my.length)note("DU HAR SPELAT ALLA DINA GRUPPMATCHER. VÄNTAR PÅ DE ANDRA.");
   else{const left=t.gm[my[0]].dl-Date.now();note("TID KVAR I GRUPPSPELET: "+Math.max(0,Math.floor(left/3600000))+" T "+Math.max(0,Math.floor(left%3600000/60000))+" MIN");
-   my.forEach(k=>{const e=t.gm[k];note("GRUPP "+e.g+": "+nameOf(e.a)+" MOT "+nameOf(e.b));btn("SPELA",()=>playTour("G"+k));if(left<=0)btn("KRÄV WALKOVER",()=>claimWo("G"+k))})}
+   my.forEach(k=>{const e=t.gm[k];note("GRUPP "+e.g+": "+nameOf(e.a)+" MOT "+nameOf(e.b));btn("SPELA",()=>playTour("G"+k));ck("G"+k);if(left<=0)btn("KRÄV WALKOVER",()=>claimWo("G"+k))})}
  }else if(t.st==="run"){
   const k=Object.keys(m).map(Number).find(k=>!m[k].w&&(m[k].a===meId||m[k].b===meId));
   if(k===undefined)note("DU ÄR UTE UR TURNERINGEN. DU KAN FORTFARANDE FÖLJA SLUTSPELET HÄR.");
@@ -1708,7 +1731,7 @@ function renderTour(){
    else{if(!e.dl&&!dlSet[k]){dlSet[k]=1;tref.update({["m."+k+".dl"]:t.kdl||Date.now()+H24}).catch(()=>{})}
     const left=e.dl?e.dl-Date.now():H24;
     note("DIN MATCH: "+nameOf(e.a)+" MOT "+nameOf(e.b));
-    btn("SPELA",()=>playTour(k));
+    btn("SPELA",()=>playTour(k));ck(String(k));
     if(e.dl&&left<=0)btn("KRÄV WALKOVER",()=>claimWo(k));else note("TID KVAR: "+Math.floor(left/3600000)+" T "+Math.floor(left%3600000/60000)+" MIN")}}
  }else{
   note("MÄSTARE: "+nameOf(t.win));btn("SE SEGERFIRANDET",()=>showPodium(t));
