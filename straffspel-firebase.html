@@ -169,7 +169,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-09 · FRIST4H</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-11 · CUP16C</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -1278,7 +1278,8 @@ function cupSize(t){
  const sz=t.u.length>16?32:16;
  return{sz,gz:4,ga:2,ks:sz/4*2};
 }
-const capDen=t=>t.mx?(t.u.length<16?16:t.mx):t.sz;
+const capDen=t=>t.mx?(t.u.length<=16?16:t.mx):t.sz;
+const tsz2=t=>t.mx?(t.u.length>16?t.mx:16):t.sz;
 async function autoStartCup(t,code){
  if(t.st!=="lobby"||!t.swc||Date.now()<t.swc.s)return;
  const cs=cupSize(t),t3=Object.assign({},t,cs);
@@ -1695,8 +1696,8 @@ function renderTour(){
  if(tdata.gs&&tdata.ph==="g"&&Object.keys(tdata.gm||{}).length&&Object.values(tdata.gm).every(e=>e.w)&&!aiSet["adv"+tcode]){aiSet["adv"+tcode]=1;advanceGroups(tdata)}
  const t=tdata,pl=t.pl||{},sz=t.sz,m=t.m||{},nmo=id=>id?esc((pl[id]||{}).n||"?"):"—",fl=id=>(id&&pl[id]&&FL[pl[id].t])?flagSvg(pl[id].t):"";
   const ch=(v,on)=>"<i class=\"tch"+(on?" on":"")+"\" style=\"font-style:normal\">"+v+"</i>";
- let rows="<span>SPELARE</span><span>"+ch(t.mx&&t.st==="lobby"?"16 ELLER "+t.mx:sz)+"</span><span>FORMAT</span><span>"+ch(t.gs?"GRUPPSPEL + SLUTSPEL":"SLUTSPEL")+"</span>";
- if(t.gs)rows+="<span>GRUPPER</span><span>"+ch(t.mx&&t.st==="lobby"?"4 ELLER "+t.mx/4+" GRUPPER":sz/t.gz+" GRUPPER")+ch(t.ga+" VIDARE")+"</span>";
+ let rows="<span>SPELARE</span><span>"+ch(t.mx&&t.st==="lobby"?tsz2(t):sz)+"</span><span>FORMAT</span><span>"+ch(t.gs?"GRUPPSPEL + SLUTSPEL":"SLUTSPEL")+"</span>";
+ if(t.gs)rows+="<span>GRUPPER</span><span>"+ch(t.mx&&t.st==="lobby"?(tsz2(t)/4)+" GRUPPER":sz/t.gz+" GRUPPER")+ch(t.ga+" VIDARE")+"</span>";
  if(t.st==="lobby")rows+="<span>KOD</span><span>"+ch(esc(tcode),1)+"</span><span>ANMÄLDA</span><span>"+ch(t.u.length+" / "+capDen(t))+"</span>";
  else rows+="<span>STATUS</span><span>"+(t.st==="run"?ch("PÅGÅR",1)+ch(t.gs&&t.ph==="g"?"GRUPPSPEL":"SLUTSPEL"):ch("AVSLUTAD",1))+"</span>";
  $("tinfo").innerHTML="<div class=\"ti\">"+(t.name?esc(t.name):"TURNERING")+"</div><div class=\"ttb\">"+rows+"</div><div class=\"tdl hide\" id=\"tcb\"><div id=\"tcl\" style=\"color:var(--mu)\"></div><div class=\"tbig\" id=\"tct\"></div><div id=\"tcn\"></div></div>";tclkSet();
@@ -1717,7 +1718,7 @@ function renderTour(){
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
  const ck=key=>{const v=MKU[key];if(!v)return;const q=document.createElement("p");q.className="kclk";q.dataset.ku=v.ku;q.dataset.pre=v.pre;act.appendChild(q);kclkSet()};
- if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");if(t.u.includes(meId)&&(!t.swc||Date.now()<t.swc.c))btn("ÄNDRA MITT NAMN",()=>renameMe("t"));btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.swc)note("CUPEN STARTAR AUTOMATISKT "+new Date(t.swc.s).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+". CUPEN BLIR PÅ 16 SPELARE, ELLER 32 OM FLER ÄN 16 ANMÄLER SIG. TOMMA PLATSER FYLLS MED AI. GRUPPSPELET HAR FRIST TILL LÖRDAG 14:00 OCH SLUTSPELET TILL TISDAG 00:00.");else{if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}}
+ if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");if(t.u.includes(meId)&&(!t.swc||Date.now()<t.swc.c))btn("ÄNDRA MITT NAMN",()=>renameMe("t"));btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.swc)note("CUPEN STARTAR AUTOMATISKT "+new Date(t.swc.s).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+". "+(t.mx?"CUPEN BLIR PÅ 16 SPELARE. ANMÄLER SIG FLER ÄN 16 BLIR DEN PÅ "+t.mx+".":"CUPEN BLIR PÅ "+sz+" SPELARE.")+" TOMMA PLATSER FYLLS MED AI."+(t.gdl&&t.kdl?" GRUPPSPELET HAR FRIST TILL "+new Date(t.gdl).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+" OCH SLUTSPELET TILL "+new Date(t.kdl).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+".":""));else{if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}}
  else if(t.st==="run"&&t.gs&&t.ph==="g"){
   const my=Object.keys(t.gm||{}).filter(k=>!t.gm[k].w&&(t.gm[k].a===meId||t.gm[k].b===meId));
   if(!my.length)note("DU HAR SPELAT ALLA DINA GRUPPMATCHER. VÄNTAR PÅ DE ANDRA.");
