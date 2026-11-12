@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="STRAFFSPARK">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 --bg:#dfe6ff;--fg:#10163a;--card:#fff;--ac:#e8590c;--mu:#51597f}
@@ -135,6 +135,26 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
 #acc button.sm{box-shadow:none;border:0;padding:4px}
 #acc input{font-size:9px;padding:8px;border-width:3px}
 #mclk{font-size:8px;margin:-4px 0 10px}
+
+#ttv{margin-bottom:10px}
+#ttx{background:#000;color:#fff;font-family:'VT323',ui-monospace,Menlo,monospace;font-size:21px;line-height:1.15;letter-spacing:0;padding:6px 8px 0;min-height:400px;text-align:center}
+#ttx .fit{white-space:nowrap;overflow:hidden}
+#ttx .y{color:#ff0}#ttx .c{color:#0ff}#ttx .w{color:#fff}
+#ttx .bn{background:#00f;color:#fff;line-height:1.1;padding:0 6px;margin:2px 0 14px;text-align:left;letter-spacing:.03em}
+#ttx .bs{background:#00f;color:#ff0;margin:2px 0 14px}
+#ttx .ft{background:#00f;color:#ff0;margin:16px -8px 0;padding:0 6px}
+#ttx .rl{display:flex;align-items:center;gap:8px;margin:2px 0 16px;color:#ff0}
+#ttx .rl:before,#ttx .rl:after{content:"";flex:1;border-bottom:3px solid #ff0}
+#ttx [data-p]{cursor:pointer;padding:2px 4px}#ttx [data-p]:hover{text-decoration:underline}
+#ttx .h{font-size:25px}#ttx .it{margin-bottom:14px}
+#ttx .hof{display:grid;grid-template-columns:max-content max-content max-content;justify-content:space-between;column-gap:10px;row-gap:6px;text-align:left;margin:0 2px}
+#ttx .hof span{white-space:nowrap}#ttx .hof .n{text-align:center}
+#ttin{display:flex;justify-content:center;align-items:center;gap:8px;padding:8px 0 0;color:#f1f3ff;font-size:8px}
+#ttin input{width:5em;padding:6px;border-width:3px;font-size:10px;margin:0}
+#ttadm{padding:8px 4px 0;color:#f1f3ff;font-size:8px;text-align:center}
+#ttadm input{width:100%;font-size:9px;padding:8px;border-width:3px;text-transform:none;margin:4px 0}
+#ttadm textarea{display:block;width:100%;font:inherit;font-size:9px;line-height:1.6;text-transform:none;padding:8px;border:3px solid var(--fg);background:var(--bg);color:var(--fg);margin:4px 0}
+#ttadm button{font-size:8px;padding:8px 10px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}
 </style>
 </head>
 <body>
@@ -143,6 +163,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
 <div id="lobby">
  <div class="box hide" id="nt" style="border-color:var(--ac)"></div>
  <div class="box hide" id="swc"></div>
+ <div class="tvf" id="ttv"><div class="tvscr"><div id="ttx" class="nofix"></div></div><div id="ttin"><label for="ttn">SIDA</label><input id="ttn" maxlength="3" inputmode="numeric" placeholder="100" autocomplete="off"></div><div id="ttadm" class="hide"></div></div>
  <div class="box hide" id="iab"><p>⚠ DU HAR ÖPPNAT SIDAN I EN APP-WEBBLÄSARE (T.EX. INSTAGRAM). DEN KOMMER INTE IHÅG DIG, SÅ DU KAN BLI TVÅ SPELARE. ÖPPNA LÄNKEN I CHROME ELLER SAFARI I STÄLLET.</p><button id="iabc">KOPIERA LÄNK</button><button id="iabg" class="hide">ÖPPNA I CHROME</button></div>
  <div class="box hide" id="inv"><p id="invt"></p><p id="invn" class="hide" style="color:var(--ac)">NY HÄR? SKAPA ETT KONTO ELLER LOGGA IN HÄR UNDER FÖRST. DÅ ÄR DU ALLTID SAMMA SPELARE, ÄVEN I ANDRA WEBBLÄSARE. DU KAN OCKSÅ GÅ MED UTAN KONTO.</p><p>VÄLJ NAMN OCH LAG HÄR UNDER, OCH TRYCK SEDAN:</p><button id="invgo">GÅ MED</button></div>
  <div class="box hide" id="myturn"></div>
@@ -169,7 +190,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-11 · CUP16C</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-11 · TEXTTV1</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -1296,7 +1317,7 @@ async function renderSwc(){
  if(I.n>=1){try{const sn=await db.doc("tournaments/"+id).get();if(sn.exists)t=sn.data()}catch(e){}}
  SWCT=t;
  let P=null;if(I.n>=2){try{const sp=await db.doc("tournaments/"+swcId(I.n-1)).get();if(sp.exists)P=sp.data()}catch(e){}}
- SWCT2=(P&&P.st==="run")?P:null;
+ SWCT2=(P&&P.st==="run")?P:null;ttCL=true;try{ttRender()}catch(e){}
  el.innerHTML="";el.classList.remove("hide");
  const ch=(v,on)=>"<i class=\"tch"+(on?" on":"")+"\" style=\"font-style:normal\">"+v+"</i>";
  if(SWCT2){const d=document.createElement("div");d.style.cssText="margin-bottom:16px;padding-bottom:12px;border-bottom:2px dotted var(--mu)";d.appendChild(mkE("div","STRAFFSPARK CUP "+roman(I.n-1),"ti"));const c2=document.createElement("div");c2.style.cssText="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px";c2.innerHTML=ch("PÅGÅR",1)+ch(P.gs&&P.ph==="g"?"GRUPPSPEL":"SLUTSPEL");d.appendChild(c2);const q=document.createElement("div");q.className="tdl hide";q.id="swcb2";q.innerHTML="<div id=\"swl2\" style=\"color:var(--mu)\"></div><div class=\"tbig\" id=\"swt2\"></div><div id=\"swn2\"></div>";d.appendChild(q);d.appendChild(btnE("ÖPPNA",()=>openTour(swcId(I.n-1))));el.appendChild(d);swclkSet()}
@@ -1317,7 +1338,122 @@ async function renderSwc(){
  else if(t.u.includes(meId)||!lob)el.appendChild(btnE("ÖPPNA",()=>openTour(id)));
  if(lob&&now>=t.swc.s&&t.u.includes(meId)&&!aiSet["st"+id]){aiSet["st"+id]=1;autoStartCup(t,id)}
 }
-function startGlobal(){$("gstn").onclick=e=>{if(e.target&&e.target.closest&&e.target.closest("#gpl")&&db)openPlayers()};refreshGlobal();renderSwc();setInterval(refreshGlobal,60000);setInterval(renderSwc,60000)}
+// STRAFFSPARK TEXT (text-tv på startsidan). Sidor: 100, 101, 201, 330, 331, 377, 500.
+let TTV={},TTH=[],ttPg=100,ttOn=false,ttEd=0,ttCL=false;
+const ttMo=["jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec"],ttDy=["sön","mån","tis","ons","tors","fre","lör"];
+const ttDT=()=>{const d=new Date();return ttDy[d.getDay()]+" "+d.getDate()+" "+ttMo[d.getMonth()]+" "+d.getFullYear()};
+const ttWd=ms=>new Date(ms).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"});
+const ttUp=ms=>{const d=new Date(ms),z=n=>String(n).padStart(2,"0");return d.getDate()+" "+ttMo[d.getMonth()]+" "+z(d.getHours())+":"+z(d.getMinutes())};
+const ttLk=(n,t)=>'<span data-p="'+n+'">'+(t||n)+'</span>';
+const ttHd=n=>'<div class="fit" data-fs="21"><span class="w">'+n+'</span> <span class="y">STRAFFSPARK TEXT</span> <span class="w">'+ttDT()+'</span></div>';
+const ttBig=n=>ttHd(n)+'<div class="bn fit" data-fs="44">STRAFFSPARK TEXT</div>';
+const ttBar=(n,s)=>ttHd(n)+'<div class="bs fit" data-fs="21">* * * '+esc(s)+' * * *</div>';
+const ttFtv={a:()=>ttLk(330,"Resultatbörsen 330")+" "+ttLk(500,"Information 500"),n:()=>ttLk(100,"Nyheter 100"),h:()=>ttLk(330,"Resultatbörsen 330")+" "+ttLk(100,"Nyheter 100")};
+const ttFt=k=>'<div class="ft fit" data-fs="21">'+ttFtv[k]()+'</div>';
+const ttRl=n=>'<div class="rl">'+ttLk(n)+'</div>';
+const ttTx=x=>String(x||"").split("\n").map(l=>l.trim()?"<div>"+esc(l)+"</div>":"<div>&nbsp;</div>").join("");
+function ttReg(){
+ const I=swcInfo(Date.now()),t=SWCT,nm="STRAFFSPARK CUP"+(I.n>=1?" "+roman(I.n):"");
+ if(!ttCL)return{h:nm};
+ if(t&&t.st==="lobby"&&t.swc&&Date.now()<t.swc.c)return{h:"Anmälan till "+nm+" är nu öppen",open:1};
+ if(t&&t.st==="lobby")return{h:nm+" startar snart"};
+ if(t&&t.st==="run")return{h:nm+" pågår"};
+ if(t&&t.st==="done")return{h:nm+" är avgjord"};
+ return{h:"Anmälan till "+nm+" öppnar snart"};
+}
+function ttSt(t,gn,code){
+ const T={};t.g[gn].forEach(i=>T[i]={id:i,sm:0,v:0,f:0,gf:0,ga:0});
+ Object.values(t.gm||{}).forEach(e=>{if(e.g!==gn||!e.w)return;const l=e.w===e.a?e.b:e.a,c=e.sc||{};T[e.w].v++;T[l].f++;[e.a,e.b].forEach(i=>{const o=i===e.a?e.b:e.a;T[i].sm++;T[i].gf+=c[i]||0;T[i].ga+=c[o]||0})});
+ const tb=i=>seeded(code+i)();
+ return Object.values(T).sort((a,b)=>b.v-a.v||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf||tb(a.id)-tb(b.id));
+}
+function ttHof(){
+ const L=TTH.slice().sort((a,b)=>a.swc.n-b.swc.n);
+ let b=ttBar(331,"HALL OF FAME")+'<div class="y h it">STRAFFSPARK CUP</div>';
+ if(!L.length)return b+'<div class="c">Inga avgjorda cuper än</div>'+ttFt("h");
+ let g='<span class="w">UPPL.</span><span class="w">VINNARE</span><span class="w">TVÅA</span>';
+ L.forEach(t=>{const nm=id=>esc(String(((t.pl||{})[id]||{}).n||"?")),R2=rnds(t.ks||t.sz),f=(t.m||{})[R2[R2.length-1].st]||{},ru=f.a&&f.b?(f.a===t.win?f.b:f.a):null;
+  g+='<span class="y">'+roman(t.swc.n)+'</span><span class="y">'+nm(t.win)+'</span><span class="y">'+(ru?nm(ru):"-")+'</span>'});
+ return b+'<div class="hof fit" data-fs="19" data-min="8">'+g+'</div>'+ttFt("h");
+}
+function ttFollow(){
+ const T=SWCT2||SWCT,I=swcInfo(Date.now());
+ if(!T||!T.swc){const nm0="STRAFFSPARK CUP"+(I.n>=1?" "+roman(I.n):"");return ttBar(377,nm0)+'<div class="y h it">Följ '+nm0+' live</div><div class="it">Ingen cup just nu</div>'+ttFt("n")}
+ const nm="STRAFFSPARK CUP "+roman(T.swc.n),code=swcId(T.swc.n),pl=T.pl||{},nn=id=>id?esc(String((pl[id]||{}).n||"?")):"-";
+ let b=ttBar(377,nm)+'<div class="y h it">Följ '+nm+' live</div>';
+ if(T.st==="lobby"){
+  b+='<div class="it">Anmälda '+T.u.length+' / '+capDen(T)+'</div>'+(T.swc.s?'<div class="it">Start '+ttWd(T.swc.s)+'</div>':'')+'<div class="c">'+T.u.map(nn).join(", ")+'</div>';
+ }else if(T.st==="done"){
+  b+='<div class="it">Mästare</div><div class="y h it">'+nn(T.win)+'</div><div class="c">Se '+ttLk(331)+'</div>';
+ }else if(T.gs&&T.ph==="g"){
+  let c='<span class="w">#</span><span class="w">SPELARE</span><span class="w n">SM</span><span class="w n">V</span><span class="w n">F</span><span class="w n">MS</span>';
+  Object.keys(T.g).sort().forEach(g=>{c+='<span class="c" style="grid-column:1/-1;text-align:center">GRUPP '+g+'</span>';
+   ttSt(T,g,code).forEach((r,i)=>{const k=i<T.ga?"y":"w";c+='<span class="'+k+'">'+(i+1)+'</span><span class="'+k+'">'+nn(r.id)+'</span><span class="'+k+' n">'+r.sm+'</span><span class="'+k+' n">'+r.v+'</span><span class="'+k+' n">'+r.f+'</span><span class="'+k+' n">'+(r.gf-r.ga)+'</span>'})});
+  b+='<div class="hof fit" data-fs="19" data-min="8" style="grid-template-columns:repeat(6,max-content)">'+c+'</div><div class="c" style="margin-top:12px">Gula går vidare</div>';
+  if(T.gdl)b+='<div class="c">Frist '+ttWd(T.gdl)+'</div>';
+ }else{
+  rnds(T.ks||T.sz).forEach(rr=>{b+='<div class="y h">'+roundName(rr.c)+'</div>';
+   for(let j=0;j<rr.c;j++){const e=(T.m||{})[rr.st+j]||{};b+='<div class="fit" data-fs="21"><span class="'+(e.w&&e.w===e.a?"y":"w")+'">'+nn(e.a)+'</span> - <span class="'+(e.w&&e.w===e.b?"y":"w")+'">'+nn(e.b)+'</span></div>'}
+   b+='<div class="it"></div>'});
+  b+='<div class="c">Vinnaren i gult</div>';
+  if(T.kdl)b+='<div class="c">Frist '+ttWd(T.kdl)+'</div>';
+ }
+ return b+ttFt("n");
+}
+function ttPage(n){
+ const I=swcInfo(Date.now()),nm="STRAFFSPARK CUP"+(I.n>=1?" "+roman(I.n):""),A=TTV.p201||{},B=TTV.p500||{},
+  ah=String(A.h||"").trim()||"Senaste nytt",bh=String(B.h||"").trim()||"Information";
+ if(n===100){const R=ttReg(),T=SWCT2||SWCT,fn=(T&&T.swc)?"STRAFFSPARK CUP "+roman(T.swc.n):nm;
+  return ttBig(100)+'<div class="y h">'+esc(R.h)+'</div>'+ttRl(101)+'<div class="c h">'+esc(ah)+'</div><div class="c it">'+ttLk(201)+'</div><div class="y h">HALL OF FAME</div>'+ttRl(331)+'<div class="c h">Följ '+esc(fn)+' live</div><div class="c">'+ttLk(377)+'</div>'+ttFt("a")}
+ if(n===101){const t=SWCT,R=ttReg();let b=ttBar(101,"ANMÄLAN")+'<div class="y h it">'+esc(R.h)+'</div>';
+  if(t&&t.swc){
+   if(t.st==="lobby")b+='<div class="it">Anmälda '+t.u.length+' / '+capDen(t)+'</div><div class="it">Cupen startar '+ttWd(t.swc.s)+'</div>';
+   if(t.gdl||t.kdl)b+='<div class="c it">'+(t.gdl?'Gruppspel till '+ttWd(t.gdl):'')+(t.gdl&&t.kdl?'<br>':'')+(t.kdl?'Slutspel till '+ttWd(t.kdl):'')+'</div>';
+  }else b+='<div class="it">Cupen skapas i början av veckan.</div>';
+  b+='<div class="it">AI fyller tomma platser</div>';
+  if(R.open)b+='<div class="c">Anmäl dig i cup-rutan på startsidan</div>';
+  return b+ttFt("n")}
+ if(n===201)return ttBar(201,ah.toUpperCase())+'<div class="y h it">'+esc(ah)+'</div><div class="it">'+(A.x?ttTx(A.x):"Inget nytt just nu.")+'</div>'+(A.t?'<div class="c">Uppdaterad '+ttUp(A.t)+'</div>':'')+ttFt("n");
+ if(n===500)return ttBar(500,bh.toUpperCase())+'<div class="y h it">'+esc(bh)+'</div><div class="it">'+(B.x?ttTx(B.x):"Här kommer information.")+'</div>'+(B.t?'<div class="c">Uppdaterad '+ttUp(B.t)+'</div>':'')+ttFt("n");
+ if(n===330)return ttBar(330,"RESULTATBÖRSEN")+'<div class="it" style="margin-top:20px">Hall of fame '+ttLk(331)+'</div><div class="c">Fler sidor kommer</div>'+ttFt("n");
+ if(n===331)return ttHof();
+ if(n===377)return ttFollow();
+ return ttBar(n,"SIDAN SAKNAS")+'<div class="it" style="margin-top:30px">Sidan '+n+' finns inte</div><div class="c">'+ttLk(100,"Till startsidan 100")+'</div>'+ttFt("n");
+}
+function ttFit(){document.querySelectorAll("#ttx .fit").forEach(e=>{let s=+e.dataset.fs,m=+(e.dataset.min||10);e.style.fontSize=s+"px";while(e.scrollWidth>e.clientWidth&&s>m){s--;e.style.fontSize=s+"px"}})}
+function ttRender(){
+ const el=$("ttx");if(!el)return;
+ el.innerHTML=ttPage(ttPg);ttFit();ttAdm();
+}
+function ttGo(n){ttPg=n;ttEd=0;const i=$("ttn");if(i)i.value="";ttRender();try{$("ttv").scrollIntoView({block:"start"})}catch(e){}}
+function ttForm(){
+ const el=$("ttadm"),n=ttPg,d=TTV["p"+n]||{};el.innerHTML="";
+ const hi=document.createElement("input");hi.maxLength=30;hi.placeholder="RUBRIK";hi.value=d.h||(n===201?"Senaste nytt":"Information");
+ const ta=document.createElement("textarea");ta.maxLength=800;ta.rows=8;ta.placeholder="TEXT. VARJE RAD BLIR EN RAD PÅ SIDAN.";ta.value=d.x||"";
+ const er=mkE("div",null);er.style.color="#f03e3e";
+ el.append(mkE("p","ÄNDRA SIDAN "+n),hi,ta,btnE("SPARA",async()=>{
+  try{await db.doc("ttv/p"+n).set({h:hi.value.trim().slice(0,30),x:ta.value.slice(0,800),t:Date.now()});ttEd=0;ttAdm()}
+  catch(e){er.textContent="KUNDE INTE SPARA: "+(e.message||e.code)}}),btnE("AVBRYT",()=>{ttEd=0;ttAdm()}),er);
+}
+function ttAdm(){
+ const el=$("ttadm");if(!el)return;
+ if(!(isAdmin()&&(ttPg===201||ttPg===500))){el.classList.add("hide");el.innerHTML="";ttEd=0;return}
+ el.classList.remove("hide");
+ if(ttEd===ttPg){if(!el.querySelector("textarea"))ttForm();return}
+ el.innerHTML="";el.appendChild(btnE("ÄNDRA SIDAN "+ttPg,()=>{ttEd=ttPg;ttForm()}));
+}
+function ttInit(){
+ if(ttOn||!$("ttx"))return;ttOn=true;
+ $("ttx").addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-p]");if(t)ttGo(+t.dataset.p)});
+ $("ttn").addEventListener("input",e=>{const v=e.target.value.replace(/\D/g,"");e.target.value=v;if(v.length===3)ttGo(+v)});
+ db.collection("ttv").limit(20).onSnapshot(sn=>{TTV={};sn.docs.forEach(d=>{TTV[d.id]=d.data()});ttRender()},e=>{});
+ db.collection("tournaments").where("swc.n",">",0).limit(100).onSnapshot(sn=>{TTH=sn.docs.map(d=>d.data()).filter(t=>t&&t.swc&&t.st==="done"&&t.win);ttRender()},e=>{});
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ttFit);
+ window.addEventListener("resize",ttFit);
+ setInterval(ttRender,60000);
+ ttRender();
+}
+function startGlobal(){ttInit();$("gstn").onclick=e=>{if(e.target&&e.target.closest&&e.target.closest("#gpl")&&db)openPlayers()};refreshGlobal();renderSwc();setInterval(refreshGlobal,60000);setInterval(renderSwc,60000)}
 const TG="#fcc419",TD="#e0a800",TL="#fff3bf",TN2="#5d4037";
 const TRS=[
  [[8,4,16,10,TG],[10,14,12,3,TG],[14,17,4,8,TD],[9,25,14,3,TG],[4,6,4,2,TG],[4,6,2,7,TG],[4,11,4,2,TG],[24,6,4,2,TG],[26,6,2,7,TG],[24,11,4,2,TG],[10,5,2,8,TL],[6,28,20,8,TN2],[10,30,12,4,"#222222"]],
@@ -1744,7 +1880,7 @@ $("tbk2").onclick=leaveTour;$("tvch").onclick=e=>{const b=e.target.closest("butt
 function aoMk(){const e=document.createElement("span");e.className="ao";e.textContent="A";return e}
 function fixAo(root){
  if(!root||!document.createTreeWalker)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),L=[];let n;
- while((n=w.nextNode())){if(n.nodeValue.indexOf("Å")>=0){const pe=n.parentNode;if(pe&&pe.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|OPTION|TITLE)$/.test(pe.tagName))L.push(n)}}
+ while((n=w.nextNode())){if(n.nodeValue.indexOf("Å")>=0){const pe=n.parentNode;if(pe&&pe.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|OPTION|TITLE)$/.test(pe.tagName)&&!(pe.closest&&pe.closest(".nofix")))L.push(n)}}
  L.forEach(n=>{const f=document.createDocumentFragment();n.nodeValue.split("Å").forEach((q,i)=>{if(i)f.appendChild(aoMk());if(q)f.appendChild(document.createTextNode(q))});n.parentNode.replaceChild(f,n)})
 }
 try{fixAo(document.body);new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==="characterData")fixAo(m.target.parentNode);else m.addedNodes.forEach(x=>{if(x.nodeType===1)fixAo(x);else if(x.nodeType===3&&x.parentNode)fixAo(x.parentNode)})})}).observe(document.body,{childList:true,subtree:true,characterData:true})}catch(e){}
