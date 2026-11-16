@@ -190,7 +190,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-11 · TEXTTV1</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-12 · STARTA1</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -228,6 +228,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="wrap"><canvas id="cv" width="160" height="114"></canvas><div id="bn"></div></div>
  <div class="box" id="st"></div>
  <div id="mclk" class="kclk hide"></div>
+ <button id="wo4m" class="hide">KRÄV WALKOVER</button>
  <button id="ok" class="hide"></button>
  <button id="shr" class="hide">SKICKA INBJUDAN</button>
  <button class="sm" id="lv">LÄMNA MATCH</button>
@@ -494,7 +495,7 @@ function winnerOf(K){
 }
 function state(){
  const K=M.kicks,done=K.filter(k=>k.save!==undefined).length,g=goals();
- if(!M.p[1])return{need:"open",done};
+ if(!M.p[1]&&!M.tn)return{need:"open",done};
  if(winnerOf(K)>=0)return{need:"over",done};
  const l=K[K.length-1];
  if(!l||l.save!==undefined){const s=l?1-l.s:0;return{need:"shoot",who:s,shooter:s,keeper:1-s,done}}
@@ -766,6 +767,7 @@ async function join(c){
   ref=db.doc("matches/"+c);const s=await ref.get();
   if(!s.exists)return err("HITTAR INGEN MATCH MED KODEN "+c+".");
   const m=s.data();
+  if(m.tn&&!m.p[1]&&m.p[0]!==meId)return playTourX(m.tn.c,m.tn.k);
   if(m.p[0]===meId)idx=0;else if(m.p[1]===meId)idx=1;
   else if(!m.p[1]){if(!hasName())return;const c0=(m.c||[])[0]||"SWE",c2=TEAMS[myCol];
    await ref.update({p:[m.p[0],meId],n:[(m.n||[])[0]||"SPELARE 1",myName()],c:[c0,c2],open:false});pushPing(c);idx=1}
@@ -826,7 +828,7 @@ function renderOpen(docs){
 }
 function overM(m){return !!m.p[1]&&winnerOf(m.kicks||[])>=0}
 let LASTDOCS=[],prevTurn=-1,blinkT=null;
-function turnOf(m){if(!m||!m.p||!m.p[1])return null;const K=m.kicks||[];if(winnerOf(K)>=0)return null;const l=K[K.length-1];return(!l||l.save!==undefined)?{w:l?1-l.s:0,need:"shoot"}:{w:1-l.s,need:"save"}}
+function turnOf(m){if(!m||!m.p||(!m.p[1]&&!m.tn))return null;const K=m.kicks||[];if(winnerOf(K)>=0)return null;const l=K[K.length-1];return(!l||l.save!==undefined)?{w:l?1-l.s:0,need:"shoot"}:{w:1-l.s,need:"save"}}
 function updateTurns(docs){
  LASTDOCS=docs;const el=$("myturn");el.innerHTML="";const L=[];
  docs.forEach(d=>{const m=d.data();if(!m||!m.p||d.id===code)return;const t=turnOf(m);if(t&&m.p[t.w]===meId)L.push({id:d.id,m,t})});
@@ -894,7 +896,7 @@ function renderMine(docs){
  docs.forEach(d=>{const m=d.data();if(!m||!m.p||overM(m))return;n++;
   const dn=(m.kicks||[]).filter(k=>k.save!==undefined).length,o=m.p[0]===meId?1:0,mine=(t0=>t0&&m.p[t0.w]===meId)(turnOf(m)),ch=[];
   if(mine)ch.push(["DIN TUR",1]);if(m.tr)ch.push(["TRÄNING",0]);if(!m.p[1])ch.push(["VÄNTAR",0]);
-  row(m.p[1]?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE",dn+"/10 · "+d.id,ch,()=>{ls("name",myName());join(d.id)},(!m.tn&&!m.lg)?()=>delMatch(d.id):null,(m.tn&&cupCode(m.tn.c)&&m.ku&&m.p[1]&&!isAI(m.p[0])&&!isAI(m.p[1])&&(m.kicks||[]).length)?m.ku:0)});
+  row((m.p[1]||m.tn)?"MOT "+((m.n||[])[o]||"?"):"VÄNTAR PÅ MOTSPELARE",dn+"/10 · "+d.id,ch,()=>{ls("name",myName());join(d.id)},(!m.tn&&!m.lg)?()=>delMatch(d.id):null,(m.tn&&cupCode(m.tn.c)&&m.ku&&!isAI(m.p[0])&&!isAI(m.p[1])&&(m.kicks||[]).length)?m.ku:0)});
  const ids=new Set(docs.map(d=>d.id));
  TDOCS.forEach(d=>{const t=d.data();if(!t||t.st!=="run"||!t.pl)return;const tl=t.name||d.id;
   const add=(key,e,label)=>{if(!e||e.w||!e.a||!e.b||(e.a!==meId&&e.b!==meId)||ids.has(d.id+"-"+key))return;
@@ -1593,7 +1595,7 @@ function watchMine(t){
  const keys=[];
  if(t.gs&&t.ph==="g")Object.keys(t.gm||{}).forEach(k=>{const e=t.gm[k];if(e&&!e.w&&(e.a===meId||e.b===meId))keys.push("G"+k)});
  else Object.keys(t.m||{}).forEach(k=>{const e=t.m[k];if(e&&e.a&&e.b&&!e.w&&(e.a===meId||e.b===meId))keys.push(String(k))});
- keys.forEach(key=>{if(MW[key])return;MW[key]=db.doc("matches/"+tcode+"-"+key).onSnapshot(sn=>{let v=null;if(sn.exists){const m=sn.data(),tt=turnOf(m);if(m.ku&&tt&&!isAI(m.p[0])&&!isAI(m.p[1])&&(m.kicks||[]).length)v={ku:m.ku,pre:(m.p[tt.w]===meId?"DIN TID ATT AGERA: ":"MOTSTÅNDARENS TID: ")}}MKU[key]=v;if(tdata)renderTour()},()=>{})});
+ keys.forEach(key=>{if(MW[key])return;MW[key]=db.doc("matches/"+tcode+"-"+key).onSnapshot(sn=>{let v=null;if(sn.exists){const m=sn.data(),tt=turnOf(m);if(m.ku&&tt&&!isAI(m.p[0])&&!isAI(m.p[1])&&(m.kicks||[]).length){const mn=m.p[tt.w]===meId||(!m.p[tt.w]&&m.p[0]!==meId);v={ku:m.ku,mine:mn,pre:mn?"DIN TID ATT AGERA: ":"MOTSTÅNDARENS TID: "}}}MKU[key]=v;if(tdata)renderTour()},()=>{})});
 }
 function hideTour(){tvStop();if(tunsub)tunsub();tunsub=null;Object.values(MW).forEach(u=>{if(u)u()});MW={};MKU={};if(punsub)punsub();punsub=null;$("tour").classList.add("hide")}
 function openTour(c){
@@ -1631,8 +1633,8 @@ async function playTour(k){
  if(!e||(e.a!==meId&&e.b!==meId))return;
  const mid=tcode+"-"+k,r2=db.doc("matches/"+mid),me=t.pl[meId];
  try{const s=await r2.get();
-  const op=e.a===meId?e.b:e.a,ao=isAI(op),pa=ao?t.pl[op]:null;
-  if(!s.exists){await r2.set({p:[meId,ao?op:null],n:[me.n,ao?pa.n:null],c:[me.t,ao?pa.t:null],open:false,tod:t.tod||"night",kicks:[],t:Date.now(),tn:{c:tcode,k}});idx=0}
+  const op=e.a===meId?e.b:e.a,ao=isAI(op),pa=ao?t.pl[op]:null,po=t.pl[op]||{};
+  if(!s.exists){await r2.set({p:[meId,ao?op:null],n:[me.n,po.n||null],c:[me.t,po.t||null],open:false,tod:t.tod||"night",kicks:[],t:Date.now(),tn:{c:tcode,k}});idx=0}
   else{const md=s.data();
    if(md.p[0]===meId)idx=0;else if(md.p[1]===meId)idx=1;
    else if(!md.p[1]){await r2.update({p:[md.p[0],meId],n:[(md.n||[])[0]||"?",me.n],c:[(md.c||[])[0]||"SWE",me.t],open:false});pushPing(mid);idx=1}
@@ -1784,11 +1786,25 @@ function sthlm(ms){const p={};SFMT.formatToParts(ms).forEach(x=>{p[x.type]=x.val
 function localMs(y,mo,d,h,mi,offGuess){const w=Date.UTC(y,mo-1,d,h,mi,0),g=w-offGuess;return w-sthlm(g).off}
 function activeBetween(a,b){let t=a,sum=0;for(let i=0;i<60&&t<b;i++){const p=sthlm(t);if(p.h>=23||p.h<9){t=localMs(p.y,p.mo,p.d+(p.h>=23?1:0),9,0,p.off);continue}const end=localMs(p.y,p.mo,p.d,23,0,p.off),e=Math.min(end,b);sum+=e-t;t=e}return sum}
 function ck4(ku,now){now=now||Date.now();const left=Math.max(0,H4-activeBetween(ku,now)),h=sthlm(now).h,paused=h>=23||h<9;return{left,paused,red:left<36e5,txt:(paused?"PAUS ":"")+tclkF(left)}}
-function kclkSet(){document.querySelectorAll(".kclk").forEach(el=>{const ku=+el.dataset.ku;if(!ku)return;const c=ck4(ku);el.textContent=(el.dataset.pre||"")+c.txt;el.style.color=c.red?"#f03e3e":""})}
-function mclkSet(){const el=$("mclk");if(!el)return;
- const ok=M&&M.p&&M.p[1]&&M.ku&&M.tn&&cupCode(M.tn.c)&&!isAI(M.p[0])&&!isAI(M.p[1])&&(M.kicks||[]).length&&winnerOf(M.kicks)<0&&idx>=0&&!playing;
+async function claimWo4(tc,key){
+ try{if(!db)return false;
+  const sn=await db.doc("matches/"+tc+"-"+key).get();if(!sn.exists){window.alert("MATCHEN HITTADES INTE.");return false}
+  const md=sn.data(),tt=turnOf(md);
+  if(!tt||!md.ku||isAI(md.p[0])||isAI(md.p[1])||!(md.kicks||[]).length){window.alert("DET GÅR INTE ATT KRÄVA WALKOVER I DEN HÄR MATCHEN.");return false}
+  if(md.p[tt.w]===meId||(!md.p[tt.w]&&md.p[0]!==meId)){window.alert("DU ÄR SJÄLV I TUR ATT SPELA, SÅ DU KAN INTE KRÄVA WALKOVER.");return false}
+  if(activeBetween(md.ku,Date.now())<H4){window.alert("FRISTEN HAR INTE GÅTT UT ÄNNU.");return false}
+  await reportWin(tc,key,meId,true);return true}
+ catch(e){console.error(e);window.alert("KUNDE INTE KRÄVA WALKOVER: "+(e.message||e.code));return false}
+}
+function kclkSet(){
+ document.querySelectorAll(".kclk").forEach(el=>{const ku=+el.dataset.ku;if(!ku)return;const c=ck4(ku);el.textContent=(el.dataset.pre||"")+c.txt;el.style.color=c.red?"#f03e3e":""});
+ document.querySelectorAll(".wo4").forEach(b=>{const ku=+b.dataset.ku;b.classList.toggle("hide",!(ku&&ck4(ku).left<=0))});
+}
+function mclkSet(){wo4Set();const el=$("mclk");if(!el)return;
+ const ok=M&&M.p&&M.ku&&M.tn&&cupCode(M.tn.c)&&!isAI(M.p[0])&&!isAI(M.p[1])&&(M.kicks||[]).length&&winnerOf(M.kicks)<0&&idx>=0&&!playing;
  el.classList.toggle("hide",!ok);if(!ok){el.dataset.ku="";return}
  el.dataset.ku=M.ku;el.dataset.pre=(state().who===idx?"DIN TID ATT AGERA: ":"MOTSTÅNDARENS TID: ")}
+function wo4Set(){const b=$("wo4m");if(!b)return;const ok=M&&M.p&&M.ku&&M.tn&&cupCode(M.tn.c)&&!isAI(M.p[0])&&!isAI(M.p[1])&&(M.kicks||[]).length&&winnerOf(M.kicks)<0&&idx>=0&&!playing&&state().who!==idx&&ck4(M.ku).left<=0;b.classList.toggle("hide",!ok)}
 const tclkF=ms=>{ms=Math.max(0,ms);const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4),s=Math.floor(ms%6e4/1e3),z=n=>String(n).padStart(2,"0");return z(h)+":"+z(m)+":"+z(s)};
 let SWCT=null,SWCT2=null;
 function tclkInfo(t){
@@ -1853,7 +1869,7 @@ function renderTour(){
  const btn=(tx,fn)=>{const q=document.createElement("button");q.textContent=tx;q.onclick=fn;act.appendChild(q)};
  const note=tx=>{const q=document.createElement("p");q.textContent=tx;act.appendChild(q)};
  const nameOf=id=>id?((pl[id]||{}).n||"?"):"—";
- const ck=key=>{const v=MKU[key];if(!v)return;const q=document.createElement("p");q.className="kclk";q.dataset.ku=v.ku;q.dataset.pre=v.pre;act.appendChild(q);kclkSet()};
+ const ck=key=>{const v=MKU[key];if(!v)return;const q=document.createElement("p");q.className="kclk";q.dataset.ku=v.ku;q.dataset.pre=v.pre;act.appendChild(q);if(!v.mine){const b=document.createElement("button");b.className="wo4 hide";b.dataset.ku=v.ku;b.textContent="KRÄV WALKOVER";b.onclick=()=>{if(window.confirm("KRÄV WALKOVER? DIN MOTSTÅNDARE HAR INTE SPELAT INOM 4 TIMMAR OCH FÖRLORAR MATCHEN."))claimWo4(tcode,key)};act.appendChild(b)}kclkSet()};
  if(t.st==="lobby"){const nz={};t.u.forEach(id=>{const n=String((pl[id]||{}).n||"").toUpperCase();nz[n]=(nz[n]||0)+1});if(Object.values(nz).some(v=>v>1))note("OBS: TVÅ SPELARE HAR SAMMA NAMN. KANSKE ÄR DET SAMMA PERSON SOM ÖPPNADE LÄNKEN TVÅ GÅNGER. SKAPAREN KAN TA BORT EN MED KNAPPEN TA BORT.");if(t.u.includes(meId)&&(!t.swc||Date.now()<t.swc.c))btn("ÄNDRA MITT NAMN",()=>renameMe("t"));btn("DELA INBJUDAN",()=>shareInvite("t",tcode,act.lastChild));if(t.swc)note("CUPEN STARTAR AUTOMATISKT "+new Date(t.swc.s).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+". "+(t.mx?"CUPEN BLIR PÅ 16 SPELARE. ANMÄLER SIG FLER ÄN 16 BLIR DEN PÅ "+t.mx+".":"CUPEN BLIR PÅ "+sz+" SPELARE.")+" TOMMA PLATSER FYLLS MED AI."+(t.gdl&&t.kdl?" GRUPPSPELET HAR FRIST TILL "+new Date(t.gdl).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+" OCH SLUTSPELET TILL "+new Date(t.kdl).toLocaleString("sv-SE",{weekday:"long",hour:"2-digit",minute:"2-digit"}).toUpperCase()+".":""));else{if(t.o===meId&&t.u.length<sz)btn("FYLL MED AI OCH STARTA",fillStartTour);if(t.o===meId&&t.u.length===sz)btn("STARTA TURNERINGEN",startTour);else note(t.u.length<sz?"VÄNTAR PÅ FLER SPELARE. DELA KODEN "+tcode+".":"VÄNTAR PÅ ATT SKAPAREN STARTAR.")}}
  else if(t.st==="run"&&t.gs&&t.ph==="g"){
   const my=Object.keys(t.gm||{}).filter(k=>!t.gm[k].w&&(t.gm[k].a===meId||t.gm[k].b===meId));
@@ -1875,7 +1891,7 @@ function renderTour(){
   if(!ls("pod_"+tcode)){ls("pod_"+tcode,"1");showPodium(t)}
  }
 }
-$("tbk2").onclick=leaveTour;$("tvch").onclick=e=>{const b=e.target.closest("button");if(!b||!b.dataset.k)return;tvMan=false;tvStart(b.dataset.k,false);tvSig="";tvSync()};$("tmk").onclick=mkTour;$("tpx").onclick=()=>{actOpen=null;renderAct()};$("tbk").onclick=leaveTour;
+$("wo4m").onclick=async()=>{if(!M||!M.tn)return;const tc=M.tn.c,k=M.tn.k;if(!window.confirm("KRÄV WALKOVER? DIN MOTSTÅNDARE HAR INTE SPELAT INOM 4 TIMMAR OCH FÖRLORAR MATCHEN."))return;if(await claimWo4(tc,k)){leave();if(db)openTour(tc)}};$("tbk2").onclick=leaveTour;$("tvch").onclick=e=>{const b=e.target.closest("button");if(!b||!b.dataset.k)return;tvMan=false;tvStart(b.dataset.k,false);tvSig="";tvSync()};$("tmk").onclick=mkTour;$("tpx").onclick=()=>{actOpen=null;renderAct()};$("tbk").onclick=leaveTour;
 
 function aoMk(){const e=document.createElement("span");e.className="ao";e.textContent="A";return e}
 function fixAo(root){
