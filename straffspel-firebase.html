@@ -155,6 +155,24 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
 #ttadm input{width:100%;font-size:9px;padding:8px;border-width:3px;text-transform:none;margin:4px 0}
 #ttadm textarea{display:block;width:100%;font:inherit;font-size:9px;line-height:1.6;text-transform:none;padding:8px;border:3px solid var(--fg);background:var(--bg);color:var(--fg);margin:4px 0}
 #ttadm button{font-size:8px;padding:8px 10px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}
+.cbl{position:absolute;transform:translateX(-50%);background:#fff;color:#10163a;border:3px solid #10163a;box-shadow:2px 2px 0 #10163a;padding:5px 6px;font-size:7px;line-height:1.5;max-width:46%;z-index:3;pointer-events:none;text-align:center}
+.cbl.cb{left:45%;bottom:40%}.cbl.ct{left:50%;top:7%}
+.cbl:after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-4px;width:6px;height:6px;background:#fff;border:3px solid #10163a;border-top:0;border-left:0;transform:rotate(45deg) translate(-2px,-2px)}
+#chat{margin-top:4px}
+#chlog{font-size:7px;text-align:left;min-height:34px;line-height:1.9;margin:4px 0}
+#chat button:disabled{opacity:.5;cursor:default}
+#chb{font-size:8px;padding:8px 10px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}
+#chg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+#chg.hide{display:none}
+#chg button{margin:0;font-size:7px;padding:8px 4px;border-width:3px;box-shadow:2px 2px 0 var(--fg);line-height:1.5}
+.chr{display:flex;align-items:center;gap:6px;margin:6px 0;text-align:left}
+.chr b{width:18px;flex:none;color:var(--mu);font-weight:400}
+.chr input{flex:1;min-width:0;width:auto;font-size:8px;padding:8px 6px;border-width:3px;text-transform:none}
+.chr span{width:34px;flex:none;font-size:7px;color:var(--mu);text-align:right}
+.chr span.w{color:#f03e3e}
+#chadm{margin-bottom:10px}
+#chadm button{font-size:8px;padding:8px 10px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}
+#chadm button.sm{box-shadow:none;border:0}
 </style>
 </head>
 <body>
@@ -164,6 +182,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="nt" style="border-color:var(--ac)"></div>
  <div class="box hide" id="swc"></div>
  <div class="tvf" id="ttv"><div class="tvscr"><div id="ttx" class="nofix"></div></div><div id="ttin"><label for="ttn">SIDA</label><input id="ttn" maxlength="3" inputmode="numeric" placeholder="100" autocomplete="off"></div><div id="ttadm" class="hide"></div></div>
+ <div class="box hide" id="chadm"></div>
  <div class="box hide" id="iab"><p>⚠ DU HAR ÖPPNAT SIDAN I EN APP-WEBBLÄSARE (T.EX. INSTAGRAM). DEN KOMMER INTE IHÅG DIG, SÅ DU KAN BLI TVÅ SPELARE. ÖPPNA LÄNKEN I CHROME ELLER SAFARI I STÄLLET.</p><button id="iabc">KOPIERA LÄNK</button><button id="iabg" class="hide">ÖPPNA I CHROME</button></div>
  <div class="box hide" id="inv"><p id="invt"></p><p id="invn" class="hide" style="color:var(--ac)">NY HÄR? SKAPA ETT KONTO ELLER LOGGA IN HÄR UNDER FÖRST. DÅ ÄR DU ALLTID SAMMA SPELARE, ÄVEN I ANDRA WEBBLÄSARE. DU KAN OCKSÅ GÅ MED UTAN KONTO.</p><p>VÄLJ NAMN OCH LAG HÄR UNDER, OCH TRYCK SEDAN:</p><button id="invgo">GÅ MED</button></div>
  <div class="box hide" id="myturn"></div>
@@ -190,7 +209,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-12 · STARTA1</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-17 · CHAT2</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -225,12 +244,13 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
 </div>
 <div id="game" class="hide">
  <div class="box sc" id="score"></div>
- <div class="wrap"><canvas id="cv" width="160" height="114"></canvas><div id="bn"></div></div>
+ <div class="wrap"><canvas id="cv" width="160" height="114"></canvas><div id="bn"></div><div class="cbl hide" id="cbl"></div></div>
  <div class="box" id="st"></div>
  <div id="mclk" class="kclk hide"></div>
  <button id="wo4m" class="hide">KRÄV WALKOVER</button>
  <button id="ok" class="hide"></button>
  <button id="shr" class="hide">SKICKA INBJUDAN</button>
+ <div id="chat" class="hide"><div id="chlog"></div><button id="chb">SNABBSVAR</button><div id="chg" class="hide"></div><button class="sm" id="cho">STÄNG AV CHATTEN</button></div>
  <button class="sm" id="lv">LÄMNA MATCH</button>
 </div>
 </main>
@@ -528,7 +548,7 @@ function ui(){
  else t=(st.need==="shoot"?"VÄNTAR PÅ ATT "+nm(st.who)+" SKA SLÅ":"VÄNTAR PÅ ATT "+nm(st.who)+" SKA RÄDDA")+"...";
  if((mode==="shoot"||mode==="save")&&sel>=0&&!busy){ok.textContent=mode==="shoot"?"SKJUT!":"KASTA DIG!";ok.classList.remove("hide")}
  if(st.done>=10&&st.need!=="over")t="⚡ SUDDEN DEATH ⚡<br>"+t;
- $("st").innerHTML=t;draw();mclkSet();kclkSet();
+ $("st").innerHTML=t;draw();mclkSet();kclkSet();chatUi();
 }
 
 function check(){
@@ -748,7 +768,7 @@ $("ok").onclick=async()=>{
 async function loadNames(){}
 function listen(){
  if(unsub)unsub();
- unsub=ref.onSnapshot(async s=>{if(!s.exists){if(M){leave();$("err").textContent="MATCHEN HAR TAGITS BORT."}return}M=s.data();M.c=M.c||["SWE","ARG"];M.n=M.n||[];await loadNames();pubSync();check()},e=>{$("err").textContent="FEL: "+e.message});
+ unsub=ref.onSnapshot(async s=>{if(!s.exists){if(M){leave();$("err").textContent="MATCHEN HAR TAGITS BORT."}return}M=s.data();M.c=M.c||["SWE","ARG"];M.n=M.n||[];await loadNames();pubSync();chatSync();check()},e=>{$("err").textContent="FEL: "+e.message});
 }
 function enter(){
  $("lobby").classList.add("hide");$("game").classList.remove("hide");$("prof").classList.add("hide");$("lgv").classList.add("hide");onProf=false;
@@ -1425,7 +1445,7 @@ function ttPage(n){
 function ttFit(){document.querySelectorAll("#ttx .fit").forEach(e=>{let s=+e.dataset.fs,m=+(e.dataset.min||10);e.style.fontSize=s+"px";while(e.scrollWidth>e.clientWidth&&s>m){s--;e.style.fontSize=s+"px"}})}
 function ttRender(){
  const el=$("ttx");if(!el)return;
- el.innerHTML=ttPage(ttPg);ttFit();ttAdm();
+ el.innerHTML=ttPage(ttPg);ttFit();ttAdm();chAdm();
 }
 function ttGo(n){ttPg=n;ttEd=0;const i=$("ttn");if(i)i.value="";ttRender();try{$("ttv").scrollIntoView({block:"start"})}catch(e){}}
 function ttForm(){
@@ -1448,13 +1468,85 @@ function ttInit(){
  if(ttOn||!$("ttx"))return;ttOn=true;
  $("ttx").addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-p]");if(t)ttGo(+t.dataset.p)});
  $("ttn").addEventListener("input",e=>{const v=e.target.value.replace(/\D/g,"");e.target.value=v;if(v.length===3)ttGo(+v)});
- db.collection("ttv").limit(20).onSnapshot(sn=>{TTV={};sn.docs.forEach(d=>{TTV[d.id]=d.data()});ttRender()},e=>{});
+ db.collection("ttv").limit(60).onSnapshot(sn=>{TTV={};sn.docs.forEach(d=>{TTV[d.id]=d.data()});try{chatGrid();chatUi()}catch(e){}ttRender()},e=>{});
  db.collection("tournaments").where("swc.n",">",0).limit(100).onSnapshot(sn=>{TTH=sn.docs.map(d=>d.data()).filter(t=>t&&t.swc&&t.st==="done"&&t.win);ttRender()},e=>{});
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ttFit);
  window.addEventListener("resize",ttFit);
  setInterval(ttRender,60000);
  ttRender();
 }
+// SNABBSVAR (chatt i matcherna). Meddelandena sparas som nummer i listan CHM i fältet ch på matchdokumentet. Håll ordningen i CHM stabil (lägg nya sist).
+const CHD=["Snyggt skott!","Lucky!","Inte nu igen!","Skynda på!","Oj, nära!","Lycka till!","Grattis!","Fintad!","Du tar nästa straff!","Fel håll!"],CHMAX=40,CHCD=3000;
+const chA=()=>(TTV.chat&&Array.isArray(TTV.chat.m)&&TTV.chat.m.length)?TTV.chat.m:CHD;
+const chX=i=>String(chA()[i]||"").trim();
+let chCode="",chN=0,chT=null,chCool=0,chOpen=false,chIv=null;
+const chatOk=()=>ls("chat")!=="0";
+const chatCan=()=>!!(M&&M.p&&M.p[1]&&!M.tr&&!isAI(M.p[0])&&!isAI(M.p[1])&&idx>=0&&!tvK);
+function chatBub(q){
+ const b=$("cbl");if(!b)return;const st=state(),bot=st.shooter!==undefined?(st.shooter===q.s):(q.s===idx);
+ b.textContent=chX(q.m).toUpperCase();b.className="cbl "+(bot?"cb":"ct");
+ clearTimeout(chT);chT=setTimeout(()=>b.classList.add("hide"),3500);
+}
+function chatSync(){
+ if(!M)return;const L=M.ch||[];
+ if(chCode!==code){chCode=code;chN=L.length;chOpen=false;chCool=0;const b=$("cbl");if(b)b.classList.add("hide");return}
+ if(L.length>chN){const q=L[L.length-1];chN=L.length;if(chatCan()&&chatOk()&&q&&chX(q.m))chatBub(q)}
+ else if(L.length<chN)chN=L.length;
+}
+function chatUi(){
+ const el=$("chat");if(!el)return;
+ if(!chatCan()){el.classList.add("hide");return}
+ el.classList.remove("hide");
+ const on=chatOk(),L=M.ch||[],left=chCool-Date.now(),full=L.length>=CHMAX;
+ $("chb").classList.toggle("hide",!on);$("chg").classList.toggle("hide",!(on&&chOpen));
+ $("cho").textContent=on?"STÄNG AV CHATTEN":"SLÅ PÅ CHATTEN";
+ $("chb").disabled=left>0||full;$("chb").textContent=full?"CHATTEN FULL":left>0?"VÄNTA "+Math.ceil(left/1000)+"...":"SNABBSVAR";
+ const h=on?L.filter(q=>q&&chX(q.m)).slice(-3).map(q=>"<span style=\"color:"+(q.s===idx?"var(--ac)":"#1c7ed6")+"\">"+(q.s===idx?"DU":nm(q.s))+":</span> "+esc(chX(q.m).toUpperCase())).join("<br>"):"",lg=$("chlog");
+ if(lg.dataset.h!==h){lg.dataset.h=h;lg.innerHTML=h}
+ if(left>0&&!chIv)chIv=setInterval(()=>{chatUi();if(chCool-Date.now()<=0){clearInterval(chIv);chIv=null}},500);
+}
+async function chatSend(i){
+ if(!M||!chatCan()||!chatOk()||!chX(i)||chCool>Date.now()||(M.ch||[]).length>=CHMAX)return;
+ chCool=Date.now()+CHCD;chOpen=false;chatUi();
+ try{await ref.update({ch:FBU({s:idx,m:i,t:Date.now()})})}catch(e){const lg=$("chlog");lg.dataset.h="";lg.textContent="KUNDE INTE SKICKA MEDDELANDET."}
+}
+function chatGrid(){
+ const g=$("chg");if(!g)return;
+ g.innerHTML=chA().map((m,i)=>chX(i)?"<button data-i=\""+i+"\">"+esc(chX(i).toUpperCase())+"</button>":"").join("");
+}
+function chatInit(){
+ const g=$("chg");if(!g)return;
+ chatGrid();
+ $("chb").onclick=()=>{chOpen=!chOpen;chatUi()};
+ g.onclick=e=>{const b=e.target.closest&&e.target.closest("button");if(b)chatSend(+b.dataset.i)};
+ $("cho").onclick=()=>{ls("chat",chatOk()?"0":"1");chOpen=false;const b=$("cbl");if(b)b.classList.add("hide");chatUi()};
+}
+// ADMIN: SNABBSVAR. Texterna ligger i ttv/chat (fältet m, tio textrutor). Tom ruta = meddelandet finns inte.
+let chEd=false;
+function chForm(){
+ const el=$("chadm");el.innerHTML="";el.appendChild(mkE("p","ÄNDRA SNABBSVAR"));
+ const cur=chA(),ins=[];
+ for(let i=0;i<10;i++){
+  const r=mkE("div",null,"chr"),b=mkE("b",String(i+1)),inp=document.createElement("input"),c=mkE("span","");
+  inp.maxLength=24;inp.value=String(cur[i]||"");
+  const upd=()=>{c.textContent=inp.value.length+"/24";c.className=inp.value.length>=22?"w":""};upd();inp.oninput=upd;
+  ins.push(inp);r.append(b,inp,c);el.appendChild(r)}
+ const er=mkE("div",null);er.style.cssText="color:#f03e3e;min-height:1.7em";
+ el.append(btnE("SPARA",async()=>{
+  const m=ins.map(x=>x.value.trim().slice(0,24));
+  try{await db.doc("ttv/chat").set({m,t:Date.now()});chEd=false;chAdm()}
+  catch(e){er.textContent="KUNDE INTE SPARA: "+(e.message||e.code)}}),btnE("AVBRYT",()=>{chEd=false;chAdm()},"sm"),er,
+  mkE("p","TOM RUTA = MEDDELANDET FINNS INTE. MAX 24 TECKEN. SPELARNA FÅR ÄNDRINGEN DIREKT."));
+ el.lastChild.style.fontSize="7px";
+}
+function chAdm(){
+ const el=$("chadm");if(!el)return;
+ if(!isAdmin()){el.classList.add("hide");el.innerHTML="";chEd=false;return}
+ el.classList.remove("hide");
+ if(chEd){if(!el.querySelector("input"))chForm();return}
+ el.innerHTML="";el.appendChild(btnE("ÄNDRA SNABBSVAR",()=>{chEd=true;chForm()}));
+}
+chatInit();
 function startGlobal(){ttInit();$("gstn").onclick=e=>{if(e.target&&e.target.closest&&e.target.closest("#gpl")&&db)openPlayers()};refreshGlobal();renderSwc();setInterval(refreshGlobal,60000);setInterval(renderSwc,60000)}
 const TG="#fcc419",TD="#e0a800",TL="#fff3bf",TN2="#5d4037";
 const TRS=[
