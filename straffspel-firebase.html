@@ -173,6 +173,12 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
 #chadm{margin-bottom:10px}
 #chadm button{font-size:8px;padding:8px 10px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}
 #chadm button.sm{box-shadow:none;border:0}
+.apc{display:flex;gap:10px;justify-content:center;margin:8px 0 2px}.apc canvas{width:120px;height:132px;image-rendering:pixelated;border:4px solid var(--fg)}
+.apl{display:flex;gap:10px;justify-content:center;font-size:7px;color:var(--mu);margin-bottom:8px}.apl>span{width:128px}
+.apr{display:flex;align-items:center;gap:6px;margin:6px 0;text-align:left}.apr b{width:8.5em;flex:none;font-weight:400;color:var(--mu);font-size:7px}
+#apv select{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;padding:6px;margin:3px}.apr select{flex:1;min-width:0;margin:0}
+#apv button{font-size:8px;padding:8px 10px;border-width:3px;box-shadow:2px 2px 0 var(--fg)}#apv button.sm{box-shadow:none;border:0}
+#apw{color:#f03e3e;font-size:8px;min-height:1.7em}#apm{font-size:8px;min-height:1.7em}
 </style>
 </head>
 <body>
@@ -183,6 +189,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="swc"></div>
  <div class="tvf" id="ttv"><div class="tvscr"><div id="ttx" class="nofix"></div></div><div id="ttin"><label for="ttn">SIDA</label><input id="ttn" maxlength="3" inputmode="numeric" placeholder="100" autocomplete="off"></div><div id="ttadm" class="hide"></div></div>
  <div class="box hide" id="chadm"></div>
+ <div class="box hide" id="apadm"></div>
  <div class="box hide" id="iab"><p>⚠ DU HAR ÖPPNAT SIDAN I EN APP-WEBBLÄSARE (T.EX. INSTAGRAM). DEN KOMMER INTE IHÅG DIG, SÅ DU KAN BLI TVÅ SPELARE. ÖPPNA LÄNKEN I CHROME ELLER SAFARI I STÄLLET.</p><button id="iabc">KOPIERA LÄNK</button><button id="iabg" class="hide">ÖPPNA I CHROME</button></div>
  <div class="box hide" id="inv"><p id="invt"></p><p id="invn" class="hide" style="color:var(--ac)">NY HÄR? SKAPA ETT KONTO ELLER LOGGA IN HÄR UNDER FÖRST. DÅ ÄR DU ALLTID SAMMA SPELARE, ÄVEN I ANDRA WEBBLÄSARE. DU KAN OCKSÅ GÅ MED UTAN KONTO.</p><p>VÄLJ NAMN OCH LAG HÄR UNDER, OCH TRYCK SEDAN:</p><button id="invgo">GÅ MED</button></div>
  <div class="box hide" id="myturn"></div>
@@ -209,7 +216,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-17 · CHAT2</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-17 · UTSEENDE4</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -242,6 +249,19 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box" id="pll"></div>
  <button class="sm" id="plb">TILLBAKA</button>
 </div>
+<div id="apv" class="hide">
+ <div class="box"><p>ADMIN: UTSEENDE</p>
+  <select id="apt"></select><select id="app"></select>
+  <div><button id="apprev">◀</button><button id="apnext">▶</button></div>
+  <div class="apc"><canvas id="apc1" width="40" height="44"></canvas><canvas id="apc2" width="40" height="44"></canvas></div>
+  <div class="apl"><span>BAKIFRÅN</span><span>FRAMIFRÅN</span></div>
+  <div id="apf"></div><div id="apw"></div>
+  <div><button id="apsv">SPARA LAGET</button><button id="aprs">ÅTERSTÄLL SPELAREN</button></div>
+  <div id="apm"></div>
+  <button id="apz" class="dn">NOLLSTÄLL LAGET</button>
+ </div>
+ <button class="sm" id="apb">TILLBAKA</button>
+</div>
 <div id="game" class="hide">
  <div class="box sc" id="score"></div>
  <div class="wrap"><canvas id="cv" width="160" height="114"></canvas><div id="bn"></div><div class="cbl hide" id="cbl"></div></div>
@@ -269,7 +289,7 @@ const dbA={
  count:async(p,w)=>{let q=collection(fs,p);(w||[]).forEach(x=>{q=query(q,where(x[0],x[1],x[2]))});return(await getCountFromServer(q)).data().count}
 };
 const PAL=["#e03131","#1c7ed6","#fcc419","#f76707","#7048e8","#f1f3f5","#212529","#e64980"],ZN=["VÄNSTER KRYSS","MITTEN HÖGT","HÖGER KRYSS","VÄNSTRA HÖRNET","MITTEN LÅGT","HÖGRA HÖRNET"];
-const $=id=>document.getElementById(id),cv=$("cv"),cx=cv.getContext("2d");
+const $=id=>document.getElementById(id),cv=$("cv");let cx=cv.getContext("2d");
 const NOLOGIN="KUNDE INTE ANSLUTA TILL SERVERN. KONTROLLERA ATT ANONYM INLOGGNING ÄR PÅSLAGEN I FIREBASE.";
 const GW=100,GX=30,GY=20,CW=GW/3,CH=21,W="#fff",S="#f2b880";
 let nextNum=0,demoOn=0,myTod="night",myCol=0,db,usr,meId,ref,unsub,code,idx,M=null,names=["SPELARE 1","SPELARE 2"],ack=-1,busy=false,playing=false,hover=-1,sel=-1;
@@ -341,9 +361,10 @@ const ROSTER={};Object.keys(RS).forEach(k=>{ROSTER[k]=RS[k].map(q=>({num:q[0],na
 const BOTS=["BOTALDO", "BOTTI", "BOTADONA", "NEYBOT", "BOTISTUTA", "GLENN BOTÉN", "BOTALDINHO", "BOTELLI", "BOTTUSO", "BOTTAVARO", "BOTUITA", "BOTRAHIMOVIC", "BOTBA", "BOTERTO CARLOS", "BOTANDOWSKI", "BOTHAM", "BOTIESTA", "BOTKAMP", "VAN BOTHORST", "BOTENBAUER", "F. DE BOT", "BOTO'O"],BOTNUM=[9, 21, 18, 16, 13, 15, 22, 8, 19, 20, 1, 17, 10, 2, 11, 7, 5, 4, 3, 14, 6, 12];
 ROSTER.BOT=BOTS.map((n,i)=>({num:BOTNUM[i],name:n}));
 const pname=(team,num)=>{const r=(ROSTER[team]||[]).find(q=>q.num===num);return r?r.name:"SPELARE"};
-const HAIRC=["#1A1210","#4A2C12","#8A5A2B","#E8C15A","#F5E6A8","#D0D0D0","#228BE6","#6D1022","#8B1226","#A50F2D","#D62828","#E8381A","#C2410C","#A33F1A","#5C1F14","#7A2E1B","#8F3B20","#A8602F","#B8541F","#D4742A","#E8731C","#D98A55","#EAA27C","#E0605A","#0A0A0A","#11141F","#2B1A10","#3A2212","#4F3220","#7A5230","#6B4423","#9C7A3C","#A07848","#6E5E50","#B8923F","#D2B574","#DCAE4A","#F0C648","#CFC09A","#F4EFD8","#F7F7F7","#8F8B87","#7D7D82","#B8BBC2","#1E3A8A","#74C0FC","#12B5B0","#2F9E44","#7048E8","#F783AC"],SKN=["#FAE6D2","#F6D8BA","#F2C9A0","#E3A672","#B87A4B","#8A5532","#5A3520","#3A2113"],APPD={SWE:"6.3.2.3.0.0 3.3.2.3.0.0 1.3.2.4.0.0 8.1.2.3.0.0 1.6.2.4.0.0 5.4.2.2.0.0 5.2.4.3.0.0 1.5.2.4.0.0 19.4.2.3.0.0 1.1.4.3.0.0 12.4.2.3.0.0 25.1.3.4.0.0 1.1.7.3.0.0 6.6.2.3.0.0 19.1.3.3.0.0 20.2.2.4.0.0 19.4.2.3.0.0 19.6.2.3.0.0 1.4.2.5.0.0 19.4.2.3.0.0 1.2.2.3.0.0 8.6.2.3.0.0",ARG:"2.2.2.3.0.0 2.2.2.3.0.0 1.4.2.3.0.0 2.1.2.3.0.0 2.2.2.3.0.0 1.1.2.3.0.0 2.4.2.4.0.0 10.1.2.2.0.0 2.3.2.3.0.0 1.2.2.1.0.0 48.1.2.1.0.0 1.1.2.3.0.0 2.3.2.4.0.0 1.1.2.3.0.0 19.1.2.3.0.0 2.2.2.3.0.0 5.1.2.2.0.0 30.1.2.2.1.2 1.1.2.2.0.0 19.1.2.3.0.0 5.6.4.3.0.0 2.1.2.3.0.0",ENG:"10.2.2.3.0.0 12.2.2.3.0.0 1.1.4.3.0.0 1.3.2.3.0.0 65.1.4.3.0.0 1.3.2.3.0.0 5.3.2.3.10.0 1.6.2.3.0.0 16.2.1.3.0.0 19.3.2.3.0.0 14.3.2.3.0.0 12.3.2.3.0.0 6.4.2.3.0.0 1.3.2.3.0.0 1.3.2.3.0.0 6.6.2.3.0.0 7.3.1.5.0.0 11.20.1.3.0.0 1.3.2.3.0.0 11.4.2.3.0.0 8.1.4.3.0.0 8.1.5.3.0.0",FRA:"5.1.2.2.0.0 11.1.6.4.0.0 5.1.6.4.0.0 8.3.2.4.0.0 1.1.6.3.0.0 1.6.2.2.0.0 1.1.2.3.0.0 7.1.4.3.0.0 1.1.6.3.0.0 5.1.2.3.0.0 5.1.4.4.0.0 5.1.5.3.0.0 1.1.3.3.0.0 1.1.3.3.0.0 19.1.3.2.0.0 5.1.6.4.0.0 5.1.8.3.0.0 1.1.6.3.0.0 9.1.5.3.0.0 5.1.7.3.0.0 7.1.3.3.0.0 2.4.2.3.0.0",GER:"2.4.2.3.0.0 1.6.2.3.0.0 1.3.2.2.0.0 10.2.2.3.0.0 2.5.2.3.0.0 1.2.2.3.0.0 6.4.2.3.0.0 19.4.2.3.0.0 10.1.2.3.0.0 2.4.2.3.0.0 1.3.2.3.0.0 32.4.2.3.0.0 10.5.2.3.0.0 2.4.2.3.0.0 1.4.2.3.0.0 1.5.2.3.0.0 1.3.2.3.0.0 7.3.2.3.0.0 7.4.2.3.0.0 1.2.2.3.0.0 1.1.2.4.0.0 8.4.2.3.0.0",ESP:"1.1.2.3.3.9 2.3.2.3.0.0 19.1.2.3.0.0 1.3.2.3.0.0 1.1.2.3.0.0 19.1.2.2.0.0 19.1.2.3.0.0 5.1.1.2.0.0 10.3.2.3.0.0 1.2.2.3.0.0 7.1.2.3.0.0 7.1.2.2.0.0 5.1.2.2.0.0 1.1.2.3.0.0 2.1.2.3.0.0 1.1.2.4.0.0 1.2.2.3.0.0 7.1.2.2.0.0 7.4.2.4.0.0 1.2.2.3.0.0 8.4.2.3.0.0 1.2.2.2.0.0",BRA:"1.3.2.3.0.0 5.1.4.3.0.0 12.1.6.3.0.0 8.2.4.3.0.0 1.1.6.3.0.0 1.3.2.3.0.0 1.1.4.3.0.0 19.1.2.3.0.0 5.6.5.3.0.0 17.1.6.3.0.0 1.1.7.3.0.0 10.1.6.3.0.0 1.1.4.3.0.0 10.1.3.3.0.0 2.1.2.3.0.0 1.1.4.3.0.0 66.1.5.3.0.0 10.2.3.3.0.0 8.3.5.3.10.1 1.1.2.3.0.0 2.2.2.3.0.0 10.3.2.3.0.0",NED:"1.6.2.5.0.0 1.1.5.4.0.0 5.3.2.3.0.0 1.2.2.3.0.0 1.4.2.3.0.0 10.1.2.3.0.0 1.3.1.3.0.0 1.4.2.3.0.0 1.1.6.3.0.0 2.1.7.3.0.0 1.2.2.3.0.0 2.3.2.3.0.0 1.1.2.3.0.0 1.6.2.3.0.0 10.1.2.3.0.0 70.1.5.3.0.0 6.4.2.3.0.0 45.1.7.3.6.0 19.1.3.3.0.0 5.5.2.3.0.0 5.3.2.2.0.0 7.1.2.3.0.0",NOR:"1.1.2.4.0.0 1.6.2.3.0.0 1.1.2.3.0.0 1.4.2.3.0.0 1.4.2.3.0.0 5.5.2.3.0.0 1.3.2.3.0.0 1.1.2.3.0.0 9.5.2.3.0.0 4.4.2.3.0.0 4.2.2.3.0.0 1.1.2.3.0.0 1.5.2.3.0.0 5.3.4.3.0.0 7.1.2.3.0.0 1.4.2.5.0.0 7.4.2.3.0.0 7.2.2.3.0.0 5.4.2.3.0.0 10.3.2.3.0.0 8.3.2.3.0.0 1.1.2.3.0.0",DEN:"1.4.2.5.0.0 1.6.2.3.0.0 7.4.2.3.0.0 8.2.2.3.0.0 2.3.2.3.0.0 2.3.2.3.0.0 1.4.2.3.0.0 1.3.2.3.0.0 1.4.2.3.0.0 1.2.2.3.0.0 1.2.2.3.0.0 1.5.2.4.0.0 5.5.2.3.0.0 5.3.2.3.0.0 5.1.2.3.0.0 2.5.2.3.0.0 6.4.2.3.0.0 2.2.2.3.0.0 1.3.2.3.0.0 5.5.2.3.0.0 1.4.2.3.0.0 1.4.2.3.0.0",JPN:"1.1.1.3.0.0 1.1.1.3.0.0 7.1.1.3.0.0 8.1.1.3.0.0 1.1.1.3.0.0 5.1.1.3.0.0 11.1.1.3.0.0 7.1.1.3.0.0 19.4.1.3.0.0 4.1.1.3.0.0 4.1.1.3.0.0 5.1.1.3.0.0 5.1.1.3.0.0 5.1.1.3.0.0 1.1.1.3.0.0 12.1.1.3.0.0 13.1.1.3.0.0 7.1.1.3.0.0 7.1.1.3.0.0 7.1.1.3.0.0 8.1.1.3.0.0 8.1.1.3.0.0",POR:"1.1.2.3.0.0 1.1.2.3.0.0 5.4.4.3.0.0 7.1.2.3.0.0 1.1.2.3.0.0 8.2.2.3.0.0 7.1.3.3.0.0 7.1.3.3.0.0 1.1.2.3.0.0 10.1.3.3.0.0 1.2.2.2.0.0 1.2.2.3.0.0 1.1.5.3.0.0 19.1.3.3.0.0 2.2.2.3.0.0 2.1.2.3.0.0 1.1.4.3.0.0 2.1.2.3.0.0 1.1.2.3.0.0 10.1.2.3.0.0 1.1.2.3.0.0 7.1.3.2.0.0",EGY:"7.1.4.3.0.0 1.6.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 5.1.4.4.0.0 1.1.4.3.0.0 1.1.4.3.0.0 5.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 7.1.4.3.0.0 1.1.4.3.0.0",CMR:"1.1.7.3.0.0 1.1.6.3.0.0 7.1.6.3.0.0 1.1.6.3.0.0 5.1.7.3.0.0 5.1.7.3.0.0 1.1.6.3.0.0 7.1.7.3.0.0 4.1.6.3.0.0 4.2.6.3.0.0 1.1.7.3.0.0 5.1.7.3.0.0 5.2.6.3.0.0 5.1.6.3.0.0 6.1.6.3.0.0 6.2.7.3.0.0 6.1.6.3.0.0 5.1.7.3.0.0 7.2.6.3.0.0 7.2.6.3.0.0 8.1.7.3.0.0 8.1.6.3.0.0",NGA:"1.1.7.3.0.0 1.1.7.3.0.0 62.48.6.3.0.0 8.1.6.3.0.0 1.1.6.3.0.0 5.1.7.3.0.0 6.1.6.3.0.0 7.1.6.3.0.0 4.1.6.3.0.0 4.1.7.3.0.0 4.1.6.3.0.0 5.1.6.3.0.0 5.1.7.3.0.0 5.1.6.3.0.0 6.1.6.3.0.0 6.1.7.3.0.0 6.1.6.3.0.0 7.1.6.3.0.0 7.1.6.3.0.0 7.1.6.3.0.0 8.1.7.3.0.0 8.1.6.3.0.0",ITA:"19.1.3.3.0.0 5.1.3.3.0.0 2.1.3.4.0.0 1.1.3.3.0.0 5.1.2.2.0.0 2.1.2.4.0.0 10.1.2.3.0.0 7.1.2.3.0.0 9.1.2.3.0.0 2.4.2.3.0.0 5.2.2.3.0.0 1.4.2.3.0.0 1.1.2.3.0.0 5.1.2.3.0.0 1.1.2.3.0.0 1.1.2.3.0.0 1.2.2.3.0.0 8.1.2.3.0.0 2.1.2.3.0.0 7.1.2.3.0.0 1.6.2.3.0.0 2.3.2.3.0.0",CIV:"1.1.7.3.0.0 1.1.6.3.0.0 7.1.7.3.0.0 8.1.7.3.0.0 1.1.6.3.0.0 5.1.7.3.0.0 6.1.5.3.0.0 7.1.6.3.0.0 4.1.6.3.0.0 8.1.7.3.0.0 2.1.7.3.0.0 7.1.5.3.0.0 5.1.6.3.0.0 7.1.6.3.0.0 6.1.4.3.0.0 6.1.7.3.0.0 6.1.5.3.0.0 5.1.6.3.0.0 5.1.6.3.0.0 7.1.5.3.0.0 7.1.7.3.0.0 2.1.5.3.0.0",BOT:"10.1.4.3.0.0 5.6.5.3.0.0 1.1.3.3.0.0 1.4.2.3.0.0 5.1.1.2.0.0 11.3.2.3.0.0 5.1.2.3.0.0 19.1.2.4.0.0 5.1.5.3.0.0 2.1.7.4.0.0 7.1.2.3.0.0 5.7.7.2.0.0 2.3.2.4.0.0 1.6.2.4.0.0 1.6.2.4.0.0 7.3.4.3.0.0 7.1.3.3.0.0 10.1.2.1.0.0 8.1.3.2.0.0 5.1.3.2.0.0 1.1.3.1.0.0 10.1.5.3.0.0"},APPC={};
+const HAIRC=["#1A1210","#4A2C12","#8A5A2B","#E8C15A","#F5E6A8","#D0D0D0","#228BE6","#6D1022","#8B1226","#A50F2D","#D62828","#E8381A","#C2410C","#A33F1A","#5C1F14","#7A2E1B","#8F3B20","#A8602F","#B8541F","#D4742A","#E8731C","#D98A55","#EAA27C","#E0605A","#0A0A0A","#11141F","#2B1A10","#3A2212","#4F3220","#7A5230","#6B4423","#9C7A3C","#A07848","#6E5E50","#B8923F","#D2B574","#DCAE4A","#F0C648","#CFC09A","#F4EFD8","#F7F7F7","#8F8B87","#7D7D82","#B8BBC2","#1E3A8A","#74C0FC","#12B5B0","#2F9E44","#7048E8","#F783AC"],SKN=["#FAE6D2","#F6D8BA","#F2C9A0","#E3A672","#B87A4B","#8A5532","#5A3520","#3A2113"],APPD={SWE:"6.3.2.3.0.0 20.3.2.3.0.0 1.3.2.4.0.0 8.1.2.3.0.0 1.6.2.4.0.0 5.4.2.2.0.0 5.2.4.3.0.0 1.5.2.4.0.0 19.4.2.3.0.0 1.1.4.3.0.0 12.4.2.3.0.0 25.1.3.4.0.0 1.1.7.3.0.0 6.6.2.3.0.0 19.1.3.3.0.0 20.2.2.4.0.0 19.4.2.3.0.0 19.6.2.3.0.0 1.4.2.5.0.0 19.4.2.3.0.0 1.2.2.3.0.0 8.6.2.3.0.0",ARG:"2.2.2.3.0.0 2.2.2.3.0.0 1.4.2.3.0.0 2.1.2.3.0.0 2.2.2.3.0.0 1.1.2.3.0.0 2.4.2.4.0.0 10.1.2.2.0.0 2.3.2.3.0.0 1.2.2.1.0.0 48.1.2.1.0.0 1.1.2.3.0.0 2.3.2.4.0.0 1.1.2.3.0.0 19.1.2.3.0.0 2.2.2.3.0.0 5.1.2.2.0.0 30.1.2.2.1.2 1.1.2.2.0.0 19.1.2.3.0.0 5.6.4.3.0.0 2.1.2.3.0.0",ENG:"10.2.2.3.0.0 12.2.2.3.0.0 1.1.4.3.0.0 1.3.2.3.0.0 65.1.4.3.0.0 1.3.2.3.0.0 5.3.2.3.10.0 1.6.2.3.0.0 16.2.1.3.0.0 19.3.2.3.0.0 14.3.2.3.0.0 12.3.2.3.0.0 6.4.2.3.0.0 1.3.2.3.0.0 1.3.2.3.0.0 6.6.2.3.0.0 7.3.1.5.0.0 11.20.1.3.0.0 1.3.2.3.0.0 11.4.2.3.0.0 8.1.4.3.0.0 8.1.5.3.0.0",FRA:"5.1.2.2.0.0 11.1.6.4.0.0 5.1.6.4.0.0 8.3.2.4.0.0 1.1.6.3.0.0 1.6.2.2.0.0 1.1.2.3.0.0 7.1.4.3.0.0 1.1.6.3.0.0 5.1.2.3.0.0 5.1.4.4.0.0 5.1.5.3.0.0 1.1.3.3.0.0 1.1.3.3.0.0 19.1.3.2.0.0 5.1.6.4.0.0 5.1.8.3.0.0 1.1.6.3.0.0 9.1.5.3.0.0 5.1.7.3.0.0 7.1.3.3.0.0 2.4.2.3.0.0",GER:"2.4.2.3.0.0 1.6.2.3.0.0 1.3.2.2.0.0 10.2.2.3.0.0 2.5.2.3.0.0 1.2.2.3.0.0 6.4.2.3.0.0 19.4.2.3.0.0 10.1.2.3.0.0 2.4.2.3.0.0 1.3.2.3.0.0 32.4.2.3.0.0 10.5.2.3.0.0 2.4.2.3.0.0 1.4.2.3.0.0 1.5.2.3.0.0 1.3.2.3.0.0 7.3.2.3.0.0 7.4.2.3.0.0 1.2.2.3.0.0 1.1.2.4.0.0 8.4.2.3.0.0",ESP:"1.1.2.3.3.9 2.3.2.3.0.0 19.1.2.3.0.0 1.3.2.3.0.0 1.1.2.3.0.0 19.1.2.2.0.0 19.1.2.3.0.0 5.1.1.2.0.0 10.3.2.3.0.0 1.2.2.3.0.0 7.1.2.3.0.0 7.1.2.2.0.0 5.1.2.2.0.0 1.1.2.3.0.0 2.1.2.3.0.0 1.1.2.4.0.0 1.2.2.3.0.0 7.1.2.2.0.0 7.4.2.4.0.0 1.2.2.3.0.0 8.4.2.3.0.0 1.2.2.2.0.0",BRA:"1.3.2.3.0.0 5.1.4.3.0.0 12.1.6.3.0.0 8.2.4.3.0.0 1.1.6.3.0.0 1.3.2.3.0.0 1.1.4.3.0.0 19.1.2.3.0.0 5.6.5.3.0.0 17.1.6.3.0.0 1.1.7.3.0.0 10.1.6.3.0.0 1.1.4.3.0.0 10.1.3.3.0.0 2.1.2.3.0.0 1.1.4.3.0.0 66.1.5.3.0.0 10.2.3.3.0.0 8.3.5.3.10.1 1.1.2.3.0.0 2.2.2.3.0.0 10.3.2.3.0.0",NED:"1.6.2.5.0.0 1.1.5.4.0.0 5.3.2.3.0.0 1.2.2.3.0.0 1.4.2.3.0.0 10.1.2.3.0.0 1.3.1.3.0.0 1.4.2.3.0.0 1.1.6.3.0.0 2.1.7.3.0.0 1.2.2.3.0.0 2.3.2.3.0.0 1.1.2.3.0.0 1.6.2.3.0.0 10.1.2.3.0.0 70.1.5.3.0.0 6.4.2.3.0.0 45.1.7.3.6.0 19.1.3.3.0.0 5.5.2.3.0.0 5.3.2.2.0.0 7.1.2.3.0.0",NOR:"1.1.2.4.0.0 1.6.2.3.0.0 1.1.2.3.0.0 1.4.2.3.0.0 1.4.2.3.0.0 5.5.2.3.0.0 1.3.2.3.0.0 1.1.2.3.0.0 9.5.2.3.0.0 4.4.2.3.0.0 4.2.2.3.0.0 1.1.2.3.0.0 1.5.2.3.0.0 5.3.4.3.0.0 7.1.2.3.0.0 1.4.2.5.0.0 7.4.2.3.0.0 7.2.2.3.0.0 5.4.2.3.0.0 10.3.2.3.0.0 8.3.2.3.0.0 1.1.2.3.0.0",DEN:"1.4.2.5.0.0 1.6.2.3.0.0 7.4.2.3.0.0 8.2.2.3.0.0 2.3.2.3.0.0 2.3.2.3.0.0 1.4.2.3.0.0 1.3.2.3.0.0 1.4.2.3.0.0 1.2.2.3.0.0 1.2.2.3.0.0 1.5.2.4.0.0 5.5.2.3.0.0 5.3.2.3.0.0 5.1.2.3.0.0 2.5.2.3.0.0 6.4.2.3.0.0 2.2.2.3.0.0 1.3.2.3.0.0 5.5.2.3.0.0 1.4.2.3.0.0 1.4.2.3.0.0",JPN:"1.1.1.3.0.0 1.1.1.3.0.0 7.1.1.3.0.0 8.1.1.3.0.0 1.1.1.3.0.0 5.1.1.3.0.0 11.1.1.3.0.0 7.1.1.3.0.0 19.4.1.3.0.0 4.1.1.3.0.0 4.1.1.3.0.0 5.1.1.3.0.0 5.1.1.3.0.0 5.1.1.3.0.0 1.1.1.3.0.0 12.1.1.3.0.0 13.1.1.3.0.0 7.1.1.3.0.0 7.1.1.3.0.0 7.1.1.3.0.0 8.1.1.3.0.0 8.1.1.3.0.0",POR:"1.1.2.3.0.0 1.1.2.3.0.0 5.4.4.3.0.0 7.1.2.3.0.0 1.1.2.3.0.0 8.2.2.3.0.0 7.1.3.3.0.0 7.1.3.3.0.0 1.1.2.3.0.0 10.1.3.3.0.0 1.2.2.2.0.0 1.2.2.3.0.0 1.1.5.3.0.0 19.1.3.3.0.0 2.2.2.3.0.0 2.1.2.3.0.0 1.1.4.3.0.0 2.1.2.3.0.0 1.1.2.3.0.0 10.1.2.3.0.0 1.1.2.3.0.0 7.1.3.2.0.0",EGY:"7.1.4.3.0.0 1.6.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 5.1.4.4.0.0 1.1.4.3.0.0 1.1.4.3.0.0 5.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 1.1.4.3.0.0 7.1.4.3.0.0 1.1.4.3.0.0",CMR:"1.1.7.3.0.0 1.1.6.3.0.0 7.1.6.3.0.0 1.1.6.3.0.0 5.1.7.3.0.0 5.1.7.3.0.0 1.1.6.3.0.0 7.1.7.3.0.0 4.1.6.3.0.0 4.2.6.3.0.0 1.1.7.3.0.0 5.1.7.3.0.0 5.2.6.3.0.0 5.1.6.3.0.0 6.1.6.3.0.0 6.2.7.3.0.0 6.1.6.3.0.0 5.1.7.3.0.0 7.2.6.3.0.0 7.2.6.3.0.0 8.1.7.3.0.0 8.1.6.3.0.0",NGA:"1.1.7.3.0.0 1.1.7.3.0.0 62.48.6.3.0.0 8.1.6.3.0.0 1.1.6.3.0.0 5.1.7.3.0.0 6.1.6.3.0.0 7.1.6.3.0.0 4.1.6.3.0.0 4.1.7.3.0.0 4.1.6.3.0.0 5.1.6.3.0.0 5.1.7.3.0.0 5.1.6.3.0.0 6.1.6.3.0.0 6.1.7.3.0.0 6.1.6.3.0.0 7.1.6.3.0.0 7.1.6.3.0.0 7.1.6.3.0.0 8.1.7.3.0.0 8.1.6.3.0.0",ITA:"19.1.3.3.0.0 5.1.3.3.0.0 2.1.3.4.0.0 1.1.3.3.0.0 5.1.2.2.0.0 2.1.2.4.0.0 10.1.2.3.0.0 7.1.2.3.0.0 9.1.2.3.0.0 2.4.2.3.0.0 5.2.2.3.0.0 1.4.2.3.0.0 1.1.2.3.0.0 5.1.2.3.0.0 1.1.2.3.0.0 1.1.2.3.0.0 1.2.2.3.0.0 8.1.2.3.0.0 2.1.2.3.0.0 7.1.2.3.0.0 1.6.2.3.0.0 2.3.2.3.0.0",CIV:"1.1.7.3.0.0 1.1.6.3.0.0 7.1.7.3.0.0 8.1.7.3.0.0 1.1.6.3.0.0 5.1.7.3.0.0 6.1.5.3.0.0 7.1.6.3.0.0 4.1.6.3.0.0 8.1.7.3.0.0 2.1.7.3.0.0 7.1.5.3.0.0 5.1.6.3.0.0 7.1.6.3.0.0 6.1.4.3.0.0 6.1.7.3.0.0 6.1.5.3.0.0 5.1.6.3.0.0 5.1.6.3.0.0 7.1.5.3.0.0 7.1.7.3.0.0 2.1.5.3.0.0",BOT:"10.1.4.3.0.0 5.6.5.3.0.0 1.1.3.3.0.0 1.4.2.3.0.0 5.1.1.2.0.0 11.3.2.3.0.0 5.1.2.3.0.0 19.1.2.4.0.0 5.1.5.3.0.0 2.1.7.4.0.0 7.1.2.3.0.0 5.7.7.2.0.0 2.3.2.4.0.0 1.6.2.4.0.0 1.6.2.4.0.0 7.3.4.3.0.0 7.1.3.3.0.0 10.1.2.1.0.0 8.1.3.2.0.0 5.1.3.2.0.0 1.1.3.1.0.0 10.1.5.3.0.0"},APPC={};
 const tmOf=i=>(M&&M.c||[])[i];
-function appOf(t,n){const k=t+"|"+n;if(k in APPC)return APPC[k];const s=APPD[t]&&n>=1&&n<=22?APPD[t].split(" ")[n-1]:null;let o=null;if(s){const v=s.split(".").map(Number);o={st:v[0]>=1&&v[0]<=75?v[0]-1:0,hc:HAIRC[(v[1]||1)-1]||HAIRC[0],sk:SKN[(v[2]||3)-1]||SKN[2],lh:[4,5,6,7,8][(v[3]||3)-1]||6}}return APPC[k]=o}
+function apFrom(s){const v=s.split(".").map(Number);return{st:v[0]>=1&&v[0]<=75?v[0]-1:0,hc:HAIRC[(v[1]||1)-1]||HAIRC[0],sk:SKN[(v[2]||3)-1]||SKN[2],lh:[4,5,6,7,8][(v[3]||3)-1]||6,ac:v[4]||0,cc:v[5]||0}}
+function appOf(t,n){const k=t+"|"+n;if(k in APPC)return APPC[k];const src=(TTV["ap_"+t]&&TTV["ap_"+t].a)||APPD[t],s=src&&n>=1&&n<=22?src.split(" ")[n-1]:null;return APPC[k]=s?apFrom(s):null}
 const HSTY="t1 s1|t2 s3 xpl|t2 s3 xpm|t2 v1 s2 xsl|t2 v2 s2|t2 v1 a1 s1|t2 v1 a1 xfade|t2 v1 a1 f1 xfade|t2 v2 s2 xsl|t2 s3 f3 v1 xpl|t2 f1 s3|t2 f3 s3|t2 f2 s4|t2 v1 s2 xspk|t2 v1 xfade|t3 v2 a1 f3|t3 v2 a1 xsl|t2 s7|t2 s7 xpm|t2 f4 s7|t2 f3 s7|t2 v1 e1 s4 xmul|t2 s3 xmus|t3 v1 f3 s6|t2 v1 s6 xsl|t2 v1 e1 s9 xsl|t2 v1 e1 s7 xwv|t2 v1 e1 s5 xwv|t3 v1 s3 xcurl|t3 v2 a1 xcurl+fade|t2 f1 e1 s6|t2 f1 e1 s8|t2 f2 e1 s5|t3 v2 e2 s6|t2 e1 s11|t2 e1 s11 xpm|t2 e1 s11 xwv|t3 v1 e2 s10 xcurl|t2 v1 e1 s11 xsl|t2 e1 s11 f3|t2 e1 s14|t3 v3 e3 s11|t2 f5 e1 s7|t2 f3 e1 s9|t3 v2 e2 s10 xspk|t2 s3 xpony|t2 v1 s2 xhpony|t2 s3 xlpony|t2 s3 xbun|t2 v1 s2 xhbun|t2 e1 s9 xbun|t2 s3 xtwin|t2 s3 xbraid|t2 s3 xbraids2|t2 s1 xcr|t3 v1 e1 s4|t3 v3 e2 s5|t3 v5 e3 s6|t3 v1 e1 s6 xdr|t3 v1 e1 s11 xdr|t3 v1 s3 xhbun|xmh|xmh2|t3 xspk2|xtri".split("|"),HX={pony:[[8,0,2,2],[9,2,2,6]],hpony:[[3,-4,3,3],[6,-5,3,2],[8,-4,2,5]],lpony:[[8,4,2,6]],bun:[[5,-3,3,3]],hbun:[[2,-5,4,4]],twin:[[-3,1,3,6],[8,1,3,6]],braid:[[8,3,2,9]],braids2:[[-2,3,2,9],[8,3,2,9]],mul:[[-1,4,1,6],[8,4,1,6]],mus:[[-1,4,1,3],[8,4,1,3]],spk:[[0,-2,1,2],[2,-3,1,3],[4,-3,1,3],[6,-2,1,2]],spk2:[[0,-3,1,3],[2,-5,1,5],[4,-5,1,5],[6,-3,1,3]],mh:[[3,-4,2,5]],mh2:[[3,-7,2,8]],tri:[[2,0,4,1],[3,1,2,1]],tuft:[[2,-2,4,3]],fade:[[0,2,1,3],[7,2,1,3]]},HXB={pony:[[3,2,2,8]],hpony:[[3,-4,2,3],[3,-1,2,9]],lpony:[[3,5,2,7]],braid:[[3,5,2,9]],mul:[[0,4,8,7]],mus:[[0,4,8,4]],mh:[[3,-4,2,9]],mh2:[[3,-7,2,12]],tri:[]},HSH={sl:[[1,-1,1,2],[3,-1,1,2],[5,-1,1,2]],wv:[[0,2,1,1],[-1,4,1,1],[0,6,1,1],[7,2,1,1],[8,4,1,1],[7,6,1,1]],curl:[[1,0,1,1],[3,-1,1,1],[5,0,1,1],[6,-1,1,1]],dr:[[-1,1,1,8],[8,1,1,8]],cr:[[1,0,1,3],[3,0,1,3],[5,0,1,3]],pl:[[2,0,1,2]],pm:[[4,0,1,2]]},HFR={1:[[0,0,8,2]],2:[[0,0,8,3]],3:[[0,0,8,1],[0,1,8,1],[0,2,6,1],[0,3,3,1]],4:[[0,0,8,1],[0,1,3,3],[5,1,3,3]],5:[[0,0,8,4]]},HTL=["pony","hpony","lpony","braid"];
 function hairN(i,fr,hx,hy,hc){
  const o={t:0,v:0,e:0,s:0,f:0,a:0,x:[]};HSTY[i].split(" ").forEach(k=>{if(k[0]=="x")o.x=k.slice(1).split("+");else if(k)o[k[0]]=+k.slice(1)});
@@ -365,6 +386,22 @@ function hairN(i,fr,hx,hy,hc){
 const HC=["#1a1210","#4a2c12","#8a5a2b","#e8c15a","#c2410c","#d0d0d0","#228be6"];
 const SKT=["#f2c9a0","#e3a672","#b87a4b","#8a5532","#5a3520"],PT={"#e03131":1,"#1c7ed6":2,"#f76707":2,"#212529":1,"#7048e8":2},LT=["#fcc419","#f1f3f5","#e64980","#f76707"];
 const shade=(h,f)=>{const n=parseInt(h.slice(1),16),r=Math.min(255,(n>>16&255)*f)|0,g=Math.min(255,(n>>8&255)*f)|0,b=Math.min(255,(n&255)*f)|0;return"#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)};
+const ACC_C=["","#111111","#F4F4F4","#D62828","#8B1226","#1C7ED6","#1D2E5E","#75AADB","#FCC419","#2F9E44","#F76707","#F783AC","#868E96"];
+function accDraw(X,Y,fr,side,ac,cc,K,SK,hc){
+ const col=cc>=1&&cc<=12?ACC_C[cc]:K.s,B="#000000";
+ if(ac===1||ac===2){const q=ac===1?1:2,tp=Y+3-q;R(X-1,tp-1,10,q+2,B);R(X,tp,8,q,col);return}
+ if(ac===3||ac===4){
+  if((ac===3&&fr&&!side)||(ac===4&&!fr)){R(X-2,Y-3,12,4,B);R(X-1,Y-2,10,3,col);R(X-1,Y+1,10,3,B);R(X,Y+1,8,2,shade(col,.72))}
+  else{R(X-2,Y-3,12,6,B);R(X-1,Y-2,10,4,col)}
+  return}
+ if(ac===5){R(X-2,Y-3,12,7,B);R(X-1,Y-2,10,5,col);R(X-1,Y+1,10,2,shade(col,1.25));return}
+ if(ac===10){R(fr?X-1:X+8,Y+5,1,2,"#fcc419");return}
+ if(!fr||side)return;
+ if(ac===6){R(X+1,Y+4,6,2,"#111111");R(X+1,Y+4,1,1,"#555555")}
+ else if(ac===7){const c=shade(SK,.78);[6,7].forEach(r=>{R(X+1,Y+r,2,1,c);R(X+5,Y+r,2,1,c)})}
+ else if(ac===8){R(X,Y+5,1,1,hc);R(X+7,Y+5,1,1,hc);R(X,Y+6,3,1,hc);R(X+5,Y+6,3,1,hc);R(X,Y+7,8,1,hc)}
+ else if(ac===9){R(X+2,Y+6,4,1,hc)}
+}
 function fig(x,y,kit,pose,d,tk,gl,num,ns,seed,front,ap){
  const K=(kit&&kit.s)?kit:kitOf(kit),c=K.s,SLc=K.m||c,fr=gl||front,sd=gl?100:(seed||0),SK=ap?ap.sk:SKT[(sd*3+1)%5],sty=ap?ap.st:gl?0:(q=>q===1||q===2?[0,3,4,5,6,7][(sd+q)%6]:q)(Math.floor(sd/3)%8),hc=ap?ap.hc:gl?HC[0]:HC[(sd*5+2)%7];
  const fd=(pose==="scorpion"||pose==="guns3")?(d<0?-1:1):d,hw=8,hh=8,bw=8,bh=6,sh=3,lh=ap?ap.lh:6,SC=K.h,P=[],A=(a,b,w,h,col)=>P.push([a,b,w,h,col]);
@@ -459,6 +496,7 @@ function fig(x,y,kit,pose,d,tk,gl,num,ns,seed,front,ap){
     if(pose==="cheer"||pose==="slide"||pose==="run"||pose==="hop"||pose==="runarm"||pose==="airarm"||pose==="stand1"||pose==="sit")R(x+hx+3,yy+hy+6,2,2,"#7a1212");
     else if(pose==="sad")R(x+hx+3,yy+hy+7,2,1,"#6b3a20");
     else R(x+hx+3,yy+hy+6,2,1,"#a5522b")}}
+  if(ap&&ap.ac)accDraw(x+hx,yy+hy,fr,pose==="dive"||pose==="scorpion"||pose==="guns3",ap.ac,ap.cc,K,SK,hc);
  }
  if(T&&num&&!front){const dk=K.l,lc=dk?"#fff":shade(c,.55);R(x+T[0],yy+T[1]+1,8,5,dk?"#222":"#fff");const sd2=String(num),ox=sd2.length===1?2:0;
   sd2.split("").forEach((ch,i)=>{const g=DG[+ch];for(let r=0;r<5;r++)for(let q=0;q<3;q++)if(g[r*3+q]==="1")R(x+T[0]+ox+i*4+q,yy+T[1]+1+r,1,1,lc)})}
@@ -1445,7 +1483,7 @@ function ttPage(n){
 function ttFit(){document.querySelectorAll("#ttx .fit").forEach(e=>{let s=+e.dataset.fs,m=+(e.dataset.min||10);e.style.fontSize=s+"px";while(e.scrollWidth>e.clientWidth&&s>m){s--;e.style.fontSize=s+"px"}})}
 function ttRender(){
  const el=$("ttx");if(!el)return;
- el.innerHTML=ttPage(ttPg);ttFit();ttAdm();chAdm();
+ el.innerHTML=ttPage(ttPg);ttFit();ttAdm();chAdm();apAdm();
 }
 function ttGo(n){ttPg=n;ttEd=0;const i=$("ttn");if(i)i.value="";ttRender();try{$("ttv").scrollIntoView({block:"start"})}catch(e){}}
 function ttForm(){
@@ -1468,7 +1506,7 @@ function ttInit(){
  if(ttOn||!$("ttx"))return;ttOn=true;
  $("ttx").addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-p]");if(t)ttGo(+t.dataset.p)});
  $("ttn").addEventListener("input",e=>{const v=e.target.value.replace(/\D/g,"");e.target.value=v;if(v.length===3)ttGo(+v)});
- db.collection("ttv").limit(60).onSnapshot(sn=>{TTV={};sn.docs.forEach(d=>{TTV[d.id]=d.data()});try{chatGrid();chatUi()}catch(e){}ttRender()},e=>{});
+ db.collection("ttv").limit(60).onSnapshot(sn=>{TTV={};sn.docs.forEach(d=>{TTV[d.id]=d.data()});Object.keys(APPC).forEach(k=>{delete APPC[k]});try{chatGrid();chatUi()}catch(e){}ttRender()},e=>{});
  db.collection("tournaments").where("swc.n",">",0).limit(100).onSnapshot(sn=>{TTH=sn.docs.map(d=>d.data()).filter(t=>t&&t.swc&&t.st==="done"&&t.win);ttRender()},e=>{});
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ttFit);
  window.addEventListener("resize",ttFit);
@@ -1545,6 +1583,56 @@ function chAdm(){
  el.classList.remove("hide");
  if(chEd){if(!el.querySelector("input"))chForm();return}
  el.innerHTML="";el.appendChild(btnE("ÄNDRA SNABBSVAR",()=>{chEd=true;chForm()}));
+}
+
+// ADMIN: UTSEENDE (UTSEENDE4). Sparar ett dokument per lag i ttv/ap_<LAG> (fältet a, samma format som APPD). Tomt = APPD i filen gäller.
+const HN=["KORT", "LÅNGT", "AFRO (STORT HÅR)", "TOFS I MITTEN", "SKALLIG", "TUNT", "SPRETIGT", "PANNBAND (ÄLDRE)", "LÅNG TOFS", "LOCKIGT", "BORSTKORT", "KORT MED SIDBENA", "KORT MED MITTBENA", "BAKÅTSLICKAT KORT", "FLATTOP", "MILITÄRKLIPPNING", "KORT FADE", "HÖG FADE MED LUGG", "POMADEFRISYR", "IVY LEAGUE", "RAK KORT LUGG", "SNED LUGG KORT", "POTTHÅR", "PIGGT GELHÅR", "TUFF", "UNDERCUT", "UNDERCUT BAKÅTSLICKAT", "MEDELLÅNGT RAKT", "MEDELLÅNGT MITTBENA", "GARDINFRISYR", "MEDELLÅNGT SIDLUGG", "HOCKEYFRILLA", "KORT MULLET", "SVEPIG LUGG", "BAKÅTKAMMAT MEDELLÅNGT", "BAKÅTSLICKAT LÅNGT", "VÅGIGT MEDELLÅNGT", "VÅGIGT KORT", "KORT LOCKIGT", "LOCKIGT MED FADE", "BOB", "LÅNG BOB", "PAGE", "FLUFFIGT", "LÅNGT RAKT", "LÅNGT MITTBENA", "LÅNGT VÅGIGT", "LÅNGT LOCKIGT", "LÅNGT BAKÅTSLICKAT", "LÅNGT SIDBENA", "EXTRA LÅNGT", "LEJONMAN", "HÅR I ANSIKTET", "LÅNG LUGG", "ROCKFRILLA", "HÄSTSVANS", "HÖG HÄSTSVANS", "LÅG HÄSTSVANS", "KNUT", "HÖG KNUT", "HALVT UPPSATT", "TVÅ TOFSAR", "FLÄTA", "TVÅ FLÄTOR", "CORNROWS", "LITEN AFRO", "MEDIUM AFRO", "HÖG AFRO", "KORTA DREADS", "LÅNGA DREADS", "UPPSATTA DREADS", "MOHAWK", "HÖG MOHAWK", "PUNKPIGGAR", "KAL MED LUGG-TRIANGEL"],HFN=["SVART", "MÖRKBRUNT", "BRUNT", "BLONT", "LJUSBLONT", "GRÅTT", "BLÅTT", "VINRÖD", "KÖRSBÄRSRÖD", "KARMOSIN", "KLARRÖD", "ELDRÖD", "BRANDRÖD (TIDIGARE NR 5)", "ROST", "MAHOGNY", "KASTANJ", "RÖDBRUN", "KANEL", "KOPPAR", "INGEFÄRA", "MOROTSORANGE", "RÖDBLONT", "PERSIKA", "JORDGUBBSRÖTT", "KOLSVART", "BLÅSVART", "ESPRESSO", "MÖRK CHOKLAD", "KAFFEBRUNT", "NÖTBRUNT", "MELLANBRUNT", "GYLLENBRUNT", "LJUSBRUNT", "ASKBRUNT", "MÖRKBLONT", "SANDBLONT", "HONUNGSBLONT", "GULDBLONT", "ASKBLONT", "PLATINABLONT", "VITT", "SALT OCH PEPPAR", "MÖRKGRÅTT", "SILVERGRÅTT", "MARINBLÅTT", "HIMMELSBLÅTT", "TURKOS", "GRÖNT", "LILA", "ROSA"],HB_NO=[4, 8, 9, 15, 19, 21, 23, 27, 53, 65, 72, 73, 74, 75],KP_NO=[3, 4, 15, 19, 24, 27, 44, 52, 57, 60, 62, 67, 68, 71, 72, 73, 74, 75],SKN_N=["LJUSAST","MYCKET LJUS","LJUS","MELLANLJUS","MELLAN","MÖRK","MÖRKARE","MÖRKAST"],LN=["1,60-1,67 M","1,68-1,75 M","1,76-1,84 M (NORMAL)","1,85-1,92 M","1,93 M OCH UPPÅT"],ACN=["INGET","HÅRBAND SMALT","HÅRBAND BRETT","KEPS","KEPS BAKVÄNT","MÖSSA","SOLGLASÖGON","SKÄGGSTUBB","HELSKÄGG","MUSTASCH","ÖRHÄNGE"],ACCN=["LAGETS TRÖJFÄRG","SVART","VIT","RÖD","MÖRKRÖD","BLÅ","MARINBLÅ","HIMMELSBLÅ","GUL","GRÖN","ORANGE","ROSA","GRÅ"];
+const AF=[["FRISYR",HN,1],["HÅRFÄRG",HFN,1],["HY",SKN_N,1],["LÄNGD",LN,1],["TILLBEHÖR",ACN,0],["TILLB.FÄRG",ACCN,0]];
+let apT="",apA=[],apS=0,apD=false,apOn=false;
+const apMsg=m=>{$("apm").textContent=m};
+const apSrcOf=t=>(TTV["ap_"+t]&&TTV["ap_"+t].a)||APPD[t]||"";
+function apParse(t){const a=apSrcOf(t).split(" ").filter(Boolean).map(s=>{const v=s.split(".").map(Number);while(v.length<6)v.push(0);return v.slice(0,6)});while(a.length<22)a.push([1,1,3,3,0,0]);return a}
+function apAdm(){const el=$("apadm");if(!el)return;if(!isAdmin()){el.classList.add("hide");el.innerHTML="";return}el.classList.remove("hide");if(!el.firstChild)el.appendChild(btnE("ÄNDRA UTSEENDE",openApp))}
+function opt(sel,v,t){const o=document.createElement("option");o.value=v;o.textContent=t;sel.appendChild(o)}
+function apBuild(){
+ const st=$("apt");TEAMS.concat(["BOT"]).forEach(t=>opt(st,t,TN[t]));
+ st.onchange=()=>{if(apD&&!window.confirm("OSPARADE ÄNDRINGAR FÖRSVINNER. BYTA LAG ÄNDÅ?")){st.value=apT;return}apLoad(st.value)};
+ $("app").onchange=()=>{apS=+$("app").value;apFill()};
+ $("apprev").onclick=()=>{apS=(apS+21)%22;apFill()};$("apnext").onclick=()=>{apS=(apS+1)%22;apFill()};
+ AF.forEach((f,i)=>{const r=mkE("div",null,"apr"),s=document.createElement("select");s.id="apf"+i;f[1].forEach((n,j)=>opt(s,f[2]+j,(f[2]+j)+" "+n));
+  s.onchange=()=>{apA[apS][i]=+s.value;apD=true;apFill()};r.append(mkE("b",f[0]),s);$("apf").appendChild(r)});
+ $("apsv").onclick=apSave;$("aprs").onclick=()=>{apA[apS]=apParse(apT)[apS];apFill()};$("apz").onclick=apReset;$("apb").onclick=closeApp;
+}
+function openApp(){
+ if(!isAdmin())return;if(!apOn){apOn=true;apBuild()}
+ $("lobby").classList.add("hide");$("apv").classList.remove("hide");
+ apLoad(apT||TEAMS[myCol]);
+}
+function closeApp(){if(apD&&!window.confirm("OSPARADE ÄNDRINGAR FÖRSVINNER. GÅ TILLBAKA ÄNDÅ?"))return;apD=false;$("apv").classList.add("hide");$("lobby").classList.remove("hide")}
+function apLoad(t){apT=t;$("apt").value=t;apA=apParse(t);apS=0;apD=false;apMsg("");
+ const p=$("app");p.innerHTML="";(ROSTER[t]||[]).forEach((q,i)=>opt(p,i,(i+1)+". "+q.name));apFill()}
+function apFill(){
+ const v=apA[apS];$("app").value=String(apS);
+ AF.forEach((f,i)=>{$("apf"+i).value=String(v[i])});
+ const ap=apFrom(v.join(".")),K=kitOf(apT),o=cx;
+ [["apc1",0],["apc2",1]].forEach(([id,f])=>{cx=$(id).getContext("2d");R(0,0,40,44,"#37b24d");fig(20,40,K,"idle",0,0,false,f?undefined:apS+1,false,apS+1,!!f,ap)});
+ cx=o;
+ const w=[];
+ if((v[4]===1||v[4]===2)&&HB_NO.includes(v[0]))w.push("HÅRBAND GÅR INTE MED DEN HÄR FRISYREN.");
+ if((v[4]===3||v[4]===4)&&KP_NO.includes(v[0]))w.push("KEPS GÅR INTE MED DEN HÄR FRISYREN.");
+ if(v[5]&&!(v[4]>=1&&v[4]<=5))w.push("TILLBEHÖRSFÄRG GÄLLER BARA HÅRBAND, KEPS OCH MÖSSA.");
+ $("apw").textContent=w.join(" ");
+ if(apD)apMsg("OSPARADE ÄNDRINGAR. TRYCK SPARA LAGET.");
+}
+async function apSave(){
+ const s=apA.map(v=>v.join(".")).join(" ");
+ try{await db.doc("ttv/ap_"+apT).set({a:s,t:Date.now()});TTV["ap_"+apT]={a:s,t:Date.now()};Object.keys(APPC).forEach(k=>{delete APPC[k]});apD=false;apMsg("SPARAT ✓ "+TN[apT]+". SPELARNA FÅR ÄNDRINGEN DIREKT.")}
+ catch(e){apMsg("KUNDE INTE SPARA: "+(e.message||e.code))}
+}
+async function apReset(){
+ if(!window.confirm("NOLLSTÄLL "+TN[apT]+" TILL UTSEENDENA I SPELFILEN? DET DU SPARAT FÖR LAGET TAS BORT."))return;
+ try{await db.doc("ttv/ap_"+apT).delete();delete TTV["ap_"+apT];Object.keys(APPC).forEach(k=>{delete APPC[k]});apD=false;apA=apParse(apT);apFill();apMsg("NOLLSTÄLLT.")}
+ catch(e){apMsg("KUNDE INTE NOLLSTÄLLA: "+(e.message||e.code))}
 }
 chatInit();
 function startGlobal(){ttInit();$("gstn").onclick=e=>{if(e.target&&e.target.closest&&e.target.closest("#gpl")&&db)openPlayers()};refreshGlobal();renderSwc();setInterval(refreshGlobal,60000);setInterval(renderSwc,60000)}
