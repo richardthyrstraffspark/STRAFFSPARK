@@ -216,7 +216,7 @@ button.go{margin:0;width:34px;height:30px;padding:0;font-size:10px;border-width:
  <div class="box hide" id="lgl"><p>MINA LIGOR</p><div id="lgm">INGA ÄNNU</div></div>
  <div class="box" id="gst"><p>I SPELET JUST NU</p><div id="gstn">LADDAR...</div><div id="plst" class="hide"></div></div>
  <div class="box" id="nmbox"><p>DITT NAMN</p><input id="nm" maxlength="10" placeholder="NAMN"><div id="mtm" class="hide"></div></div>
- <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-20 · CUPFIX2</div>
+ <div style="font-size:7px;color:var(--mu)">VERSION 2026-11-20 · CUPFIX3</div>
  <div class="box hide" id="lout"><div class="ml2"><div class="ml2l"><div class="ml2n wr" id="loutt"></div></div><button id="lob" class="dn">LOGGA UT</button></div></div>
 </div>
 <div id="tour" class="hide">
@@ -1864,7 +1864,7 @@ async function repairSwc04(){
  const TORV="dcXKdm5jtWMluA8jNOGiQqzj2gu2",MAL="pXDtfUcQCGZc4VKBklmoMu6t3UO2",LET="NoMIuvptfqa1yz55kJNu7EexGSl2",HK="1bQlthmqbbggjf6mHcU86dW5CJz1";
  if(!window.confirm("ÅTERSTÄLL GRUPP C I CUP IV: TORV, HARRY KANE, MÅLAREN OCH LETISSIER SÄTTS TILLBAKA, BOTARNA TAS BORT OCH GRUPP C:S RESULTAT RÄKNAS OM. FORTSÄTT?"))return;
  const u=t.u.filter(x=>!isAI(x)).concat([TORV,MAL,LET].filter(x=>!t.u.includes(x)));
- const upd={u,"g.C":[TORV,HK,MAL,LET],"pl.AI_0":FBD(),"pl.AI_1":FBD(),"pl.AI_2":FBD()};
+ const upd={u,"g.C":[TORV,HK,MAL,LET],"pl.AI_0":FBD(),"pl.AI_1":FBD(),"pl.AI_2":FBD(),"grace.G13":true};
  [[TORV,HK],[TORV,MAL],[TORV,LET],[HK,MAL],[HK,LET],[MAL,LET]].forEach((q,i)=>{upd["gm."+(12+i)]={g:"C",a:q[0],b:q[1],dl:t.gdl}});
  try{await tref.update(upd);window.alert("GRUPP C ÄR ÅTERSTÄLLD. RESULTATEN RÄKNAS OM AV SERVERN INOM CA 5 MINUTER.")}
  catch(e){window.alert("KUNDE INTE ÅTERSTÄLLA: "+(e.message||e.code||e))}
